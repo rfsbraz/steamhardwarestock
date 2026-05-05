@@ -3,11 +3,6 @@
   "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "functions": {
-    "api/proxy.js": {
-      "maxDuration": 10
-    }
-  },
   "rewrites": [
     {
       "source": "/",
@@ -25,6 +20,15 @@
         {
           "key": "Cache-Control",
           "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/(app\\.js|styles\\.css)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600, stale-while-revalidate=60"
         }
       ]
     },
