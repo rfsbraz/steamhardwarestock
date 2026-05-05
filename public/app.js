@@ -687,6 +687,7 @@ async function testNotification() {
     if (!granted) {
       return;
     }
+    setMessage('Sending test notification...');
     await notify('Steam hardware tracker', 'Test notification from the local stock tracker.');
   } catch (error) {
     setMessage(`Notification failed: ${error.message}`);
@@ -790,9 +791,16 @@ async function notify(title, body, url) {
 
   const registration = await getServiceWorkerRegistration();
   if (registration && typeof registration.showNotification === 'function') {
-    await registration.showNotification(title, options);
-    setMessage('Notification sent.');
-    return true;
+    try {
+      await registration.showNotification(title, options);
+      setMessage('Notification sent.');
+      return true;
+    } catch (error) {
+      // Fall back to the page-level API if the service worker path fails in this browser.
+      if (error && error.message) {
+        options._serviceWorkerError = error.message;
+      }
+    }
   }
 
   const notification = new Notification(title, options);
