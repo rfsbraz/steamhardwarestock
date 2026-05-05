@@ -2,7 +2,6 @@
 
 const STEAM_ORIGIN = 'https://store.steampowered.com';
 const STEAM_HARDWARE_API = 'https://api.steampowered.com/IStoreBrowseService/GetHardwareItems/v1/';
-const DISCOVERY_CACHE_MS = 60 * 1000;
 const DEFAULT_PRODUCTS = ['steam-controller'];
 const STORAGE_KEY = 'steam-hardware-stock-tracker-v3';
 const CHANGELOG_KEY = 'steam-hardware-changelog-v1';
@@ -38,9 +37,7 @@ const PRODUCTS = [
     name: 'Steam Controller',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/9d5d7384c51cd831aaf52dd47184ecd3.avif',
     paths: ['/hardware/steamcontroller/', '/sale/steamcontroller'],
-    packages: [{ id: 1558609, label: null }],
-    fallbackPackageIds: [1558609],
-    fallbackAppIds: [4165870]
+    packages: [{ id: 1558609, label: null }]
   },
   {
     id: 'steam-deck',
@@ -50,25 +47,19 @@ const PRODUCTS = [
     packages: [
       { id: 946113, label: '512GB OLED' },
       { id: 946114, label: '1TB OLED' }
-    ],
-    fallbackPackageIds: [],
-    fallbackAppIds: [1675200]
+    ]
   },
   {
     id: 'steam-frame',
     name: 'Steam Frame',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/82a194cce9b0912b2501236f4f4ef757.avif',
-    paths: ['/hardware/steamframe/', '/sale/steamframe'],
-    fallbackPackageIds: [],
-    fallbackAppIds: []
+    paths: ['/hardware/steamframe/', '/sale/steamframe']
   },
   {
     id: 'steam-machine',
     name: 'Steam Machine',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/d3888f2e560b3a837f6f0a25345b03b6.avif',
-    paths: ['/hardware/steammachine/', '/sale/steammachine'],
-    fallbackPackageIds: [],
-    fallbackAppIds: []
+    paths: ['/hardware/steammachine/', '/sale/steammachine']
   }
 ];
 
@@ -208,7 +199,6 @@ const state = {
   selectedRegions: new Set([DETECTED_REGION]),
   results: new Map(),
   availability: new Map(),
-  discoveryCache: new Map(),
   serviceWorkerRegistration: null,
   timer: null,
   nextCheckAt: null,
@@ -931,84 +921,6 @@ function parseKomodoSingle(html) {
   };
 }
 
-async function discoverProduct(product, region) {
-  const cacheKey = `${product.id}:${region}`;
-  const cached = state.discoveryCache.get(cacheKey);
-  if (cached && Date.now() - cached.cachedAt < DISCOVERY_CACHE_MS) {
-    return cached.value;
-  }
-
-  let bestDiscovery = null;
-  const errors = [];
-
-  for (const productPath of product.paths) {
-    const pageUrl = productPageUrl(product, region, productPath);
-
-    try {
-      const html = await fetchSteamText(pageUrl);
-      const config = parseJsonAttribute(html, 'data-config') || {};
-      const partnerEventStore = parseJsonAttribute(html, 'data-partnereventstore') || [];
-      const metadata = collectReservationMetadata(partnerEventStore);
-      const packageIds = metadata.packageIds.length ? metadata.packageIds : [...product.fallbackPackageIds];
-      const appIds = metadata.appIds.length ? metadata.appIds : [...product.fallbackAppIds];
-      const packageLabels = { ...metadata.packageLabels };
-      const discovery = {
-        product: publicProduct(product, region),
-        region,
-        pageUrl,
-        pageTitle: extractTitle(html),
-        countryFromPage: config.COUNTRY || null,
-        packageIds,
-        packageLabels,
-        appIds,
-        source: metadata.packageIds.length
-          ? 'page-reservation-widget'
-          : (packageIds.length ? 'fallback-product-registry' : 'page-no-package'),
-        widgetCount: metadata.widgetCount,
-        checkedAt: new Date().toISOString()
-      };
-
-      if (!bestDiscovery || discovery.packageIds.length) {
-        bestDiscovery = discovery;
-      }
-
-      if (discovery.packageIds.length) {
-        break;
-      }
-    } catch (error) {
-      errors.push(error.message);
-    }
-  }
-
-  if (!bestDiscovery && product.fallbackPackageIds.length) {
-    bestDiscovery = {
-      product: publicProduct(product, region),
-      region,
-      pageUrl: productPageUrl(product, region),
-      pageTitle: product.name,
-      countryFromPage: null,
-      packageIds: [...product.fallbackPackageIds],
-      packageLabels: {},
-      appIds: [...product.fallbackAppIds],
-      source: 'fallback-after-page-error',
-      widgetCount: 0,
-      checkedAt: new Date().toISOString(),
-      discoveryErrors: errors
-    };
-  }
-
-  if (!bestDiscovery) {
-    throw new Error(errors[0] || 'No Steam product page could be fetched.');
-  }
-
-  state.discoveryCache.set(cacheKey, {
-    cachedAt: Date.now(),
-    value: bestDiscovery
-  });
-
-  return bestDiscovery;
-}
-
 async function fetchHardwareItems(region, packageIds) {
   const input = {
     packageid: packageIds,
@@ -1029,10 +941,6 @@ async function fetchHardwareItems(region, packageIds) {
     apiUrl: apiUrl.toString(),
     details
   };
-}
-
-async function fetchSteamText(url) {
-  return fetchReadableSteamData(url, 'text', { maxBytes: 65536 });
 }
 
 async function fetchSteamJson(url) {
@@ -1630,21 +1538,21 @@ function classifyHardwareDetails(details) {
     };
   }
 
-  if (details.inventory_available) {
-    return {
-      found: true,
-      state: 'available',
-      label: 'In stock',
-      reason: 'Steam reports inventory is available for this country.'
-    };
-  }
-
   if (details.requires_reservation) {
     return {
       found: false,
       state: 'reservation',
       label: 'Reservation',
       reason: 'Steam reports reservation is required.'
+    };
+  }
+
+  if (details.inventory_available) {
+    return {
+      found: true,
+      state: 'available',
+      label: 'In stock',
+      reason: 'Steam reports inventory is available for this country.'
     };
   }
 
@@ -1708,103 +1616,6 @@ function classifyProductPackages(packages) {
     label: 'Unknown',
     reason: 'Steam returned hardware packages, but no known inventory state.'
   };
-}
-
-function collectReservationMetadata(partnerEventStore) {
-  const packageIds = new Set();
-  const appIds = new Set();
-  const packageLabels = {};
-  const events = Array.isArray(partnerEventStore) ? partnerEventStore : [];
-  let widgetCount = 0;
-
-  for (const event of events) {
-    let jsonData = event && event.jsondata;
-    if (typeof jsonData === 'string') {
-      try {
-        jsonData = JSON.parse(jsonData);
-      } catch {
-        continue;
-      }
-    }
-
-    const sections = jsonData && Array.isArray(jsonData.sale_sections) ? jsonData.sale_sections : [];
-    for (const section of sections) {
-      const internalData = section && section.internal_section_data;
-      if (!internalData || internalData.internal_type !== 'reservation_widget') {
-        continue;
-      }
-
-      widgetCount += 1;
-      const appId = Number(internalData.reservation_appid_wishlist);
-      if (Number.isInteger(appId) && appId > 0) {
-        appIds.add(appId);
-      }
-
-      const options = Array.isArray(internalData.reservation_options) ? internalData.reservation_options : [];
-      for (const option of options) {
-        const packageId = Number(option && option.reservation_package);
-        if (Number.isInteger(packageId) && packageId > 0) {
-          packageIds.add(packageId);
-          const label = extractReservationOptionLabel(option);
-          if (label) {
-            packageLabels[String(packageId)] = label;
-          }
-        }
-      }
-    }
-  }
-
-  return {
-    packageIds: [...packageIds],
-    appIds: [...appIds],
-    packageLabels,
-    widgetCount
-  };
-}
-
-function extractReservationOptionLabel(option) {
-  const descriptions = Array.isArray(option && option.localized_reservation_desc)
-    ? option.localized_reservation_desc
-    : [];
-  const description = descriptions[0] || descriptions.find(Boolean) || '';
-  const match = /\[classname=skutype\]([\s\S]*?)\[\/classname\]/i.exec(description);
-  return match ? stripSteamMarkup(match[1]) : null;
-}
-
-function stripSteamMarkup(value) {
-  return String(value || '')
-    .replace(/\[\/?[^\]]+\]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function parseJsonAttribute(html, attributeName) {
-  const doubleQuoted = new RegExp(`${attributeName}="([^"]*)"`, 'i').exec(html);
-  if (doubleQuoted) {
-    return JSON.parse(decodeHtmlAttribute(doubleQuoted[1]));
-  }
-
-  const singleQuoted = new RegExp(`${attributeName}='([^']*)'`, 'i').exec(html);
-  if (singleQuoted) {
-    return JSON.parse(decodeHtmlAttribute(singleQuoted[1]));
-  }
-
-  return null;
-}
-
-function decodeHtmlAttribute(value) {
-  return value
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>');
-}
-
-function extractTitle(html) {
-  const match = /<title>([^<]+)/i.exec(html);
-  return match ? match[1].trim() : null;
 }
 
 function buildRegionCatalog() {
