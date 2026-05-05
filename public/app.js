@@ -471,38 +471,38 @@ function createRegionCard(regionCode, productIds) {
   top.append(title);
   card.append(top);
 
-  const list = document.createElement('div');
-  list.className = 'model-list';
-
   for (const productId of productIds) {
     const key = resultKey(productId, regionCode);
     const result = state.results.get(key);
     const product = result ? result.product : getProduct(productId);
-    const status = result ? result.status : { state: 'unknown', label: 'Waiting' };
+    const status = result ? result.status : { state: 'unknown', label: 'Waiting', reason: 'Not checked yet.' };
+    const details = primaryDetails(result);
     const pageUrl = result ? result.pageUrl : productPageUrl(product, regionCode);
 
-    const row = document.createElement('div');
-    row.className = 'product-row';
-
-    const productName = document.createElement('span');
-    productName.className = 'model-name';
-    productName.textContent = product.name;
-
-    const badge = document.createElement('span');
-    badge.className = `badge ${status.state}`;
-    badge.textContent = status.label;
-
-    const link = document.createElement('a');
-    link.href = pageUrl;
-    link.target = '_blank';
-    link.rel = 'noreferrer';
-    link.textContent = 'Steam';
-
-    row.append(productName, badge, link);
-    list.append(row);
+    const section = document.createElement('div');
+    section.className = 'product-section';
+    section.innerHTML = `
+      <div class="product-section-head">
+        <span class="product-section-name">${escapeHtml(product.name)}</span>
+        <span class="badge ${escapeHtml(status.state)}">${escapeHtml(status.label)}</span>
+      </div>
+      <div class="reason">${escapeHtml(status.reason || '')}</div>
+      <div class="detail-grid">
+        <div class="detail"><span>Inventory</span><span>${formatBoolean(details.inventory_available)}</span></div>
+        <div class="detail"><span>Purchasable</span><span>${formatBoolean(details.allow_purchase_in_country)}</span></div>
+        <div class="detail"><span>Pending</span><span>${formatBoolean(details.high_pending_orders)}</span></div>
+        <div class="detail"><span>Packages</span><span>${escapeHtml(formatPackageCount(result))}</span></div>
+        <div class="detail"><span>Delivery</span><span>${escapeHtml(formatDelivery(details))}</span></div>
+        <div class="detail"><span>Checked</span><span>${escapeHtml(result ? formatTime(result.checkedAt) : 'Never')}</span></div>
+      </div>
+      ${renderPackageModels(result)}
+      <div class="card-actions">
+        <a href="${escapeAttribute(pageUrl)}" target="_blank" rel="noreferrer">Steam page</a>
+      </div>
+    `;
+    card.append(section);
   }
 
-  card.append(list);
   return card;
 }
 

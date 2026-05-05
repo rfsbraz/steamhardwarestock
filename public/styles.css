@@ -459,13 +459,31 @@ select {
   padding-top: 10px;
 }
 
-.model-row,
-.product-row {
+.model-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 8px;
   min-height: 32px;
+}
+
+.product-section {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.product-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.product-section-name {
+  font-size: 1rem;
+  font-weight: 800;
 }
 
 .model-name,
@@ -566,17 +584,11 @@ select {
     grid-template-columns: 1fr;
   }
 
-  .model-row,
-  .product-row {
+  .model-row {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .model-delivery {
     grid-column: 1 / -1;
-  }
-
-  .product-row a {
-    grid-column: 1 / -1;
-    font-size: 0.82rem;
   }
 }
