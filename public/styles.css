@@ -2,7 +2,6 @@
   color-scheme: light;
   --bg: #f5f6f3;
   --surface: #ffffff;
-  --surface-sub: #fbfcf8;
   --surface-strong: #202124;
   --text: #1d1f23;
   --muted: #636a72;
@@ -17,43 +16,6 @@
   --blue: #1b66c9;
   --focus: #111111;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #0d1117;
-  --surface: #161b22;
-  --surface-sub: #0d1117;
-  --surface-strong: #e6edf3;
-  --text: #e6edf3;
-  --muted: #7d8590;
-  --line: #30363d;
-  --green: #3fb950;
-  --green-bg: #0d1f17;
-  --amber: #d29922;
-  --amber-bg: #272012;
-  --red: #f85149;
-  --red-bg: #1f0d0d;
-  --gray-bg: #21262d;
-  --blue: #58a6ff;
-  --focus: #e6edf3;
-}
-
-[data-theme="dark"] button:hover:not(:disabled) {
-  border-color: #484f58;
-  background: #21262d;
-}
-
-[data-theme="dark"] button.primary {
-  color: #0d1117;
-}
-
-[data-theme="dark"] button.primary:hover:not(:disabled) {
-  background: #b1bac4;
-}
-
-[data-theme="dark"] .country-dropdown {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -130,20 +92,6 @@ a:hover {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 18px;
-}
-
-.topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.theme-toggle {
-  font-size: 0.8rem;
-  min-height: 32px;
-  padding: 0 10px;
-  color: var(--muted);
 }
 
 .eyebrow {
@@ -224,7 +172,7 @@ select {
   min-height: 40px;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: var(--surface);
+  background: white;
   color: var(--text);
   padding: 0 10px;
 }
@@ -308,7 +256,7 @@ select {
   border: 1px solid var(--line);
   border-radius: 6px;
   padding: 8px 10px;
-  background: var(--surface-sub);
+  background: #fbfcf8;
   cursor: pointer;
 }
 
@@ -363,7 +311,7 @@ select {
   gap: 2px;
   min-height: 74px;
   padding: 14px 16px;
-  background: var(--surface);
+  background: white;
 }
 
 .metric-value {
@@ -412,7 +360,7 @@ select {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 14px;
-  background: var(--surface-sub);
+  background: #fbfcf8;
 }
 
 .result-top {
@@ -472,7 +420,7 @@ select {
 
 .reason {
   min-height: 38px;
-  color: var(--text);
+  color: #42464d;
   line-height: 1.35;
 }
 
@@ -565,10 +513,6 @@ select {
   .results-head {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .topbar-actions {
-    flex-direction: row-reverse;
   }
 
   .control-row,
