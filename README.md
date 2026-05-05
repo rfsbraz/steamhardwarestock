@@ -3,23 +3,49 @@
 [![CI](https://github.com/rfsbraz/steamhardwarestock/actions/workflows/ci.yml/badge.svg)](https://github.com/rfsbraz/steamhardwarestock/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Browser stock watcher for Steam Controller, Steam Frame, and Steam Machine availability by country.
+Open-source browser app for checking official Steam hardware availability by country.
 
-Production site:
+Live site: https://steamhardwarestock.com/
 
-```text
-https://steamhardwarestock.com/
-```
+## What It Tracks
+
+- Steam Controller
+- Steam Frame
+- Steam Machine
+
+The tracker checks official Steam product pages and Steam's public hardware availability endpoint. It is meant to help people watch official stock instead of relying on scalpers or resale listings.
 
 ## Features
 
-- Tracks Steam Controller, Steam Frame, and Steam Machine product pages.
-- Checks country-specific Steam hardware availability.
-- Sends browser notifications when watched hardware becomes available.
-- Defaults to Steam Controller and the browser timezone's likely country.
-- Helps buyers watch official Steam stock instead of overpaying scalpers.
+- Country-specific Steam hardware checks.
+- Browser notifications when watched hardware becomes available.
+- Product and country selection stored locally in the browser.
+- Automatic country default based on browser timezone or language hints.
+- Static frontend with a small allowlisted proxy for Steam requests.
+- No accounts, database, analytics backend, or paid service dependency.
 
-## Run Locally
+## How It Works
+
+The app runs mostly in the browser from `public/app.js`. Steam does not currently send browser CORS headers for the product pages or hardware API, so deployed versions need a tiny same-origin proxy.
+
+The proxy only allows requests to:
+
+```text
+https://store.steampowered.com/hardware/*
+https://store.steampowered.com/sale/*
+https://api.steampowered.com/IStoreBrowseService/GetHardwareItems/v1/
+```
+
+Product discovery starts from Steam product pages. When Steam publishes reservation widgets or package IDs, the app uses those IDs to query Steam's hardware endpoint. Products without published stock-checkable packages show as `No package yet`.
+
+## Requirements
+
+- Node.js 20 or newer
+- npm, included with Node.js
+
+This project has no npm runtime dependencies.
+
+## Local Development
 
 ```powershell
 npm start
@@ -31,56 +57,7 @@ Then open:
 http://127.0.0.1:5177
 ```
 
-## Vercel Deployment
-
-This project is ready for Vercel as a static site plus one serverless proxy function.
-
-- Build command: `npm run build`
-- Output directory: `dist`
-- Serverless function: `api/proxy.js`
-- Production domain: `steamhardwarestock.com`
-
-The included `vercel.json` configures the build, static output, service-worker cache header, and rewrites `/proxy` to `/api/proxy`.
-
-Production deployments are handled by GitHub Actions on every push to `main`. The deploy workflow runs syntax checks, builds with Vercel, and deploys the prebuilt output to production.
-
-Required GitHub repository secrets:
-
-- `VERCEL_TOKEN`
-- `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID`
-- `RELEASE_PLEASE_TOKEN` recommended, optional fallback is `GITHUB_TOKEN`
-
-## Releases
-
-Releases are managed with release-please. Conventional commits merged into `main` open or update a release PR. Merging that release PR creates the GitHub release, tag, changelog, and package version bump.
-
-## Why There Is A Proxy
-
-The app's stock-checking logic lives in `public/app.js`, and the product/country catalogs are client-side. Steam does not currently send browser CORS headers for the hardware API or product pages, so live checks need a tiny allowlisted proxy.
-
-The proxy only allows:
-
-```text
-https://store.steampowered.com/hardware/*
-https://store.steampowered.com/sale/*
-https://api.steampowered.com/IStoreBrowseService/GetHardwareItems/v1/
-```
-
-## Product Checks
-
-The app watches product pages instead of asking users for package ids. It discovers hardware package ids from the Steam page reservation widget when Steam publishes them. If package ids are available, it checks stock through Steam's public hardware endpoint.
-
-Steam Controller currently exposes a stock-checkable package. Steam Frame and Steam Machine currently have live pages but no published hardware package widget, so they show as `No package yet` until Steam adds purchasable or reservable packages.
-
-## SEO Files
-
-The static build includes production metadata for `steamhardwarestock.com`, plus:
-
-- `robots.txt`
-- `sitemap.xml`
-- `site.webmanifest`
-- `favicon.svg`
+The local server serves files from `public/` and exposes the same `/proxy` route used by the deployed app.
 
 ## Project Scripts
 
@@ -90,9 +67,65 @@ npm run build
 npm start
 ```
 
+- `npm run check` syntax-checks the server, proxy, build script, client app, and service worker.
+- `npm run build` copies `public/` into `dist/`.
+- `npm start` runs the local development server.
+
+## Project Structure
+
+```text
+api/proxy.js       Vercel serverless proxy for Steam requests
+public/            Static browser app, styles, manifest, SEO files
+scripts/build.js   Static build script
+server.js          Local development server and proxy
+vercel.json        Vercel routing, build, headers, and function config
+```
+
+## Deployment
+
+The project is designed for Vercel as a static site plus one serverless function.
+
+Recommended Vercel settings:
+
+```text
+Framework Preset: Other
+Build Command: npm run build
+Output Directory: dist
+```
+
+The included `vercel.json` sets `framework` to `null`, builds `dist/`, serves `/` from `/index.html`, keeps `/sw.js` uncached, and rewrites `/proxy` to `/api/proxy`.
+
+Maintainer production deploys are handled by GitHub Actions on pushes to `main`. The deploy workflow expects:
+
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+- `RELEASE_PLEASE_TOKEN` recommended, with `GITHUB_TOKEN` as the fallback
+
 ## Contributing
 
-Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md) before opening large changes.
+Contributions are welcome. Good changes for this project are usually small, testable, and focused on one behavior at a time.
+
+Before opening a pull request:
+
+1. Run `npm run check`.
+2. Run `npm run build` if static assets changed.
+3. Keep unrelated formatting or generated-file churn out of the PR.
+4. Open an issue first for large behavior changes, new deployment targets, or changes to Steam parsing logic.
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md).
+
+## Releases
+
+Releases are managed with release-please. Conventional commits merged into `main` open or update a release PR. Merging that release PR creates the GitHub release, tag, changelog, and package version bump.
+
+## Privacy
+
+The app stores preferences in browser `localStorage`. The project does not have user accounts or a database. Deployed proxy requests may still appear in normal hosting provider logs.
+
+## Security
+
+Please do not open public issues for vulnerabilities. Follow the reporting guidance in [SECURITY.md](SECURITY.md).
 
 ## Disclaimer
 
