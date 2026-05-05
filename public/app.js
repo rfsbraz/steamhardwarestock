@@ -487,6 +487,7 @@ function createRegionCard(regionCode, productIds) {
   card.append(top);
 
   for (const productId of productIds) {
+    if (KOMODO_CATALOG[productId] && KOMODO_REGIONS.has(regionCode)) continue;
     const key = resultKey(productId, regionCode);
     const result = state.results.get(key);
     const product = result ? result.product : getProduct(productId);
@@ -591,13 +592,11 @@ function updateSummary() {
   const productIds = [...state.selectedProducts];
   const regionCodes = [...state.selectedRegions];
   const selectedKeys = productIds.flatMap((productId) =>
-    regionCodes.flatMap((regionCode) => {
-      const keys = [resultKey(productId, regionCode)];
-      if (KOMODO_CATALOG[productId] && KOMODO_REGIONS.has(regionCode)) {
-        keys.push(komodoResultKey(productId, regionCode));
-      }
-      return keys;
-    })
+    regionCodes.map((regionCode) =>
+      KOMODO_CATALOG[productId] && KOMODO_REGIONS.has(regionCode)
+        ? komodoResultKey(productId, regionCode)
+        : resultKey(productId, regionCode)
+    )
   );
   const results = selectedKeys.map((key) => state.results.get(key)).filter(Boolean);
   const available = results.filter((result) => result.status && result.status.found).length;
@@ -729,7 +728,11 @@ async function checkNow({ manual }) {
   setMessage('Checking...');
   renderControls();
 
-  const checks = products.flatMap((product) => regions.map((region) => ({ product, region })));
+  const checks = products.flatMap((product) =>
+    regions
+      .filter((region) => !(KOMODO_CATALOG[product.id] && KOMODO_REGIONS.has(region)))
+      .map((region) => ({ product, region }))
+  );
 
   const komodoChecks = [];
   for (const { id: productId } of products) {
