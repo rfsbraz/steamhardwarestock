@@ -36,6 +36,7 @@ const PRODUCTS = [
     name: 'Steam Controller',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/9d5d7384c51cd831aaf52dd47184ecd3.avif',
     paths: ['/hardware/steamcontroller/', '/sale/steamcontroller'],
+    packages: [{ id: 1558609, label: null }],
     fallbackPackageIds: [1558609],
     fallbackAppIds: [4165870]
   },
@@ -44,6 +45,10 @@ const PRODUCTS = [
     name: 'Steam Deck',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/6163a5d5ee139c8c07485f6e72fba875.avif',
     paths: ['/steamdeck/'],
+    packages: [
+      { id: 946113, label: '512GB OLED' },
+      { id: 946114, label: '1TB OLED' }
+    ],
     fallbackPackageIds: [],
     fallbackAppIds: [1675200]
   },
@@ -798,6 +803,25 @@ async function checkNow({ manual }) {
 }
 
 async function checkProductRegion(product, region) {
+  if (product.packages && product.packages.length) {
+    const packageIds = product.packages.map((p) => p.id);
+    const { apiUrl, details } = await fetchHardwareItems(region, packageIds);
+    const packages = product.packages.map(({ id: packageId, label }) => {
+      const detail = details.find((item) => Number(item.packageid) === packageId) || null;
+      return { packageId, label, status: classifyHardwareDetails(detail), details: detail };
+    });
+    return {
+      product: publicProduct(product, region),
+      region,
+      pageUrl: productPageUrl(product, region),
+      apiUrl,
+      checkedAt: new Date().toISOString(),
+      packageCount: packageIds.length,
+      packages,
+      status: classifyProductPackages(packages)
+    };
+  }
+
   const discovery = await discoverProduct(product, region);
 
   if (!discovery.packageIds.length) {
