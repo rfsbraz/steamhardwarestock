@@ -13,6 +13,7 @@ async function readHistoryFresh() {
   const timer = setTimeout(() => controller.abort(), BLOB_TIMEOUT_MS);
   try {
     const result = await get(HISTORY_BLOB, {
+      access: 'public',
       token: process.env.BLOB_READ_WRITE_TOKEN,
       useCache: false,
       abortSignal: controller.signal

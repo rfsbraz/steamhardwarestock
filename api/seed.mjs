@@ -50,6 +50,7 @@ export default {
     const readTimer = setTimeout(() => readController.abort(), BLOB_TIMEOUT_MS);
     try {
       const result = await get(HISTORY_BLOB, {
+        access: 'public',
         token: process.env.BLOB_READ_WRITE_TOKEN,
         useCache: false,
         abortSignal: readController.signal
