@@ -35,6 +35,7 @@ export default {
     }
 
     let history = {};
+    let historyLoaded = false;
     const listController = new AbortController();
     const listTimer = setTimeout(() => listController.abort(), BLOB_TIMEOUT_MS);
     try {
@@ -45,12 +46,21 @@ export default {
       });
       clearTimeout(listTimer);
       if (blobs.length) {
-        const res = await fetch(blobs[0].url);
-        if (res.ok) history = await res.json();
+        const res = await fetch(`${blobs[0].url}?ts=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`blob fetch failed: ${res.status}`);
+        history = await res.json();
       }
+      historyLoaded = true;
     } catch (error) {
       clearTimeout(listTimer);
       console.error('record list error:', error?.name, error?.message);
+    }
+
+    if (!historyLoaded) {
+      return new Response(JSON.stringify({ error: 'history unavailable, refusing to overwrite' }), {
+        status: 503,
+        headers: { ...CORS, 'content-type': 'application/json' }
+      });
     }
 
     const entry = history[key] || {
@@ -94,6 +104,7 @@ export default {
         contentType: 'application/json',
         addRandomSuffix: false,
         allowOverwrite: true,
+        cacheControlMaxAge: 60,
         token: process.env.BLOB_READ_WRITE_TOKEN,
         abortSignal: putController.signal
       });

@@ -35,7 +35,7 @@ export default {
         return new Response('{}', { status: 200, headers: { ...CORS, 'content-type': 'application/json' } });
       }
 
-      const upstream = await fetch(blobs[0].url);
+      const upstream = await fetch(`${blobs[0].url}?ts=${Date.now()}`, { cache: 'no-store' });
       if (!upstream.ok) throw new Error(`blob fetch failed: ${upstream.status}`);
       const body = await upstream.text();
 
