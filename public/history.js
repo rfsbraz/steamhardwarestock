@@ -1,5 +1,33 @@
 'use strict';
 
+const STEAM_ORIGIN = 'https://store.steampowered.com';
+const KOMODO_ORIGIN = 'https://komodostation.com';
+
+const PRODUCTS = {
+  'steam-controller': {
+    name: 'Steam Controller',
+    icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/9d5d7384c51cd831aaf52dd47184ecd3.avif',
+    steamPath: '/hardware/steamcontroller/',
+    komodoPath: '/product/steam-controller/'
+  },
+  'steam-deck': {
+    name: 'Steam Deck',
+    icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/6163a5d5ee139c8c07485f6e72fba875.avif',
+    steamPath: '/steamdeck/',
+    komodoPath: '/product/steam-deck_jpy/'
+  },
+  'steam-frame': {
+    name: 'Steam Frame',
+    icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/82a194cce9b0912b2501236f4f4ef757.avif',
+    steamPath: '/hardware/steamframe/'
+  },
+  'steam-machine': {
+    name: 'Steam Machine',
+    icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/d3888f2e560b3a837f6f0a25345b03b6.avif',
+    steamPath: '/hardware/steammachine/'
+  }
+};
+
 const REGION_NAMES = {
   US: 'United States', CA: 'Canada', GB: 'United Kingdom', IE: 'Ireland', AU: 'Australia',
   NZ: 'New Zealand', AT: 'Austria', BE: 'Belgium', BG: 'Bulgaria', HR: 'Croatia', CY: 'Cyprus',
@@ -45,19 +73,14 @@ function formatDateTime(isoString) {
   }).format(new Date(isoString));
 }
 
-function formatCell(isoString) {
-  if (!isoString) return '-';
-  return `${formatRelativeTime(isoString)} (${formatDateTime(isoString)})`;
-}
-
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-function sourceLabel(source) {
-  return source === 'komodo' ? 'Komodo' : 'Steam';
+function escapeAttribute(value) {
+  return escapeHtml(value);
 }
 
 function regionFullName(code) {
@@ -75,6 +98,45 @@ function isCurrentlyInStock(entry) {
   const inTs = entry.lastInStock ? Date.parse(entry.lastInStock) || 0 : 0;
   const outTs = entry.lastOutOfStock ? Date.parse(entry.lastOutOfStock) || 0 : 0;
   return inTs > outTs;
+}
+
+function storeUrl(entry) {
+  const product = PRODUCTS[entry.productId];
+  if (!product) return null;
+  if (entry.source === 'komodo') {
+    return product.komodoPath ? `${KOMODO_ORIGIN}${product.komodoPath}` : null;
+  }
+  if (!product.steamPath) return null;
+  const url = new URL(product.steamPath, STEAM_ORIGIN);
+  if (entry.region) url.searchParams.set('cc', entry.region);
+  url.searchParams.set('l', 'english');
+  return url.toString();
+}
+
+function statusInfo(entry) {
+  const inStock = isCurrentlyInStock(entry);
+  if (inStock) {
+    return {
+      cssClass: 'available',
+      label: 'In stock',
+      timelineLabel: 'In stock since',
+      timelineTs: entry.lastInStock
+    };
+  }
+  if (entry.lastInStock) {
+    return {
+      cssClass: 'out',
+      label: 'Out of stock',
+      timelineLabel: 'Last in stock',
+      timelineTs: entry.lastInStock
+    };
+  }
+  return {
+    cssClass: 'out',
+    label: 'Out of stock',
+    timelineLabel: 'Out of stock since',
+    timelineTs: entry.lastOutOfStock
+  };
 }
 
 function applyFilters(entries) {
@@ -109,6 +171,9 @@ function applySort(entries) {
     case 'events':
       sorted.sort((a, b) => (b.events?.length || 0) - (a.events?.length || 0));
       break;
+    case 'recent':
+      sorted.sort((a, b) => tsValue(b) - tsValue(a));
+      break;
     case 'lastInStock':
     default:
       sorted.sort((a, b) => (Date.parse(b.lastInStock) || 0) - (Date.parse(a.lastInStock) || 0));
@@ -125,41 +190,46 @@ function renderHistoryAsOf() {
     return;
   }
   const iso = new Date(latest).toISOString();
-  el.textContent = ` Last activity: ${formatRelativeTime(iso)} (${formatDateTime(iso)}).`;
+  el.textContent = `Last activity: ${formatRelativeTime(iso)} (${formatDateTime(iso)})`;
 }
 
 function renderProductFilter() {
-  const fieldset = document.getElementById('filterProducts');
-  if (!fieldset) return;
+  const container = document.getElementById('filterProducts');
+  if (!container) return;
   const products = new Map();
   for (const entry of state.entries) {
     if (entry.productId && !products.has(entry.productId)) {
-      products.set(entry.productId, entry.productName || entry.productId);
+      products.set(entry.productId, entry.productName || PRODUCTS[entry.productId]?.name || entry.productId);
     }
   }
   const sorted = [...products.entries()].sort((a, b) => a[1].localeCompare(b[1]));
-  const existing = fieldset.querySelector('legend');
-  fieldset.innerHTML = '';
-  if (existing) fieldset.appendChild(existing); else {
-    const legend = document.createElement('legend');
-    legend.textContent = 'Products';
-    fieldset.appendChild(legend);
-  }
+  container.innerHTML = '';
   for (const [id, name] of sorted) {
-    const label = document.createElement('label');
-    label.innerHTML = `<input type="checkbox" value="${escapeHtml(id)}"> ${escapeHtml(name)}`;
-    const input = label.querySelector('input');
-    input.checked = state.filters.products.has(id);
-    input.addEventListener('change', () => {
-      if (input.checked) state.filters.products.add(id);
-      else state.filters.products.delete(id);
-      renderTable();
+    const product = PRODUCTS[id];
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'filter-chip';
+    chip.dataset.id = id;
+    if (state.filters.products.has(id)) chip.classList.add('active');
+    chip.innerHTML = `
+      ${product?.icon ? `<img src="${escapeAttribute(product.icon)}" alt="" loading="lazy">` : ''}
+      <span>${escapeHtml(name)}</span>
+    `;
+    chip.addEventListener('click', () => {
+      if (state.filters.products.has(id)) {
+        state.filters.products.delete(id);
+        chip.classList.remove('active');
+      } else {
+        state.filters.products.add(id);
+        chip.classList.add('active');
+      }
+      renderCards();
     });
-    fieldset.appendChild(label);
+    container.appendChild(chip);
   }
 }
 
-function renderTable() {
+function renderCards() {
   const messageEl = document.getElementById('historyMessage');
   const contentEl = document.getElementById('historyContent');
   const countEl = document.getElementById('historyCounts');
@@ -182,42 +252,62 @@ function renderTable() {
 
   messageEl.textContent = '';
 
-  const table = document.createElement('table');
-  table.className = 'history-table';
-  table.innerHTML = `
-    <thead>
-      <tr>
-        <th>Product</th>
-        <th>Region</th>
-        <th>Source</th>
-        <th>Status</th>
-        <th>Last in stock</th>
-        <th>Last out of stock</th>
-        <th>Events</th>
-      </tr>
-    </thead>
-  `;
+  const grid = document.createElement('div');
+  grid.className = 'history-grid';
 
-  const tbody = document.createElement('tbody');
   for (const entry of filtered) {
-    const tr = document.createElement('tr');
-    const inStock = isCurrentlyInStock(entry);
-    const statusBadge = inStock
-      ? '<span class="badge available">In stock</span>'
-      : '<span class="badge out">Out of stock</span>';
-    tr.innerHTML = `
-      <td>${escapeHtml(entry.productName || entry.productId || '-')}</td>
-      <td>${escapeHtml(entry.region || '-')}<span class="region-full-name"> ${escapeHtml(regionFullName(entry.region))}</span></td>
-      <td>${escapeHtml(sourceLabel(entry.source))}</td>
-      <td>${statusBadge}</td>
-      <td>${escapeHtml(formatCell(entry.lastInStock))}</td>
-      <td>${escapeHtml(formatCell(entry.lastOutOfStock))}</td>
-      <td>${escapeHtml(String(Array.isArray(entry.events) ? entry.events.length : 0))}</td>
+    const product = PRODUCTS[entry.productId];
+    const status = statusInfo(entry);
+    const link = storeUrl(entry);
+    const eventCount = Array.isArray(entry.events) ? entry.events.length : 0;
+    const sourceTag = entry.source === 'komodo' ? '<span class="source-tag">Komodo</span>' : '';
+    const timelineRel = status.timelineTs ? formatRelativeTime(status.timelineTs) : '—';
+    const timelineAbs = status.timelineTs ? formatDateTime(status.timelineTs) : '';
+
+    const card = document.createElement('article');
+    card.className = 'history-card';
+    card.innerHTML = `
+      <header class="history-card-head">
+        <div class="history-product">
+          ${product?.icon ? `<img class="history-product-icon" src="${escapeAttribute(product.icon)}" alt="" loading="lazy">` : ''}
+          <div class="history-product-meta">
+            <span class="history-product-name">${escapeHtml(entry.productName || product?.name || entry.productId || '—')} ${sourceTag}</span>
+            <span class="history-region">
+              <span class="history-region-code">${escapeHtml(entry.region || '—')}</span>
+              <span class="region-full-name">${escapeHtml(regionFullName(entry.region))}</span>
+            </span>
+          </div>
+        </div>
+        <span class="badge ${status.cssClass}">${escapeHtml(status.label)}</span>
+      </header>
+
+      <div class="history-timeline">
+        <span class="history-timeline-label">${escapeHtml(status.timelineLabel)}</span>
+        <span class="history-timeline-value">${escapeHtml(timelineRel)}</span>
+        ${timelineAbs ? `<span class="history-timeline-abs">${escapeHtml(timelineAbs)}</span>` : ''}
+      </div>
+
+      <dl class="history-meta">
+        <div>
+          <dt>Last in stock</dt>
+          <dd>${entry.lastInStock ? escapeHtml(formatRelativeTime(entry.lastInStock)) : '—'}</dd>
+        </div>
+        <div>
+          <dt>Last out of stock</dt>
+          <dd>${entry.lastOutOfStock ? escapeHtml(formatRelativeTime(entry.lastOutOfStock)) : '—'}</dd>
+        </div>
+        <div>
+          <dt>Events</dt>
+          <dd>${eventCount}</dd>
+        </div>
+      </dl>
+
+      ${link ? `<div class="history-card-actions"><a href="${escapeAttribute(link)}" target="_blank" rel="noreferrer">${entry.source === 'komodo' ? 'Komodo' : 'Steam'} page →</a></div>` : ''}
     `;
-    tbody.append(tr);
+    grid.append(card);
   }
-  table.append(tbody);
-  contentEl.append(table);
+
+  contentEl.append(grid);
 }
 
 function bindFilters() {
@@ -226,36 +316,34 @@ function bindFilters() {
   const reset = document.getElementById('filterReset');
   region.addEventListener('input', () => {
     state.filters.region = region.value;
-    renderTable();
+    renderCards();
   });
   sort.addEventListener('change', () => {
     state.filters.sort = sort.value;
-    renderTable();
+    renderCards();
   });
-  for (const radio of document.querySelectorAll('input[name="filterStatus"]')) {
-    radio.addEventListener('change', () => {
-      if (radio.checked) {
-        state.filters.status = radio.value;
-        renderTable();
-      }
-    });
-  }
-  for (const radio of document.querySelectorAll('input[name="filterSource"]')) {
-    radio.addEventListener('change', () => {
-      if (radio.checked) {
-        state.filters.source = radio.value;
-        renderTable();
-      }
+  for (const seg of document.querySelectorAll('.segmented')) {
+    const name = seg.dataset.filter;
+    seg.addEventListener('click', (event) => {
+      const btn = event.target.closest('button[data-value]');
+      if (!btn) return;
+      for (const b of seg.querySelectorAll('button')) b.classList.remove('active');
+      btn.classList.add('active');
+      state.filters[name] = btn.dataset.value;
+      renderCards();
     });
   }
   reset.addEventListener('click', () => {
     state.filters = { region: '', sort: 'lastInStock', status: 'all', source: 'all', products: new Set() };
     region.value = '';
     sort.value = 'lastInStock';
-    document.querySelector('input[name="filterStatus"][value="all"]').checked = true;
-    document.querySelector('input[name="filterSource"][value="all"]').checked = true;
+    for (const seg of document.querySelectorAll('.segmented')) {
+      for (const b of seg.querySelectorAll('button')) {
+        b.classList.toggle('active', b.dataset.value === 'all');
+      }
+    }
     renderProductFilter();
-    renderTable();
+    renderCards();
   });
 }
 
@@ -278,7 +366,7 @@ async function loadHistory() {
   state.entries = Object.values(data || {});
   renderHistoryAsOf();
   renderProductFilter();
-  renderTable();
+  renderCards();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

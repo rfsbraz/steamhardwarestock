@@ -25,6 +25,7 @@
         <h1>Stock history</h1>
       </div>
       <div class="topbar-right">
+        <a href="/" class="history-link" title="Back to tracker">← Tracker</a>
         <button id="themeToggle" type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
           <span id="themeToggleLabel">Auto</span>
         </button>
@@ -32,49 +33,60 @@
     </header>
 
     <p class="intro">
-      All recorded stock transitions across products and regions. History is captured while the tracker is watching.
-      <span id="historyAsOf" class="history-as-of"></span>
+      Recorded stock transitions across products and regions. History is captured while the tracker is watching.
     </p>
+    <p class="history-as-of" id="historyAsOf"></p>
 
-    <section class="results-section" aria-label="History filters">
-      <div class="history-filters">
-        <label class="field">
+    <section class="results-section history-toolbar" aria-label="History filters">
+      <div class="history-toolbar-row">
+        <label class="field grow">
           <span>Search region</span>
           <input id="filterRegion" type="search" placeholder="US, JP, Germany...">
         </label>
         <label class="field">
           <span>Sort by</span>
           <select id="filterSort">
-            <option value="lastInStock">Last in stock (newest)</option>
-            <option value="lastOutOfStock">Last out of stock (newest)</option>
+            <option value="lastInStock">Last in stock</option>
+            <option value="lastOutOfStock">Last out of stock</option>
+            <option value="recent">Most recent activity</option>
             <option value="product">Product</option>
             <option value="region">Region</option>
             <option value="events">Event count</option>
           </select>
         </label>
-        <fieldset class="field history-fieldset">
-          <legend>Status</legend>
-          <label><input type="radio" name="filterStatus" value="all" checked> All</label>
-          <label><input type="radio" name="filterStatus" value="in"> In stock</label>
-          <label><input type="radio" name="filterStatus" value="out"> Out of stock</label>
-        </fieldset>
-        <fieldset class="field history-fieldset">
-          <legend>Source</legend>
-          <label><input type="radio" name="filterSource" value="all" checked> All</label>
-          <label><input type="radio" name="filterSource" value="steam"> Steam</label>
-          <label><input type="radio" name="filterSource" value="komodo"> Komodo</label>
-        </fieldset>
-        <fieldset class="field history-fieldset history-fieldset-products" id="filterProducts">
-          <legend>Products</legend>
-        </fieldset>
       </div>
+
+      <div class="history-toolbar-row">
+        <div class="field">
+          <span>Status</span>
+          <div class="segmented" data-filter="status" role="group" aria-label="Filter by status">
+            <button type="button" data-value="all" class="active">All</button>
+            <button type="button" data-value="in">In stock</button>
+            <button type="button" data-value="out">Out of stock</button>
+          </div>
+        </div>
+        <div class="field">
+          <span>Source</span>
+          <div class="segmented" data-filter="source" role="group" aria-label="Filter by source">
+            <button type="button" data-value="all" class="active">All</button>
+            <button type="button" data-value="steam">Steam</button>
+            <button type="button" data-value="komodo">Komodo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <span>Products</span>
+        <div class="filter-chip-row" id="filterProducts"></div>
+      </div>
+
       <div class="history-summary">
         <span id="historyCounts">0 entries</span>
         <button id="filterReset" type="button" class="btn-utility">Reset filters</button>
       </div>
     </section>
 
-    <section class="results-section" id="historySection" aria-label="History results">
+    <section id="historySection" aria-label="History results">
       <div class="message-area" id="historyMessage">Loading history...</div>
       <div id="historyContent"></div>
     </section>
