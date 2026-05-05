@@ -742,12 +742,13 @@ async function checkNow({ manual }) {
       .map((region) => ({ product, region }))
   );
 
+  const komodoHtmlCache = new Map();
   const komodoChecks = [];
   for (const { id: productId } of products) {
     if (!KOMODO_CATALOG[productId]) continue;
     for (const region of regions) {
       if (!KOMODO_REGIONS.has(region)) continue;
-      komodoChecks.push(checkKomodoProductRegion(productId, region));
+      komodoChecks.push(checkKomodoProductRegion(productId, region, komodoHtmlCache));
     }
   }
 
@@ -836,7 +837,7 @@ async function checkProductRegion(product, region) {
   };
 }
 
-async function checkKomodoProductRegion(productId, region) {
+async function checkKomodoProductRegion(productId, region, htmlCache = new Map()) {
   const entry = KOMODO_CATALOG[productId];
   const product = getProduct(productId);
   const checkedAt = new Date().toISOString();
@@ -857,9 +858,13 @@ async function checkKomodoProductRegion(productId, region) {
   const pageUrl = `${KOMODO_ORIGIN}${entry.path}`;
 
   try {
-    const response = await fetch(`/proxy?url=${encodeURIComponent(pageUrl)}`, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const html = await response.text();
+    if (!htmlCache.has(pageUrl)) {
+      htmlCache.set(pageUrl, fetch(`/proxy?url=${encodeURIComponent(pageUrl)}`).then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.text();
+      }));
+    }
+    const html = await htmlCache.get(pageUrl);
 
     const packages = entry.models
       ? parseKomodoModels(html, entry.models)
@@ -1017,15 +1022,15 @@ async function fetchHardwareItems(region, packageIds) {
 }
 
 async function fetchSteamText(url) {
-  return fetchReadableSteamData(url, 'text');
+  return fetchReadableSteamData(url, 'text', { maxBytes: 65536 });
 }
 
 async function fetchSteamJson(url) {
   return fetchReadableSteamData(url, 'json');
 }
 
-async function fetchReadableSteamData(url, responseType) {
-  const attempts = buildFetchAttempts(url);
+async function fetchReadableSteamData(url, responseType, options = {}) {
+  const attempts = buildFetchAttempts(url, options);
   let lastError = null;
 
   for (const attempt of attempts) {
@@ -1049,7 +1054,7 @@ async function fetchReadableSteamData(url, responseType) {
   throw new Error(`Browser could not read Steam data (${reason}). Steam does not allow direct browser reads from arbitrary sites, so this deployment needs a small allowlisted proxy.`);
 }
 
-function buildFetchAttempts(url) {
+function buildFetchAttempts(url, { maxBytes } = {}) {
   const attempts = [];
   const config = window.STEAM_TRACKER_CONFIG || {};
   const configuredTemplate = typeof config.proxyTemplate === 'string' ? config.proxyTemplate.trim() : '';
@@ -1061,8 +1066,9 @@ function buildFetchAttempts(url) {
   }
 
   if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+    const proxyBase = `/proxy?url=${encodeURIComponent(url)}`;
     attempts.push({
-      url: `/proxy?url=${encodeURIComponent(url)}`,
+      url: maxBytes ? `${proxyBase}&maxBytes=${maxBytes}` : proxyBase,
       requiresTrackerProxyHeader: true
     });
   }

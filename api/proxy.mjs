@@ -44,6 +44,8 @@ export default async function handler(request) {
 
   const { searchParams } = new URL(request.url);
   const rawTarget = searchParams.get('url');
+  const rawMaxBytes = searchParams.get('maxBytes');
+  const maxBytes = rawMaxBytes ? Math.min(Math.max(parseInt(rawMaxBytes, 10) || 0, 0), 524288) : 0;
 
   if (!rawTarget) return errJson(400, 'Missing proxy target URL.');
 
@@ -69,7 +71,8 @@ export default async function handler(request) {
     });
     clearTimeout(timer);
 
-    const body = request.method === 'HEAD' ? null : await upstream.text();
+    const fullBody = request.method === 'HEAD' ? null : await upstream.text();
+    const body = (maxBytes && fullBody && fullBody.length > maxBytes) ? fullBody.slice(0, maxBytes) : fullBody;
 
     return new Response(body, {
       status: upstream.status,
