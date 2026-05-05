@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-D4LRTXD5LR"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-D4LRTXD5LR');
+    </script>
+    <title>Steam Hardware Stock Tracker | Controller, Frame, Machine Stock Alerts</title>
+    <meta name="description" content="Track Steam Controller, Steam Frame, and Steam Machine stock by country. Get browser alerts for official Steam availability and avoid scalpers.">
+    <meta name="keywords" content="Steam hardware stock, Steam Controller stock, Steam Frame stock, Steam Machine stock, Steam hardware tracker, Steam stock alerts, avoid scalpers">
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+    <meta name="application-name" content="Steam Hardware Stock Tracker">
+    <meta name="theme-color" content="#202124">
+    <link rel="canonical" href="https://steamhardwarestock.com/">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Steam Hardware Stock Tracker">
+    <meta property="og:url" content="https://steamhardwarestock.com/">
+    <meta property="og:title" content="Steam Hardware Stock Tracker">
+    <meta property="og:description" content="Check Steam Controller, Steam Frame, and Steam Machine stock by country and get alerts when official Steam hardware is available, so you can avoid scalpers.">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Steam Hardware Stock Tracker">
+    <meta name="twitter:description" content="Track official Steam hardware stock by country and get alerts when products become available.">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Steam Hardware Stock Tracker",
+        "url": "https://steamhardwarestock.com/",
+        "applicationCategory": "ShoppingApplication",
+        "operatingSystem": "Any",
+        "description": "A browser stock tracker for Steam Controller, Steam Frame, and Steam Machine availability by country with alerts for official Steam stock to help buyers avoid scalpers.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "Steam Controller stock tracking",
+          "Steam Frame stock tracking",
+          "Steam Machine stock tracking",
+          "Country-specific availability checks",
+          "Browser stock alerts"
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Steam hardware watcher</p>
+          <h1>Steam hardware stock</h1>
+        </div>
+        <div class="status-pill" id="watchState">Idle</div>
+      </header>
+
+      <section class="controls" aria-label="Tracker controls">
+        <div class="control-row">
+          <label class="field">
+            <span>Country</span>
+            <span class="inline-input country-picker">
+              <select id="countrySelect"></select>
+              <button id="addRegionButton" type="button">Use</button>
+              <button id="currentRegionButton" type="button">Current</button>
+            </span>
+          </label>
+
+          <label class="field">
+            <span>Interval</span>
+            <select id="intervalInput">
+              <option value="30">30 seconds</option>
+              <option value="60" selected>1 minute</option>
+              <option value="120">2 minutes</option>
+              <option value="300">5 minutes</option>
+              <option value="600">10 minutes</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="product-panel">
+          <div class="section-label">Products</div>
+          <div class="product-grid" id="productGrid"></div>
+        </div>
+
+        <div class="region-panel">
+          <div class="section-label">Countries</div>
+          <div class="region-grid" id="regionGrid"></div>
+        </div>
+
+        <div class="button-row">
+          <button id="startButton" type="button" class="primary">Start watching</button>
+          <button id="stopButton" type="button" disabled>Stop</button>
+          <button id="checkButton" type="button">Check now</button>
+          <button id="notifyButton" type="button">Enable notifications</button>
+          <button id="testNotifyButton" type="button">Test notification</button>
+        </div>
+      </section>
+
+      <section class="summary-strip" aria-label="Summary">
+        <div>
+          <span class="metric-value" id="availableCount">0</span>
+          <span class="metric-label">in stock</span>
+        </div>
+        <div>
+          <span class="metric-value" id="productCount">0</span>
+          <span class="metric-label">products</span>
+        </div>
+        <div>
+          <span class="metric-value" id="regionCount">0</span>
+          <span class="metric-label">countries</span>
+        </div>
+        <div>
+          <span class="metric-value" id="lastChecked">Never</span>
+          <span class="metric-label">last check</span>
+        </div>
+      </section>
+
+      <section class="results-section" aria-label="Stock results">
+        <div class="results-head">
+          <h2>Watch matrix</h2>
+          <a id="baseSteamLink" href="https://store.steampowered.com/hardware/steamcontroller/?cc=US&l=english" target="_blank" rel="noreferrer">Open Steam page</a>
+        </div>
+        <div id="messageArea" class="message-area" role="status"></div>
+        <div class="results-grid" id="resultsGrid"></div>
+      </section>
+    </main>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>

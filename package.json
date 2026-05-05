@@ -1,0 +1,31 @@
+{
+  "name": "steam-hardware-stock-tracker",
+  "version": "1.0.0",
+  "homepage": "https://steamhardwarestock.com/",
+  "description": "Steam hardware stock tracker for Steam Controller, Steam Frame, and Steam Machine availability alerts.",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "start": "node server.js",
+    "check": "node --check server.js && node --check api/proxy.js && node --check scripts/build.js && node --check public/app.js && node --check public/sw.js"
+  },
+  "keywords": [
+    "steam",
+    "stock",
+    "tracker",
+    "steam controller",
+    "steam frame",
+    "steam machine"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rfsbraz/steamhardwarestock.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rfsbraz/steamhardwarestock/issues"
+  },
+  "author": "Rodrigo Braz",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
+}

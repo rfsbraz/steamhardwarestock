@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Steam hardware stock">
+  <rect width="64" height="64" rx="12" fill="#202124"/>
+  <path d="M18 38c0-7.7 6.3-14 14-14h8c5.5 0 10 4.5 10 10s-4.5 10-10 10H26c-4.4 0-8-2.7-8-6z" fill="#f5f6f3"/>
+  <circle cx="27" cy="35" r="3" fill="#147d50"/>
+  <circle cx="41" cy="35" r="3" fill="#147d50"/>
+  <path d="M23 47h18" stroke="#147d50" stroke-width="4" stroke-linecap="round"/>
+</svg>
