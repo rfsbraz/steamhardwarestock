@@ -445,14 +445,65 @@ function renderResults() {
   }
 
   const fragment = document.createDocumentFragment();
-  for (const productId of productIds) {
-    for (const regionCode of regionCodes) {
-      const key = resultKey(productId, regionCode);
-      fragment.append(createResultCard(productId, regionCode, state.results.get(key)));
-    }
+  for (const regionCode of regionCodes) {
+    fragment.append(createRegionCard(regionCode, productIds));
   }
 
   els.resultsGrid.replaceChildren(fragment);
+}
+
+function createRegionCard(regionCode, productIds) {
+  const region = getRegion(regionCode);
+  const card = document.createElement('article');
+  card.className = 'result-card';
+
+  const top = document.createElement('div');
+  top.className = 'result-top';
+  const title = document.createElement('div');
+  title.className = 'region-title';
+  const codeEl = document.createElement('span');
+  codeEl.className = 'region-code';
+  codeEl.textContent = region.code;
+  const nameEl = document.createElement('span');
+  nameEl.className = 'region-full-name';
+  nameEl.textContent = region.name;
+  title.append(codeEl, nameEl);
+  top.append(title);
+  card.append(top);
+
+  const list = document.createElement('div');
+  list.className = 'model-list';
+
+  for (const productId of productIds) {
+    const key = resultKey(productId, regionCode);
+    const result = state.results.get(key);
+    const product = result ? result.product : getProduct(productId);
+    const status = result ? result.status : { state: 'unknown', label: 'Waiting' };
+    const pageUrl = result ? result.pageUrl : productPageUrl(product, regionCode);
+
+    const row = document.createElement('div');
+    row.className = 'product-row';
+
+    const productName = document.createElement('span');
+    productName.className = 'model-name';
+    productName.textContent = product.name;
+
+    const badge = document.createElement('span');
+    badge.className = `badge ${status.state}`;
+    badge.textContent = status.label;
+
+    const link = document.createElement('a');
+    link.href = pageUrl;
+    link.target = '_blank';
+    link.rel = 'noreferrer';
+    link.textContent = 'Steam';
+
+    row.append(productName, badge, link);
+    list.append(row);
+  }
+
+  card.append(list);
+  return card;
 }
 
 function createResultCard(productId, regionCode, result) {

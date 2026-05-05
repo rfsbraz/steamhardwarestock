@@ -459,7 +459,8 @@ select {
   padding-top: 10px;
 }
 
-.model-row {
+.model-row,
+.product-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
@@ -565,11 +566,17 @@ select {
     grid-template-columns: 1fr;
   }
 
-  .model-row {
+  .model-row,
+  .product-row {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .model-delivery {
     grid-column: 1 / -1;
+  }
+
+  .product-row a {
+    grid-column: 1 / -1;
+    font-size: 0.82rem;
   }
 }
