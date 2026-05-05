@@ -949,6 +949,7 @@ async function notify(title, body, url) {
   const options = {
     body,
     tag: url || title,
+    renotify: true,
     requireInteraction: true,
     data: {
       url: url || window.location.href
