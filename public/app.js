@@ -803,59 +803,32 @@ async function checkNow({ manual }) {
 }
 
 async function checkProductRegion(product, region) {
-  if (product.packages && product.packages.length) {
-    const packageIds = product.packages.map((p) => p.id);
-    const { apiUrl, details } = await fetchHardwareItems(region, packageIds);
-    const packages = product.packages.map(({ id: packageId, label }) => {
-      const detail = details.find((item) => Number(item.packageid) === packageId) || null;
-      return { packageId, label, status: classifyHardwareDetails(detail), details: detail };
-    });
+  if (!product.packages || !product.packages.length) {
     return {
       product: publicProduct(product, region),
       region,
       pageUrl: productPageUrl(product, region),
-      apiUrl,
       checkedAt: new Date().toISOString(),
-      packageCount: packageIds.length,
-      packages,
-      status: classifyProductPackages(packages)
-    };
-  }
-
-  const discovery = await discoverProduct(product, region);
-
-  if (!discovery.packageIds.length) {
-    return {
-      product: publicProduct(product, region),
-      region,
-      pageUrl: discovery.pageUrl,
-      checkedAt: new Date().toISOString(),
-      discovery,
       packageCount: 0,
       packages: [],
       status: classifyProductPackages([])
     };
   }
 
-  const { apiUrl, details } = await fetchHardwareItems(region, discovery.packageIds);
-  const packages = discovery.packageIds.map((packageId) => {
+  const packageIds = product.packages.map((p) => p.id);
+  const { apiUrl, details } = await fetchHardwareItems(region, packageIds);
+  const packages = product.packages.map(({ id: packageId, label }) => {
     const detail = details.find((item) => Number(item.packageid) === packageId) || null;
-    return {
-      packageId,
-      label: discovery.packageLabels[String(packageId)] || null,
-      status: classifyHardwareDetails(detail),
-      details: detail
-    };
+    return { packageId, label, status: classifyHardwareDetails(detail), details: detail };
   });
 
   return {
     product: publicProduct(product, region),
     region,
-    pageUrl: discovery.pageUrl,
+    pageUrl: productPageUrl(product, region),
     apiUrl,
     checkedAt: new Date().toISOString(),
-    discovery,
-    packageCount: discovery.packageIds.length,
+    packageCount: packageIds.length,
     packages,
     status: classifyProductPackages(packages)
   };
