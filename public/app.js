@@ -5,6 +5,8 @@ const STEAM_HARDWARE_API = 'https://api.steampowered.com/IStoreBrowseService/Get
 const DISCOVERY_CACHE_MS = 60 * 1000;
 const DEFAULT_PRODUCTS = ['steam-controller'];
 const STORAGE_KEY = 'steam-hardware-stock-tracker-v3';
+const ORIGINAL_TITLE = document.title;
+let audioContext = null;
 
 const PRODUCTS = [
   {
@@ -374,6 +376,14 @@ function updateSummary() {
   els.productCount.textContent = String(productIds.length);
   els.regionCount.textContent = String(regionCodes.length);
   els.lastChecked.textContent = latest ? formatTime(new Date(latest).toISOString()) : 'Never';
+
+  if (available > 0) {
+    document.title = `⚡ ${available} in stock - Steam hardware stock`;
+  } else if (state.running) {
+    document.title = 'Watching - Steam hardware stock';
+  } else {
+    document.title = ORIGINAL_TITLE;
+  }
 }
 
 async function startWatching() {
@@ -381,6 +391,8 @@ async function startWatching() {
     setMessage('Select at least one product and one country.');
     return;
   }
+
+  unlockAudio();
 
   if (canUseNotifications() && Notification.permission === 'default') {
     await Notification.requestPermission().catch(() => {});
@@ -400,6 +412,7 @@ function stopWatching() {
     state.timer = null;
   }
   renderControls();
+  updateSummary();
 }
 
 function scheduleNextCheck() {
@@ -709,7 +722,13 @@ function maybeNotify(result, manual) {
   const wasAvailable = state.availability.get(key) === true;
   state.availability.set(key, isAvailable);
 
-  if (!isAvailable || wasAvailable || !canUseNotifications() || Notification.permission !== 'granted') {
+  if (!isAvailable || wasAvailable) {
+    return;
+  }
+
+  playAlertSound();
+
+  if (!canUseNotifications() || Notification.permission !== 'granted') {
     return;
   }
 
@@ -750,6 +769,40 @@ async function ensureNotificationPermission() {
 
 function canUseNotifications() {
   return 'Notification' in window && window.isSecureContext;
+}
+
+function unlockAudio() {
+  if (audioContext) {
+    return;
+  }
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  } catch {
+    // Audio not supported in this browser.
+  }
+}
+
+function playAlertSound() {
+  if (!audioContext) {
+    return;
+  }
+  const ctx = audioContext;
+  const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
+  resume.then(() => {
+    const now = ctx.currentTime;
+    for (const [offset, freq] of [[0, 880], [0.25, 1100]]) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.3, now + offset);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.22);
+      osc.start(now + offset);
+      osc.stop(now + offset + 0.22);
+    }
+  }).catch(() => {});
 }
 
 async function registerServiceWorker() {
