@@ -9,6 +9,7 @@ const ORIGINAL_TITLE = document.title;
 const MAJOR_REGIONS = new Set(['US', 'CA', 'GB', 'AU', 'NZ', 'DE', 'FR', 'IT', 'ES', 'NL', 'SE', 'PL', 'BR', 'MX', 'JP', 'KR', 'SG']);
 let audioContext = null;
 let acIndex = -1;
+let countdownInterval = null;
 
 const PRODUCTS = [
   {
@@ -186,6 +187,7 @@ const state = {
   discoveryCache: new Map(),
   serviceWorkerRegistration: null,
   timer: null,
+  nextCheckAt: null,
   running: false,
   checking: false
 };
@@ -223,6 +225,7 @@ function bindElements() {
     'productCount',
     'regionCount',
     'lastChecked',
+    'lastCheckedLabel',
     'baseSteamLink',
     'messageArea',
     'resultsGrid'
@@ -458,7 +461,10 @@ function updateSummary() {
   els.availableCount.textContent = String(available);
   els.productCount.textContent = String(productIds.length);
   els.regionCount.textContent = String(regionCodes.length);
-  els.lastChecked.textContent = latest ? formatTime(new Date(latest).toISOString()) : 'Never';
+  if (!state.running) {
+    els.lastChecked.textContent = latest ? formatTime(new Date(latest).toISOString()) : 'Never';
+    els.lastCheckedLabel.textContent = 'last check';
+  }
 
   if (available > 0) {
     document.title = `⚡ ${available} in stock - Steam hardware stock`;
@@ -490,12 +496,14 @@ async function startWatching() {
 
 function stopWatching() {
   state.running = false;
+  stopCountdown();
   if (state.timer) {
     clearTimeout(state.timer);
     state.timer = null;
   }
   savePreferences();
   renderControls();
+  updateSummary();
   updateSummary();
 }
 
@@ -519,10 +527,42 @@ function scheduleNextCheck() {
     return;
   }
 
+  const delay = getInterval() * 1000;
+  state.nextCheckAt = Date.now() + delay;
+  startCountdown();
+
   state.timer = setTimeout(async () => {
     await checkNow({ manual: false });
     scheduleNextCheck();
-  }, getInterval() * 1000);
+  }, delay);
+}
+
+function startCountdown() {
+  stopCountdown();
+  tickCountdown();
+  countdownInterval = setInterval(tickCountdown, 1000);
+}
+
+function stopCountdown() {
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+    countdownInterval = null;
+  }
+}
+
+function tickCountdown() {
+  if (!state.running) {
+    stopCountdown();
+    return;
+  }
+  if (state.checking) {
+    els.lastChecked.textContent = '...';
+    els.lastCheckedLabel.textContent = 'checking';
+    return;
+  }
+  const remaining = Math.max(0, Math.ceil((state.nextCheckAt - Date.now()) / 1000));
+  els.lastChecked.textContent = remaining > 0 ? `${remaining}s` : '...';
+  els.lastCheckedLabel.textContent = 'next check';
 }
 
 async function checkNow({ manual }) {
