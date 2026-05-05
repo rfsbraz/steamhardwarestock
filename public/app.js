@@ -1134,6 +1134,8 @@ function maybeNotify(result, manual) {
 
   if (hadPriorReading && isAvailable !== wasAvailable) {
     logChange(result, isAvailable);
+  } else if (!hadPriorReading && !state.history.has(key)) {
+    recordInitialState(result, isAvailable);
   }
 
   if (!isAvailable || wasAvailable) {
@@ -1152,6 +1154,15 @@ function maybeNotify(result, manual) {
     `${result.status.reason} ${suffix}`,
     result.pageUrl
   ).catch((error) => setMessage(error.message));
+}
+
+function recordInitialState(result, isAvailable) {
+  const key = getResultKey(result);
+  if (isAvailable) {
+    state.pendingRecord.set(key, { result, ts: new Date().toISOString() });
+  } else {
+    postHistoryRecord(result, false);
+  }
 }
 
 function logChange(result, isAvailable) {
