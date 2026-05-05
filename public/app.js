@@ -688,7 +688,10 @@ async function testNotification() {
       return;
     }
     setMessage('Sending test notification...');
-    await notify('Steam hardware tracker', 'Test notification from the local stock tracker.');
+    const sent = await notify('Steam hardware tracker', 'Test notification from the local stock tracker.');
+    if (!sent) {
+      setMessage('Notification could not be sent. Check browser or OS notification settings.');
+    }
   } catch (error) {
     setMessage(`Notification failed: ${error.message}`);
   } finally {
@@ -754,6 +757,7 @@ async function registerServiceWorker() {
     state.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js');
     return state.serviceWorkerRegistration;
   } catch {
+    state.serviceWorkerRegistration = false;
     return null;
   }
 }
@@ -761,6 +765,10 @@ async function registerServiceWorker() {
 async function getServiceWorkerRegistration() {
   if (state.serviceWorkerRegistration) {
     return state.serviceWorkerRegistration;
+  }
+
+  if (state.serviceWorkerRegistration === false) {
+    return null;
   }
 
   if (!('serviceWorker' in navigator) || !window.isSecureContext) {
