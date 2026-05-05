@@ -1,4 +1,4 @@
-import { head, put, BlobPreconditionFailedError, BlobNotFoundError } from '@vercel/blob';
+import { head, put, BlobPreconditionFailedError, BlobNotFoundError, BlobServiceRateLimited } from '@vercel/blob';
 
 process.env.VERCEL_BLOB_RETRIES = process.env.VERCEL_BLOB_RETRIES || '1';
 
@@ -136,6 +136,14 @@ export default {
     try {
       await writeHistory(history, etag);
     } catch (error) {
+      if (error instanceof BlobServiceRateLimited) {
+        const retryAfter = Math.max(1, Number(error.retryAfter) || 1);
+        console.warn('record rate-limited, retry after', retryAfter, 's');
+        return new Response(JSON.stringify({ error: 'rate limited' }), {
+          status: 429,
+          headers: { ...CORS, 'content-type': 'application/json', 'retry-after': String(retryAfter) }
+        });
+      }
       if (error instanceof BlobPreconditionFailedError) {
         try {
           read = await readHistoryFresh();
@@ -155,6 +163,13 @@ export default {
         try {
           await writeHistory(history, etag);
         } catch (finalError) {
+          if (finalError instanceof BlobServiceRateLimited) {
+            const retryAfter = Math.max(1, Number(finalError.retryAfter) || 1);
+            return new Response(JSON.stringify({ error: 'rate limited' }), {
+              status: 429,
+              headers: { ...CORS, 'content-type': 'application/json', 'retry-after': String(retryAfter) }
+            });
+          }
           console.error('record put retry error:', finalError?.name, finalError?.message);
           return new Response(JSON.stringify({ error: finalError.message }), {
             status: 500,

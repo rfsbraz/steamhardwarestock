@@ -1,4 +1,4 @@
-import { head, put, BlobNotFoundError } from '@vercel/blob';
+import { head, put, BlobNotFoundError, BlobServiceRateLimited } from '@vercel/blob';
 
 process.env.VERCEL_BLOB_RETRIES = process.env.VERCEL_BLOB_RETRIES || '1';
 
@@ -145,7 +145,14 @@ export default {
       clearTimeout(putTimer);
     } catch (error) {
       clearTimeout(putTimer);
-      console.error('seed put error:', error?.name, error?.message);
+      if (error instanceof BlobServiceRateLimited) {
+        const retryAfter = Math.max(1, Number(error.retryAfter) || 1);
+        return new Response(JSON.stringify({ error: 'rate limited' }), {
+          status: 429,
+          headers: { 'content-type': 'application/json', 'retry-after': String(retryAfter) }
+        });
+      }
+      console.error('seed put error:', error?.name, error?.message, error?.stack);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { 'content-type': 'application/json' }
