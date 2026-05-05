@@ -28,6 +28,7 @@
     <meta name="twitter:title" content="Steam Hardware Stock Tracker">
     <meta name="twitter:description" content="Track official Steam hardware stock by country and get alerts when products become available.">
     <link rel="stylesheet" href="/styles.css">
+    <script>try{var t=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');if(t==='dark')document.documentElement.dataset.theme='dark';}catch(e){}</script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -60,7 +61,10 @@
           <p class="eyebrow">Steam hardware watcher</p>
           <h1>Steam hardware stock</h1>
         </div>
-        <div class="status-pill" id="watchState">Idle</div>
+        <div class="topbar-actions">
+          <button id="themeToggle" type="button" class="theme-toggle">Dark mode</button>
+          <div class="status-pill" id="watchState">Idle</div>
+        </div>
       </header>
 
       <p class="intro">Mark the products and countries you want, click <strong>Start watching</strong>, and keep this tab open - you'll get a browser notification when something comes in stock.</p>

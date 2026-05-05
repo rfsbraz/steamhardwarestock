@@ -193,6 +193,7 @@ const state = {
 document.addEventListener('DOMContentLoaded', () => {
   bindElements();
   loadPreferences();
+  loadTheme();
   bindEvents();
   registerServiceWorker();
   render();
@@ -205,6 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function bindElements() {
   for (const id of [
+    'themeToggle',
     'watchState',
     'countryInput',
     'countryDropdown',
@@ -232,6 +234,7 @@ function bindElements() {
 }
 
 function bindEvents() {
+  els.themeToggle.addEventListener('click', toggleTheme);
   els.startButton.addEventListener('click', startWatching);
   els.stopButton.addEventListener('click', stopWatching);
   els.checkButton.addEventListener('click', () => checkNow({ manual: true }));
@@ -281,6 +284,18 @@ function savePreferences() {
     interval: getInterval(),
     running: state.running
   }));
+}
+
+function loadTheme() {
+  const theme = document.documentElement.dataset.theme || 'light';
+  els.themeToggle.textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
+}
+
+function toggleTheme() {
+  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  els.themeToggle.textContent = next === 'dark' ? 'Light mode' : 'Dark mode';
+  try { localStorage.setItem('theme', next); } catch {}
 }
 
 function render() {
