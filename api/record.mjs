@@ -5,10 +5,6 @@ const HISTORY_BLOB = 'stock-history.json';
 const MAX_EVENTS_PER_KEY = 200;
 const BLOB_TIMEOUT_MS = 5000;
 
-const blobTimeout = () => new Promise((_, reject) =>
-  setTimeout(() => reject(new Error('blob timeout')), BLOB_TIMEOUT_MS)
-);
-
 export default async function handler(request) {
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: { ...CORS, 'access-control-allow-methods': 'POST', 'access-control-allow-headers': 'content-type' } });
@@ -35,16 +31,22 @@ export default async function handler(request) {
   }
 
   let history = {};
+  const listController = new AbortController();
+  const listTimer = setTimeout(() => listController.abort(), BLOB_TIMEOUT_MS);
   try {
-    const { blobs } = await Promise.race([
-      list({ prefix: HISTORY_BLOB, token: process.env.BLOB_READ_WRITE_TOKEN }),
-      blobTimeout()
-    ]);
+    const { blobs } = await list({
+      prefix: HISTORY_BLOB,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      abortSignal: listController.signal
+    });
+    clearTimeout(listTimer);
     if (blobs.length) {
       const res = await fetch(blobs[0].url);
       if (res.ok) history = await res.json();
     }
-  } catch {}
+  } catch {
+    clearTimeout(listTimer);
+  }
 
   const entry = history[key] || {
     productId,
@@ -67,17 +69,19 @@ export default async function handler(request) {
 
   history[key] = entry;
 
+  const putController = new AbortController();
+  const putTimer = setTimeout(() => putController.abort(), BLOB_TIMEOUT_MS);
   try {
-    await Promise.race([
-      put(HISTORY_BLOB, JSON.stringify(history), {
-        access: 'public',
-        contentType: 'application/json',
-        addRandomSuffix: false,
-        token: process.env.BLOB_READ_WRITE_TOKEN
-      }),
-      blobTimeout()
-    ]);
+    await put(HISTORY_BLOB, JSON.stringify(history), {
+      access: 'public',
+      contentType: 'application/json',
+      addRandomSuffix: false,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      abortSignal: putController.signal
+    });
+    clearTimeout(putTimer);
   } catch (error) {
+    clearTimeout(putTimer);
     return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...CORS, 'content-type': 'application/json' } });
   }
 

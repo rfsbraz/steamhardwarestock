@@ -4,10 +4,6 @@ const CORS = { 'access-control-allow-origin': '*' };
 const HISTORY_BLOB = 'stock-history.json';
 const BLOB_TIMEOUT_MS = 5000;
 
-const blobTimeout = () => new Promise((_, reject) =>
-  setTimeout(() => reject(new Error('blob timeout')), BLOB_TIMEOUT_MS)
-);
-
 export default async function handler(request) {
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: { ...CORS, 'access-control-allow-methods': 'GET', 'access-control-allow-headers': 'content-type' } });
@@ -21,11 +17,17 @@ export default async function handler(request) {
     return new Response('{}', { status: 200, headers: { ...CORS, 'content-type': 'application/json' } });
   }
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), BLOB_TIMEOUT_MS);
+
   try {
-    const { blobs } = await Promise.race([
-      list({ prefix: HISTORY_BLOB, token: process.env.BLOB_READ_WRITE_TOKEN }),
-      blobTimeout()
-    ]);
+    const { blobs } = await list({
+      prefix: HISTORY_BLOB,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      abortSignal: controller.signal
+    });
+    clearTimeout(timer);
+
     if (!blobs.length) {
       return new Response('{}', { status: 200, headers: { ...CORS, 'content-type': 'application/json' } });
     }
@@ -43,6 +45,7 @@ export default async function handler(request) {
       }
     });
   } catch {
+    clearTimeout(timer);
     return new Response('{}', { status: 200, headers: { ...CORS, 'content-type': 'application/json' } });
   }
 }
