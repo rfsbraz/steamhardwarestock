@@ -8,6 +8,7 @@ const BLOB_TIMEOUT_MS = 8000;
 const PRODUCTS = [
   { id: 'steam-controller', name: 'Steam Controller' },
   { id: 'steam-deck', name: 'Steam Deck' },
+  { id: 'steam-dock', name: 'Steam Deck Dock' },
   { id: 'steam-frame', name: 'Steam Frame' },
   { id: 'steam-machine', name: 'Steam Machine' }
 ];

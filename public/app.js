@@ -50,6 +50,13 @@ const PRODUCTS = [
     ]
   },
   {
+    id: 'steam-dock',
+    name: 'Steam Deck Dock',
+    icon: 'https://clan.fastly.steamstatic.com/images/39049601/c871cb610cd4de7f2cd695c04613ec2f11a16f22.png',
+    paths: ['/steamdeckdock'],
+    packages: [{ id: 761892, label: null }]
+  },
+  {
     id: 'steam-frame',
     name: 'Steam Frame',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/82a194cce9b0912b2501236f4f4ef757.avif',
