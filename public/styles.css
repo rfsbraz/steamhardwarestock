@@ -66,6 +66,13 @@ button.primary:hover:not(:disabled) {
   background: #34363a;
 }
 
+button.btn-utility {
+  min-height: 34px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  padding: 0 12px;
+}
+
 a {
   color: var(--blue);
   text-decoration: none;
@@ -117,7 +124,7 @@ h2 {
 }
 
 h1 {
-  font-size: clamp(1.8rem, 2.6rem, 2.6rem);
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
   line-height: 1.05;
 }
 
@@ -391,6 +398,7 @@ select {
   padding: 6px 10px;
   font-size: 0.78rem;
   font-weight: 800;
+  transition: background 0.15s, color 0.15s;
 }
 
 .badge.available {
@@ -419,9 +427,9 @@ select {
 }
 
 .reason {
-  min-height: 38px;
   color: #42464d;
-  line-height: 1.35;
+  line-height: 1.45;
+  font-size: 0.92rem;
 }
 
 .detail-grid {
