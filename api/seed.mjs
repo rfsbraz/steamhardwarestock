@@ -1,4 +1,4 @@
-import { list, put } from '@vercel/blob';
+import { get, put } from '@vercel/blob';
 
 process.env.VERCEL_BLOB_RETRIES = process.env.VERCEL_BLOB_RETRIES || '1';
 
@@ -44,25 +44,26 @@ export default {
     }
 
     let existing = {};
+    let etag = null;
     let existingLoaded = false;
-    const listController = new AbortController();
-    const listTimer = setTimeout(() => listController.abort(), BLOB_TIMEOUT_MS);
+    const readController = new AbortController();
+    const readTimer = setTimeout(() => readController.abort(), BLOB_TIMEOUT_MS);
     try {
-      const { blobs } = await list({
-        prefix: HISTORY_BLOB,
+      const result = await get(HISTORY_BLOB, {
         token: process.env.BLOB_READ_WRITE_TOKEN,
-        abortSignal: listController.signal
+        useCache: false,
+        abortSignal: readController.signal
       });
-      clearTimeout(listTimer);
-      if (blobs.length) {
-        const res = await fetch(`${blobs[0].url}?ts=${Date.now()}`, { cache: 'no-store' });
-        if (!res.ok) throw new Error(`blob fetch ${res.status}`);
-        existing = await res.json();
+      clearTimeout(readTimer);
+      if (result) {
+        const text = await new Response(result.stream).text();
+        existing = JSON.parse(text);
+        etag = result.blob.etag || null;
       }
       existingLoaded = true;
     } catch (error) {
-      clearTimeout(listTimer);
-      console.error('seed list error:', error?.name, error?.message);
+      clearTimeout(readTimer);
+      console.error('seed read error:', error?.name, error?.message);
     }
 
     if (!existingLoaded) {
@@ -129,6 +130,7 @@ export default {
         addRandomSuffix: false,
         allowOverwrite: true,
         cacheControlMaxAge: 60,
+        ifMatch: etag || undefined,
         token: process.env.BLOB_READ_WRITE_TOKEN,
         abortSignal: putController.signal
       });
