@@ -514,7 +514,10 @@ function createRegionCard(regionCode, productIds) {
     section.innerHTML = `
       <div class="product-section-head">
         <span class="product-section-name">${escapeHtml(product.name)}</span>
-        <span class="badge ${escapeHtml(status.state)}">${escapeHtml(status.label)}</span>
+        <span class="badge-stack">
+          <span class="badge ${escapeHtml(status.state)}">${escapeHtml(status.label)}</span>
+          ${status.state === 'pending' ? '<span class="info-chip" title="Technically not out of stock — the buy button is deactivated due to a pending-order queue. Pending or unpaid orders can be cancelled and units become available again sporadically.">ⓘ Pending queue</span>' : ''}
+        </span>
       </div>
       <div class="reason">${escapeHtml(status.reason || '')}</div>
       <div class="detail-grid">
@@ -1559,7 +1562,7 @@ function classifyHardwareDetails(details) {
       found: false,
       state: 'pending',
       label: 'Out of stock',
-      reason: 'Steam reports high pending orders; the buy button is unavailable in this country.'
+      reason: 'Steam has a queue of pending orders, so the buy button is deactivated. New units can still surface sporadically as queued orders get cancelled.'
     };
   }
 

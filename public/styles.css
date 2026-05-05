@@ -489,6 +489,27 @@ select {
   transition: background 0.15s, color 0.15s;
 }
 
+.badge-stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.info-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--amber-bg);
+  color: var(--amber);
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: help;
+  white-space: nowrap;
+}
+
 .badge.available {
   background: var(--green-bg);
   color: var(--green);
