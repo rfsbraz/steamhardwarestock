@@ -758,7 +758,8 @@ async function registerServiceWorker() {
   }
 
   try {
-    state.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.register('/sw.js');
+    state.serviceWorkerRegistration = await navigator.serviceWorker.ready;
     return state.serviceWorkerRegistration;
   } catch {
     state.serviceWorkerRegistration = false;
@@ -802,30 +803,32 @@ async function notify(title, body, url) {
   };
 
   const registration = await getServiceWorkerRegistration();
-  if (registration && typeof registration.showNotification === 'function') {
+  if (registration && registration.active && typeof registration.showNotification === 'function') {
     try {
       await registration.showNotification(title, options);
       setMessage('Notification sent.');
       return true;
     } catch (error) {
-      // Fall back to the page-level API if the service worker path fails in this browser.
       if (error && error.message) {
         options._serviceWorkerError = error.message;
       }
     }
   }
 
-  const notification = new Notification(title, options);
-
-  if (url) {
-    notification.onclick = () => {
-      window.focus();
-      window.open(url, '_blank', 'noopener');
-    };
+  try {
+    const notification = new Notification(title, options);
+    if (url) {
+      notification.onclick = () => {
+        window.focus();
+        window.open(url, '_blank', 'noopener');
+      };
+    }
+    setMessage('Notification sent.');
+    return true;
+  } catch (error) {
+    setMessage(`Notification failed: ${error.message}`);
+    return false;
   }
-
-  setMessage('Notification sent.');
-  return true;
 }
 
 function useSelectedCountry() {
