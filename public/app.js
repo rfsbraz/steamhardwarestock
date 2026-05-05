@@ -29,6 +29,8 @@ const KOMODO_CATALOG = {
 let audioContext = null;
 let acIndex = -1;
 let countdownInterval = null;
+let alertLoopTimer = null;
+const ALERT_LOOP_INTERVAL_MS = 3000;
 
 const PRODUCTS = [
   {
@@ -286,6 +288,13 @@ function bindEvents() {
     savePreferences();
     if (state.running) {
       scheduleNextCheck();
+    }
+  });
+
+  window.addEventListener('focus', stopAlertLoop);
+  document.addEventListener('visibilitychange', () => {
+    if (isPageFocused()) {
+      stopAlertLoop();
     }
   });
 }
@@ -1133,7 +1142,7 @@ function maybeNotify(result, manual) {
     return;
   }
 
-  playAlertSound();
+  startAlertLoop();
 
   if (!canUseNotifications() || Notification.permission !== 'granted') {
     return;
@@ -1318,6 +1327,31 @@ function unlockAudio() {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
   } catch {
     // Audio not supported in this browser.
+  }
+}
+
+function isPageFocused() {
+  return document.visibilityState === 'visible' && document.hasFocus();
+}
+
+function startAlertLoop() {
+  playAlertSound();
+  if (alertLoopTimer || isPageFocused()) {
+    return;
+  }
+  alertLoopTimer = setInterval(() => {
+    if (isPageFocused()) {
+      stopAlertLoop();
+      return;
+    }
+    playAlertSound();
+  }, ALERT_LOOP_INTERVAL_MS);
+}
+
+function stopAlertLoop() {
+  if (alertLoopTimer) {
+    clearInterval(alertLoopTimer);
+    alertLoopTimer = null;
   }
 }
 
