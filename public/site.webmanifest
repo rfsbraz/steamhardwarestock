@@ -1,7 +1,7 @@
 {
   "name": "Steam Hardware Stock Tracker",
   "short_name": "Steam Stock",
-  "description": "Track Steam Controller, Steam Frame, and Steam Machine availability by country with official stock alerts that help buyers avoid scalpers.",
+  "description": "Track Steam Deck, Steam Controller, Steam Frame, and Steam Machine availability by country with official stock alerts that help buyers avoid scalpers.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

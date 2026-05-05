@@ -398,6 +398,43 @@ select {
   font-weight: 700;
 }
 
+.model-list {
+  display: grid;
+  gap: 6px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.model-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.model-name,
+.model-delivery {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.model-name {
+  font-weight: 800;
+}
+
+.model-delivery {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.model-status {
+  justify-self: end;
+}
+
 .card-actions {
   display: flex;
   flex-wrap: wrap;
@@ -435,5 +472,13 @@ select {
 
   .detail-grid {
     grid-template-columns: 1fr;
+  }
+
+  .model-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .model-delivery {
+    grid-column: 1 / -1;
   }
 }

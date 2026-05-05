@@ -15,6 +15,13 @@ const PRODUCTS = [
     fallbackAppIds: [4165870]
   },
   {
+    id: 'steam-deck',
+    name: 'Steam Deck',
+    paths: ['/steamdeck/'],
+    fallbackPackageIds: [],
+    fallbackAppIds: [1675200]
+  },
+  {
     id: 'steam-frame',
     name: 'Steam Frame',
     paths: ['/hardware/steamframe/', '/sale/steamframe'],
@@ -343,6 +350,7 @@ function createResultCard(productId, regionCode, result) {
       <div class="detail"><span>Delivery</span><span>${escapeHtml(formatDelivery(details))}</span></div>
       <div class="detail"><span>Checked</span><span>${escapeHtml(result ? formatTime(result.checkedAt) : 'Never')}</span></div>
     </div>
+    ${renderPackageModels(result)}
     <div class="card-actions">
       <a href="${escapeAttribute(result ? result.pageUrl : productPageUrl(product, regionCode))}" target="_blank" rel="noreferrer">Steam page</a>
     </div>
@@ -478,6 +486,7 @@ async function checkProductRegion(product, region) {
     const detail = details.find((item) => Number(item.packageid) === packageId) || null;
     return {
       packageId,
+      label: discovery.packageLabels[String(packageId)] || null,
       status: classifyHardwareDetails(detail),
       details: detail
     };
@@ -516,6 +525,7 @@ async function discoverProduct(product, region) {
       const metadata = collectReservationMetadata(partnerEventStore);
       const packageIds = metadata.packageIds.length ? metadata.packageIds : [...product.fallbackPackageIds];
       const appIds = metadata.appIds.length ? metadata.appIds : [...product.fallbackAppIds];
+      const packageLabels = { ...metadata.packageLabels };
       const discovery = {
         product: publicProduct(product, region),
         region,
@@ -523,6 +533,7 @@ async function discoverProduct(product, region) {
         pageTitle: extractTitle(html),
         countryFromPage: config.COUNTRY || null,
         packageIds,
+        packageLabels,
         appIds,
         source: metadata.packageIds.length
           ? 'page-reservation-widget'
@@ -551,6 +562,7 @@ async function discoverProduct(product, region) {
       pageTitle: product.name,
       countryFromPage: null,
       packageIds: [...product.fallbackPackageIds],
+      packageLabels: {},
       appIds: [...product.fallbackAppIds],
       source: 'fallback-after-page-error',
       widgetCount: 0,
@@ -897,7 +909,7 @@ function classifyProductPackages(packages) {
       state: 'available',
       label: 'In stock',
       reason: packages.length > 1
-        ? 'Steam reports at least one hardware option has inventory available.'
+        ? `Steam reports ${formatPackageName(available)} has inventory available.`
         : available.status.reason
     };
   }
@@ -911,7 +923,7 @@ function classifyProductPackages(packages) {
         state: match.status.state,
         label: match.status.label,
         reason: packages.length > 1
-          ? `Steam reports ${match.status.label.toLowerCase()} for at least one hardware option.`
+          ? `Steam reports ${match.status.label.toLowerCase()} for ${formatPackageName(match)}.`
           : match.status.reason
       };
     }
@@ -928,6 +940,7 @@ function classifyProductPackages(packages) {
 function collectReservationMetadata(partnerEventStore) {
   const packageIds = new Set();
   const appIds = new Set();
+  const packageLabels = {};
   const events = Array.isArray(partnerEventStore) ? partnerEventStore : [];
   let widgetCount = 0;
 
@@ -959,6 +972,10 @@ function collectReservationMetadata(partnerEventStore) {
         const packageId = Number(option && option.reservation_package);
         if (Number.isInteger(packageId) && packageId > 0) {
           packageIds.add(packageId);
+          const label = extractReservationOptionLabel(option);
+          if (label) {
+            packageLabels[String(packageId)] = label;
+          }
         }
       }
     }
@@ -967,8 +984,25 @@ function collectReservationMetadata(partnerEventStore) {
   return {
     packageIds: [...packageIds],
     appIds: [...appIds],
+    packageLabels,
     widgetCount
   };
+}
+
+function extractReservationOptionLabel(option) {
+  const descriptions = Array.isArray(option && option.localized_reservation_desc)
+    ? option.localized_reservation_desc
+    : [];
+  const description = descriptions[0] || descriptions.find(Boolean) || '';
+  const match = /\[classname=skutype\]([\s\S]*?)\[\/classname\]/i.exec(description);
+  return match ? stripSteamMarkup(match[1]) : null;
+}
+
+function stripSteamMarkup(value) {
+  return String(value || '')
+    .replace(/\[\/?[^\]]+\]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function parseJsonAttribute(html, attributeName) {
@@ -1081,6 +1115,36 @@ function primaryDetails(result) {
   return (available && available.details) || (firstWithDetails && firstWithDetails.details) || {};
 }
 
+function renderPackageModels(result) {
+  if (!result || !Array.isArray(result.packages) || result.packages.length <= 1) {
+    return '';
+  }
+
+  const rows = result.packages.map((item) => {
+    const status = item.status || {
+      state: 'unknown',
+      label: 'Unknown'
+    };
+    return `
+      <div class="model-row">
+        <span class="model-name">${escapeHtml(formatPackageName(item))}</span>
+        <span class="model-delivery">${escapeHtml(formatDelivery(item.details || {}))}</span>
+        <span class="model-status badge ${escapeHtml(status.state)}">${escapeHtml(status.label)}</span>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="model-list" aria-label="Hardware options">
+      ${rows}
+    </div>
+  `;
+}
+
+function formatPackageName(item) {
+  return item && item.label ? item.label : `Package ${item.packageId}`;
+}
+
 function productPageUrl(product, region, productPath = product.paths[0]) {
   const url = new URL(productPath, STEAM_ORIGIN);
   url.searchParams.set('cc', region);
@@ -1100,6 +1164,9 @@ function formatPackageCount(result) {
   }
   if (!result.packageCount) {
     return 'Not published';
+  }
+  if (Array.isArray(result.packages) && result.packages.filter((item) => item.label).length > 1) {
+    return `${result.packageCount} models`;
   }
   return result.packageCount === 1 ? 'Published' : `${result.packageCount} options`;
 }

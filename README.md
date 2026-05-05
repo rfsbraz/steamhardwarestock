@@ -10,6 +10,7 @@ Live site: https://steamhardwarestock.com/
 ## What It Tracks
 
 - Steam Controller
+- Steam Deck
 - Steam Frame
 - Steam Machine
 
@@ -33,10 +34,11 @@ The proxy only allows requests to:
 ```text
 https://store.steampowered.com/hardware/*
 https://store.steampowered.com/sale/*
+https://store.steampowered.com/steamdeck
 https://api.steampowered.com/IStoreBrowseService/GetHardwareItems/v1/
 ```
 
-Product discovery starts from Steam product pages. When Steam publishes reservation widgets or package IDs, the app uses those IDs to query Steam's hardware endpoint. Products without published stock-checkable packages show as `No package yet`.
+Product discovery starts from Steam product pages. When Steam publishes reservation widgets or package IDs, the app uses those IDs to query Steam's hardware endpoint. Multi-model hardware, such as Steam Deck, is tracked as separate package options. Products without published stock-checkable packages show as `No package yet`.
 
 ## Requirements
 
@@ -129,7 +131,7 @@ Please do not open public issues for vulnerabilities. Follow the reporting guida
 
 ## Disclaimer
 
-This project is not affiliated with, endorsed by, or sponsored by Valve Corporation or Steam. Steam, Steam Controller, Steam Frame, Steam Machine, and related marks are trademarks or registered trademarks of Valve Corporation.
+This project is not affiliated with, endorsed by, or sponsored by Valve Corporation or Steam. Steam, Steam Deck, Steam Controller, Steam Frame, Steam Machine, and related marks are trademarks or registered trademarks of Valve Corporation.
 
 ## License
 

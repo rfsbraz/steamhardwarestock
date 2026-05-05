@@ -65,7 +65,10 @@ function isAllowedProxyUrl(targetUrl) {
   }
 
   if (targetUrl.hostname === 'store.steampowered.com') {
-    return targetUrl.pathname.startsWith('/hardware/') || targetUrl.pathname.startsWith('/sale/');
+    return targetUrl.pathname === '/steamdeck'
+      || targetUrl.pathname === '/steamdeck/'
+      || targetUrl.pathname.startsWith('/hardware/')
+      || targetUrl.pathname.startsWith('/sale/');
   }
 
   return false;
