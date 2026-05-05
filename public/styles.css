@@ -103,6 +103,13 @@ a:hover {
   text-transform: uppercase;
 }
 
+.intro {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
 h1,
 h2 {
   margin: 0;

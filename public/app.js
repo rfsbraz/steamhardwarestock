@@ -382,6 +382,10 @@ async function startWatching() {
     return;
   }
 
+  if (canUseNotifications() && Notification.permission === 'default') {
+    await Notification.requestPermission().catch(() => {});
+  }
+
   state.running = true;
   savePreferences();
   renderControls();
