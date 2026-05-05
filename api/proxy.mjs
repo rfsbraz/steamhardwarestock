@@ -19,6 +19,13 @@ function isAllowedProxyUrl(targetUrl) {
   return false;
 }
 
+function cacheControlFor(targetUrl) {
+  if (targetUrl.hostname === 'komodostation.com') {
+    return 'public, s-maxage=120, max-age=0, stale-while-revalidate=180';
+  }
+  return 'public, s-maxage=25, max-age=0, stale-while-revalidate=60';
+}
+
 const CORS = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET,HEAD,OPTIONS',
@@ -79,9 +86,7 @@ export default async function handler(request) {
       headers: {
         ...CORS,
         'content-type': upstream.headers.get('content-type') || 'text/plain; charset=utf-8',
-        'cache-control': upstream.ok
-          ? 'public, s-maxage=55, max-age=0, stale-while-revalidate=5'
-          : 'no-store'
+        'cache-control': upstream.ok ? cacheControlFor(targetUrl) : 'no-store'
       }
     });
   } catch (error) {
