@@ -84,7 +84,15 @@ export default {
     const ts = new Date().toISOString();
     let added = 0;
     let preserved = 0;
-    const merged = { ...existing };
+    let purged = 0;
+    const merged = {};
+    for (const [key, value] of Object.entries(existing)) {
+      if (key.startsWith('diag:')) {
+        purged++;
+        continue;
+      }
+      merged[key] = value;
+    }
 
     for (const product of PRODUCTS) {
       for (const region of REGIONS) {
@@ -122,8 +130,8 @@ export default {
       }
     }
 
-    if (added === 0) {
-      return new Response(JSON.stringify({ added: 0, preserved, skipped: 'already seeded' }), {
+    if (added === 0 && purged === 0) {
+      return new Response(JSON.stringify({ added: 0, preserved, purged: 0, skipped: 'already seeded' }), {
         status: 200,
         headers: { 'content-type': 'application/json' }
       });
@@ -159,7 +167,7 @@ export default {
       });
     }
 
-    return new Response(JSON.stringify({ added, preserved }), {
+    return new Response(JSON.stringify({ added, preserved, purged }), {
       status: 200,
       headers: { 'content-type': 'application/json' }
     });
