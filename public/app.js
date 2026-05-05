@@ -902,7 +902,7 @@ function classifyHardwareDetails(details) {
     return {
       found: false,
       state: 'pending',
-      label: 'High demand',
+      label: 'Out of stock',
       reason: 'Steam reports high pending orders and no available inventory.'
     };
   }
