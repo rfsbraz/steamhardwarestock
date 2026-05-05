@@ -1201,7 +1201,40 @@ async function loadHistory() {
     for (const [key, entry] of Object.entries(data)) {
       state.history.set(key, entry);
     }
+    seedChangelogFromHistory();
     renderResults();
+    renderChangelog();
+  } catch {}
+}
+
+function seedChangelogFromHistory() {
+  const seeded = [];
+  for (const entry of state.history.values()) {
+    if (!entry || !state.selectedProducts.has(entry.productId)) continue;
+    if (!state.selectedRegions.has(entry.region)) continue;
+    if (!Array.isArray(entry.events)) continue;
+    for (const ev of entry.events) {
+      if (!ev || !ev.ts) continue;
+      seeded.push({
+        ts: ev.ts,
+        productName: entry.productName || entry.productId,
+        region: entry.region,
+        available: Boolean(ev.available),
+        label: ev.available ? 'In stock' : 'Out of stock'
+      });
+    }
+  }
+
+  const seen = new Map();
+  const sig = (item) => `${item.ts}|${item.region}|${item.productName}|${item.available ? 1 : 0}`;
+  for (const item of state.changeLog) seen.set(sig(item), item);
+  for (const item of seeded) if (!seen.has(sig(item))) seen.set(sig(item), item);
+
+  state.changeLog = [...seen.values()]
+    .sort((a, b) => Date.parse(b.ts) - Date.parse(a.ts))
+    .slice(0, CHANGELOG_MAX);
+  try {
+    localStorage.setItem(CHANGELOG_KEY, JSON.stringify(state.changeLog));
   } catch {}
 }
 
