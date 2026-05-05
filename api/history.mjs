@@ -2,6 +2,11 @@ import { list } from '@vercel/blob';
 
 const CORS = { 'access-control-allow-origin': '*' };
 const HISTORY_BLOB = 'stock-history.json';
+const BLOB_TIMEOUT_MS = 5000;
+
+const blobTimeout = () => new Promise((_, reject) =>
+  setTimeout(() => reject(new Error('blob timeout')), BLOB_TIMEOUT_MS)
+);
 
 export default async function handler(request) {
   if (request.method === 'OPTIONS') {
@@ -17,7 +22,10 @@ export default async function handler(request) {
   }
 
   try {
-    const { blobs } = await list({ prefix: HISTORY_BLOB, token: process.env.BLOB_READ_WRITE_TOKEN });
+    const { blobs } = await Promise.race([
+      list({ prefix: HISTORY_BLOB, token: process.env.BLOB_READ_WRITE_TOKEN }),
+      blobTimeout()
+    ]);
     if (!blobs.length) {
       return new Response('{}', { status: 200, headers: { ...CORS, 'content-type': 'application/json' } });
     }

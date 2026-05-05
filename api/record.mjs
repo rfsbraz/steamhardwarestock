@@ -3,6 +3,11 @@ import { list, put } from '@vercel/blob';
 const CORS = { 'access-control-allow-origin': '*' };
 const HISTORY_BLOB = 'stock-history.json';
 const MAX_EVENTS_PER_KEY = 200;
+const BLOB_TIMEOUT_MS = 5000;
+
+const blobTimeout = () => new Promise((_, reject) =>
+  setTimeout(() => reject(new Error('blob timeout')), BLOB_TIMEOUT_MS)
+);
 
 export default async function handler(request) {
   if (request.method === 'OPTIONS') {
@@ -31,7 +36,10 @@ export default async function handler(request) {
 
   let history = {};
   try {
-    const { blobs } = await list({ prefix: HISTORY_BLOB, token: process.env.BLOB_READ_WRITE_TOKEN });
+    const { blobs } = await Promise.race([
+      list({ prefix: HISTORY_BLOB, token: process.env.BLOB_READ_WRITE_TOKEN }),
+      blobTimeout()
+    ]);
     if (blobs.length) {
       const res = await fetch(blobs[0].url);
       if (res.ok) history = await res.json();
@@ -60,12 +68,15 @@ export default async function handler(request) {
   history[key] = entry;
 
   try {
-    await put(HISTORY_BLOB, JSON.stringify(history), {
-      access: 'public',
-      contentType: 'application/json',
-      addRandomSuffix: false,
-      token: process.env.BLOB_READ_WRITE_TOKEN
-    });
+    await Promise.race([
+      put(HISTORY_BLOB, JSON.stringify(history), {
+        access: 'public',
+        contentType: 'application/json',
+        addRandomSuffix: false,
+        token: process.env.BLOB_READ_WRITE_TOKEN
+      }),
+      blobTimeout()
+    ]);
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...CORS, 'content-type': 'application/json' } });
   }
