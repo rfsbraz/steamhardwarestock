@@ -1,8 +1,10 @@
 import { list } from '@vercel/blob';
 
+process.env.VERCEL_BLOB_RETRIES = process.env.VERCEL_BLOB_RETRIES || '1';
+
 const CORS = { 'access-control-allow-origin': '*' };
 const HISTORY_BLOB = 'stock-history.json';
-const BLOB_TIMEOUT_MS = 5000;
+const BLOB_TIMEOUT_MS = 4000;
 
 export default async function handler(request) {
   if (request.method === 'OPTIONS') {
@@ -44,8 +46,9 @@ export default async function handler(request) {
         'cache-control': 'public, s-maxage=30, stale-while-revalidate=60'
       }
     });
-  } catch {
+  } catch (error) {
     clearTimeout(timer);
+    console.error('history blob error:', error?.name, error?.message);
     return new Response('{}', { status: 200, headers: { ...CORS, 'content-type': 'application/json' } });
   }
 }

@@ -1,9 +1,11 @@
 import { list, put } from '@vercel/blob';
 
+process.env.VERCEL_BLOB_RETRIES = process.env.VERCEL_BLOB_RETRIES || '1';
+
 const CORS = { 'access-control-allow-origin': '*' };
 const HISTORY_BLOB = 'stock-history.json';
 const MAX_EVENTS_PER_KEY = 200;
-const BLOB_TIMEOUT_MS = 5000;
+const BLOB_TIMEOUT_MS = 4000;
 
 export default async function handler(request) {
   if (request.method === 'OPTIONS') {
@@ -44,8 +46,9 @@ export default async function handler(request) {
       const res = await fetch(blobs[0].url);
       if (res.ok) history = await res.json();
     }
-  } catch {
+  } catch (error) {
     clearTimeout(listTimer);
+    console.error('record list error:', error?.name, error?.message);
   }
 
   const entry = history[key] || {
@@ -76,12 +79,14 @@ export default async function handler(request) {
       access: 'public',
       contentType: 'application/json',
       addRandomSuffix: false,
+      allowOverwrite: true,
       token: process.env.BLOB_READ_WRITE_TOKEN,
       abortSignal: putController.signal
     });
     clearTimeout(putTimer);
   } catch (error) {
     clearTimeout(putTimer);
+    console.error('record put error:', error?.name, error?.message);
     return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...CORS, 'content-type': 'application/json' } });
   }
 
