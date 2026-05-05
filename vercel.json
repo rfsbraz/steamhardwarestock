@@ -24,14 +24,10 @@
       ]
     },
     {
-      "source": "/(app\\.js|styles\\.css)",
+      "source": "/(app\\.[a-f0-9]+\\.js|styles\\.[a-f0-9]+\\.css)",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        },
-        {
-          "key": "Vercel-CDN-Cache-Control",
           "value": "public, max-age=31536000, immutable"
         }
       ]
