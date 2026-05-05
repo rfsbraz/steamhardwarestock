@@ -567,6 +567,20 @@ select {
   font-weight: 700;
 }
 
+.source-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--gray-bg);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
 .site-footer {
   border-top: 1px solid var(--line);
   margin-top: 40px;

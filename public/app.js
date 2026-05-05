@@ -9,6 +9,21 @@ const CHANGELOG_KEY = 'steam-hardware-changelog-v1';
 const CHANGELOG_MAX = 100;
 const ORIGINAL_TITLE = document.title;
 const MAJOR_REGIONS = new Set(['US', 'CA', 'GB', 'AU', 'NZ', 'DE', 'FR', 'IT', 'ES', 'NL', 'SE', 'PL', 'BR', 'MX', 'JP', 'KR', 'SG']);
+const KOMODO_ORIGIN = 'https://komodostation.com';
+const KOMODO_REGIONS = new Set(['JP', 'KR', 'HK', 'TW']);
+const KOMODO_CATALOG = {
+  'steam-deck': {
+    path: '/product/steam-deck_jpy/',
+    models: [
+      { label: '512GB OLED', selector: 'pa_models_512gb-oled' },
+      { label: '1TB OLED', selector: 'pa_models_1tb-oled' }
+    ]
+  },
+  'steam-controller': {
+    path: '/product/steam-controller/',
+    models: null
+  }
+};
 let audioContext = null;
 let acIndex = -1;
 let countdownInterval = null;
@@ -503,6 +518,34 @@ function createRegionCard(regionCode, productIds) {
     card.append(section);
   }
 
+  if (KOMODO_REGIONS.has(regionCode)) {
+    for (const productId of productIds) {
+      if (!KOMODO_CATALOG[productId]) continue;
+      const key = komodoResultKey(productId, regionCode);
+      const result = state.results.get(key);
+      const product = result ? result.product : getProduct(productId);
+      const status = result
+        ? result.status
+        : { state: 'unknown', label: 'Waiting', reason: 'Not checked yet.' };
+      const pageUrl = `${KOMODO_ORIGIN}${KOMODO_CATALOG[productId].path}`;
+
+      const section = document.createElement('div');
+      section.className = 'product-section';
+      section.innerHTML = `
+        <div class="product-section-head">
+          <span class="product-section-name">${escapeHtml(product.name)} <span class="source-tag">Komodo</span></span>
+          <span class="badge ${escapeHtml(status.state)}">${escapeHtml(status.label)}</span>
+        </div>
+        <div class="reason">${escapeHtml(status.reason || '')}</div>
+        ${renderPackageModels(result)}
+        <div class="card-actions">
+          <a href="${escapeAttribute(pageUrl)}" target="_blank" rel="noreferrer">Komodo page</a>
+        </div>
+      `;
+      card.append(section);
+    }
+  }
+
   return card;
 }
 
@@ -547,7 +590,15 @@ function createResultCard(productId, regionCode, result) {
 function updateSummary() {
   const productIds = [...state.selectedProducts];
   const regionCodes = [...state.selectedRegions];
-  const selectedKeys = productIds.flatMap((productId) => regionCodes.map((regionCode) => resultKey(productId, regionCode)));
+  const selectedKeys = productIds.flatMap((productId) =>
+    regionCodes.flatMap((regionCode) => {
+      const keys = [resultKey(productId, regionCode)];
+      if (KOMODO_CATALOG[productId] && KOMODO_REGIONS.has(regionCode)) {
+        keys.push(komodoResultKey(productId, regionCode));
+      }
+      return keys;
+    })
+  );
   const results = selectedKeys.map((key) => state.results.get(key)).filter(Boolean);
   const available = results.filter((result) => result.status && result.status.found).length;
   const latest = results
@@ -675,36 +726,56 @@ async function checkNow({ manual }) {
   }
 
   state.checking = true;
-  setMessage('Checking Steam...');
+  setMessage('Checking...');
   renderControls();
 
   const checks = products.flatMap((product) => regions.map((region) => ({ product, region })));
 
-  try {
-    const results = await Promise.all(checks.map(async ({ product, region }) => {
-      try {
-        return await checkProductRegion(product, region);
-      } catch (error) {
-        return {
-          product: publicProduct(product, region),
-          region,
-          pageUrl: productPageUrl(product, region),
-          checkedAt: new Date().toISOString(),
-          packageCount: 0,
-          packages: [],
-          status: {
-            found: false,
-            state: 'error',
-            label: 'Error',
-            reason: error.message
-          }
-        };
-      }
-    }));
+  const komodoChecks = [];
+  for (const { id: productId } of products) {
+    if (!KOMODO_CATALOG[productId]) continue;
+    for (const region of regions) {
+      if (!KOMODO_REGIONS.has(region)) continue;
+      komodoChecks.push(checkKomodoProductRegion(productId, region));
+    }
+  }
 
-    for (const result of results) {
+  try {
+    const [steamResults, komodoSettled] = await Promise.all([
+      Promise.all(checks.map(async ({ product, region }) => {
+        try {
+          return await checkProductRegion(product, region);
+        } catch (error) {
+          return {
+            product: publicProduct(product, region),
+            region,
+            pageUrl: productPageUrl(product, region),
+            checkedAt: new Date().toISOString(),
+            packageCount: 0,
+            packages: [],
+            status: {
+              found: false,
+              state: 'error',
+              label: 'Error',
+              reason: error.message
+            }
+          };
+        }
+      })),
+      Promise.allSettled(komodoChecks)
+    ]);
+
+    for (const result of steamResults) {
       state.results.set(resultKey(result.product.id, result.region), result);
       maybeNotify(result, manual);
+    }
+
+    for (const settled of komodoSettled) {
+      if (settled.status === 'fulfilled') {
+        const result = settled.value;
+        state.results.set(komodoResultKey(result.product.id, result.region), result);
+        maybeNotify(result, manual);
+      }
     }
 
     setMessage('');
@@ -751,6 +822,72 @@ async function checkProductRegion(product, region) {
     packageCount: discovery.packageIds.length,
     packages,
     status: classifyProductPackages(packages)
+  };
+}
+
+async function checkKomodoProductRegion(productId, region) {
+  const entry = KOMODO_CATALOG[productId];
+  const pageUrl = `${KOMODO_ORIGIN}${entry.path}`;
+  const product = getProduct(productId);
+  const checkedAt = new Date().toISOString();
+
+  try {
+    const response = await fetch(`/proxy?url=${encodeURIComponent(pageUrl)}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const html = await response.text();
+
+    const packages = entry.models
+      ? parseKomodoModels(html, entry.models)
+      : [parseKomodoSingle(html)];
+
+    return {
+      source: 'komodo',
+      product: { id: productId, name: product ? product.name : productId, pageUrl },
+      region,
+      pageUrl,
+      checkedAt,
+      packageCount: packages.length,
+      packages,
+      status: classifyProductPackages(packages)
+    };
+  } catch (error) {
+    return {
+      source: 'komodo',
+      product: { id: productId, name: product ? product.name : productId, pageUrl },
+      region,
+      pageUrl,
+      checkedAt,
+      packageCount: 0,
+      packages: [],
+      status: { found: false, state: 'error', label: 'Error', reason: `Could not reach Komodo Station: ${error.message}` }
+    };
+  }
+}
+
+function parseKomodoModels(html, models) {
+  return models.map(({ label, selector }) => {
+    const re = new RegExp(`class="[^"]*${selector}[^"]*"([\\s\\S]{0,3000}?)(?=class="[^"]*pa_models_|<\\/ul|$)`);
+    const match = re.exec(html);
+    const section = match ? match[1] : '';
+    const inStock = section ? section.includes('在庫あり') : html.includes('在庫あり');
+    return {
+      packageId: `komodo-${selector}`,
+      label,
+      status: inStock
+        ? { found: true, state: 'available', label: 'In stock', reason: 'Komodo Station reports inventory available.' }
+        : { found: false, state: 'out', label: 'Out of stock', reason: 'Komodo Station reports sold out.' }
+    };
+  });
+}
+
+function parseKomodoSingle(html) {
+  const inStock = html.includes('在庫あり');
+  return {
+    packageId: 'komodo-single',
+    label: null,
+    status: inStock
+      ? { found: true, state: 'available', label: 'In stock', reason: 'Komodo Station reports inventory available.' }
+      : { found: false, state: 'out', label: 'Out of stock', reason: 'Komodo Station reports sold out.' }
   };
 }
 
@@ -954,7 +1091,7 @@ async function testNotification() {
 }
 
 function maybeNotify(result, manual) {
-  const key = resultKey(result.product.id, result.region);
+  const key = getResultKey(result);
   const isAvailable = Boolean(result.status && result.status.found);
   const wasAvailable = state.availability.get(key) === true;
   const hadPriorReading = state.availability.has(key);
@@ -1648,6 +1785,16 @@ function notificationButtonText() {
 
 function resultKey(productId, regionCode) {
   return `${productId}:${regionCode}`;
+}
+
+function komodoResultKey(productId, regionCode) {
+  return `komodo:${productId}:${regionCode}`;
+}
+
+function getResultKey(result) {
+  return result.source === 'komodo'
+    ? komodoResultKey(result.product.id, result.region)
+    : resultKey(result.product.id, result.region);
 }
 
 function formatBoolean(value) {
