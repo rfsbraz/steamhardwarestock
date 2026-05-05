@@ -22,7 +22,9 @@ const KOMODO_CATALOG = {
   'steam-controller': {
     path: '/product/steam-controller/',
     models: null
-  }
+  },
+  'steam-frame': { comingSoon: true },
+  'steam-machine': { comingSoon: true }
 };
 let audioContext = null;
 let acIndex = -1;
@@ -830,9 +832,23 @@ async function checkProductRegion(product, region) {
 
 async function checkKomodoProductRegion(productId, region) {
   const entry = KOMODO_CATALOG[productId];
-  const pageUrl = `${KOMODO_ORIGIN}${entry.path}`;
   const product = getProduct(productId);
   const checkedAt = new Date().toISOString();
+
+  if (entry.comingSoon) {
+    return {
+      source: 'komodo',
+      product: { id: productId, name: product ? product.name : productId, pageUrl: KOMODO_ORIGIN },
+      region,
+      pageUrl: KOMODO_ORIGIN,
+      checkedAt,
+      packageCount: 0,
+      packages: [],
+      status: { found: false, state: 'unpublished', label: 'Coming soon', reason: 'Komodo Station has not yet listed this product.' }
+    };
+  }
+
+  const pageUrl = `${KOMODO_ORIGIN}${entry.path}`;
 
   try {
     const response = await fetch(`/proxy?url=${encodeURIComponent(pageUrl)}`, { cache: 'no-store' });
