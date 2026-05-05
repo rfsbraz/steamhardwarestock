@@ -1,5 +1,7 @@
 import { list, put } from '@vercel/blob';
 
+export const config = { runtime: 'edge' };
+
 process.env.VERCEL_BLOB_RETRIES = process.env.VERCEL_BLOB_RETRIES || '1';
 
 const CORS = { 'access-control-allow-origin': '*' };
