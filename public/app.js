@@ -527,7 +527,10 @@ function createRegionCard(regionCode, productIds) {
         <div class="detail"><span>Packages</span><span>${escapeHtml(formatPackageCount(result))}</span></div>
         <div class="detail"><span>Delivery</span><span>${escapeHtml(formatDelivery(details))}</span></div>
         <div class="detail"><span>Checked</span><span>${escapeHtml(result ? formatTime(result.checkedAt) : 'Never')}</span></div>
-        ${formatLastStock(key) ? `<div class="detail"><span>Last stock</span><span>${escapeHtml(formatLastStock(key))}</span></div>` : ''}
+        ${(() => {
+          const h = formatStockHistory(key, Boolean(status && status.found));
+          return h ? `<div class="detail"><span>${escapeHtml(h.label)}</span><span>${escapeHtml(h.value)}</span></div>` : '';
+        })()}
       </div>
       ${renderPackageModels(result)}
       <div class="card-actions">
@@ -556,7 +559,10 @@ function createRegionCard(regionCode, productIds) {
           <span class="badge ${escapeHtml(status.state)}">${escapeHtml(status.label)}</span>
         </div>
         <div class="reason">${escapeHtml(status.reason || '')}</div>
-        ${formatLastStock(key) ? `<div class="last-stock-hint">Last in stock: ${escapeHtml(formatLastStock(key))}</div>` : ''}
+        ${(() => {
+          const h = formatStockHistory(key, Boolean(status && status.found));
+          return h ? `<div class="last-stock-hint">${escapeHtml(h.label)}: ${escapeHtml(h.value)}</div>` : '';
+        })()}
         ${renderPackageModels(result)}
         <div class="card-actions">
           <a href="${escapeAttribute(pageUrl)}" target="_blank" rel="noreferrer">Komodo page</a>
@@ -1237,10 +1243,21 @@ function postHistoryRecord(result, isAvailable, ts) {
   }).catch(() => {});
 }
 
-function formatLastStock(key) {
+function formatStockHistory(key, isAvailable) {
   const entry = state.history.get(key);
-  if (!entry || !entry.lastInStock) return null;
-  return formatRelativeTime(entry.lastInStock);
+  if (!entry) return null;
+  if (isAvailable) {
+    return entry.lastInStock
+      ? { label: 'In stock since', value: formatRelativeTime(entry.lastInStock) }
+      : null;
+  }
+  if (entry.lastInStock) {
+    return { label: 'Last in stock', value: formatRelativeTime(entry.lastInStock) };
+  }
+  if (entry.lastOutOfStock) {
+    return { label: 'Out of stock since', value: formatRelativeTime(entry.lastOutOfStock) };
+  }
+  return null;
 }
 
 function formatRelativeTime(isoString) {
