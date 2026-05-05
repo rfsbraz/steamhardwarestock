@@ -70,8 +70,9 @@
           <label class="field">
             <span>Country</span>
             <span class="inline-input country-picker">
-              <select id="countrySelect"></select>
-              <button id="addRegionButton" type="button">Use</button>
+              <input id="countryInput" list="countryList" autocomplete="off" placeholder="Search...">
+              <datalist id="countryList"></datalist>
+              <button id="addRegionButton" type="button">Add</button>
               <button id="currentRegionButton" type="button">Current</button>
             </span>
           </label>
@@ -104,6 +105,7 @@
           <button id="checkButton" type="button">Check now</button>
           <button id="notifyButton" type="button">Enable notifications</button>
           <button id="testNotifyButton" type="button">Test notification</button>
+          <button id="testSoundButton" type="button">Test sound</button>
         </div>
       </section>
 

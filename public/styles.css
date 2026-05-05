@@ -190,7 +190,7 @@ select {
   justify-content: stretch;
 }
 
-.inline-input input {
+.inline-input input:not(#countryInput) {
   text-transform: uppercase;
 }
 
@@ -242,6 +242,21 @@ select {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.chip-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.chip-icon {
+  flex: 0 0 auto;
+  height: 26px;
+  width: auto;
+  border-radius: 3px;
 }
 
 .button-row {

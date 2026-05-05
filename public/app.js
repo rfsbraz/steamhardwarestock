@@ -12,6 +12,7 @@ const PRODUCTS = [
   {
     id: 'steam-controller',
     name: 'Steam Controller',
+    icon: 'https://cdn.cloudflare.steamstatic.com/steam/apps/4165870/capsule_sm_120.jpg',
     paths: ['/hardware/steamcontroller/', '/sale/steamcontroller'],
     fallbackPackageIds: [1558609],
     fallbackAppIds: [4165870]
@@ -19,6 +20,7 @@ const PRODUCTS = [
   {
     id: 'steam-deck',
     name: 'Steam Deck',
+    icon: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1675200/capsule_sm_120.jpg',
     paths: ['/steamdeck/'],
     fallbackPackageIds: [],
     fallbackAppIds: [1675200]
@@ -44,29 +46,62 @@ const COMMON_REGIONS = [
   ['CA', 'Canada'],
   ['GB', 'United Kingdom'],
   ['IE', 'Ireland'],
-  ['PT', 'Portugal'],
-  ['ES', 'Spain'],
-  ['FR', 'France'],
-  ['DE', 'Germany'],
-  ['IT', 'Italy'],
-  ['NL', 'Netherlands'],
-  ['BE', 'Belgium'],
-  ['AT', 'Austria'],
-  ['SE', 'Sweden'],
-  ['DK', 'Denmark'],
-  ['FI', 'Finland'],
-  ['NO', 'Norway'],
-  ['PL', 'Poland'],
-  ['CZ', 'Czechia'],
   ['AU', 'Australia'],
   ['NZ', 'New Zealand'],
-  ['JP', 'Japan'],
-  ['KR', 'South Korea'],
-  ['TW', 'Taiwan'],
-  ['HK', 'Hong Kong'],
-  ['SG', 'Singapore'],
+  ['AT', 'Austria'],
+  ['BE', 'Belgium'],
+  ['BG', 'Bulgaria'],
+  ['HR', 'Croatia'],
+  ['CY', 'Cyprus'],
+  ['CZ', 'Czechia'],
+  ['DK', 'Denmark'],
+  ['EE', 'Estonia'],
+  ['FI', 'Finland'],
+  ['FR', 'France'],
+  ['DE', 'Germany'],
+  ['GR', 'Greece'],
+  ['HU', 'Hungary'],
+  ['IS', 'Iceland'],
+  ['IT', 'Italy'],
+  ['LV', 'Latvia'],
+  ['LT', 'Lithuania'],
+  ['LU', 'Luxembourg'],
+  ['MT', 'Malta'],
+  ['NL', 'Netherlands'],
+  ['NO', 'Norway'],
+  ['PL', 'Poland'],
+  ['PT', 'Portugal'],
+  ['RO', 'Romania'],
+  ['RS', 'Serbia'],
+  ['SK', 'Slovakia'],
+  ['SI', 'Slovenia'],
+  ['ES', 'Spain'],
+  ['SE', 'Sweden'],
+  ['CH', 'Switzerland'],
+  ['TR', 'Turkey'],
+  ['UA', 'Ukraine'],
+  ['AR', 'Argentina'],
   ['BR', 'Brazil'],
-  ['MX', 'Mexico']
+  ['CL', 'Chile'],
+  ['CO', 'Colombia'],
+  ['MX', 'Mexico'],
+  ['PE', 'Peru'],
+  ['HK', 'Hong Kong'],
+  ['IN', 'India'],
+  ['ID', 'Indonesia'],
+  ['JP', 'Japan'],
+  ['KZ', 'Kazakhstan'],
+  ['KR', 'South Korea'],
+  ['MY', 'Malaysia'],
+  ['PH', 'Philippines'],
+  ['SG', 'Singapore'],
+  ['TW', 'Taiwan'],
+  ['TH', 'Thailand'],
+  ['VN', 'Vietnam'],
+  ['AE', 'United Arab Emirates'],
+  ['IL', 'Israel'],
+  ['SA', 'Saudi Arabia'],
+  ['ZA', 'South Africa']
 ].map(([code, name]) => ({ code, name }));
 
 const TIMEZONE_REGION_HINTS = new Map([
@@ -102,7 +137,37 @@ const TIMEZONE_REGION_HINTS = new Map([
   ['Asia/Singapore', 'SG'],
   ['Australia/Sydney', 'AU'],
   ['Australia/Melbourne', 'AU'],
-  ['Pacific/Auckland', 'NZ']
+  ['Pacific/Auckland', 'NZ'],
+  ['Europe/Bucharest', 'RO'],
+  ['Europe/Zurich', 'CH'],
+  ['Europe/Budapest', 'HU'],
+  ['Europe/Istanbul', 'TR'],
+  ['Europe/Athens', 'GR'],
+  ['Europe/Belgrade', 'RS'],
+  ['Europe/Kiev', 'UA'],
+  ['Europe/Riga', 'LV'],
+  ['Europe/Tallinn', 'EE'],
+  ['Europe/Vilnius', 'LT'],
+  ['Europe/Ljubljana', 'SI'],
+  ['Europe/Bratislava', 'SK'],
+  ['Europe/Sofia', 'BG'],
+  ['Europe/Zagreb', 'HR'],
+  ['Atlantic/Reykjavik', 'IS'],
+  ['Asia/Kolkata', 'IN'],
+  ['Asia/Bangkok', 'TH'],
+  ['Asia/Manila', 'PH'],
+  ['Asia/Ho_Chi_Minh', 'VN'],
+  ['Asia/Kuala_Lumpur', 'MY'],
+  ['Asia/Jakarta', 'ID'],
+  ['Asia/Almaty', 'KZ'],
+  ['Asia/Riyadh', 'SA'],
+  ['Asia/Dubai', 'AE'],
+  ['Asia/Jerusalem', 'IL'],
+  ['Africa/Johannesburg', 'ZA'],
+  ['America/Buenos_Aires', 'AR'],
+  ['America/Santiago', 'CL'],
+  ['America/Bogota', 'CO'],
+  ['America/Lima', 'PE']
 ]);
 
 const DETECTED_REGION = detectUserRegion();
@@ -133,7 +198,8 @@ document.addEventListener('DOMContentLoaded', () => {
 function bindElements() {
   for (const id of [
     'watchState',
-    'countrySelect',
+    'countryInput',
+    'countryList',
     'currentRegionButton',
     'intervalInput',
     'addRegionButton',
@@ -144,6 +210,7 @@ function bindElements() {
     'checkButton',
     'notifyButton',
     'testNotifyButton',
+    'testSoundButton',
     'availableCount',
     'productCount',
     'regionCount',
@@ -162,9 +229,10 @@ function bindEvents() {
   els.checkButton.addEventListener('click', () => checkNow({ manual: true }));
   els.notifyButton.addEventListener('click', requestNotifications);
   els.testNotifyButton.addEventListener('click', testNotification);
+  els.testSoundButton.addEventListener('click', testSound);
   els.addRegionButton.addEventListener('click', useSelectedCountry);
   els.currentRegionButton.addEventListener('click', useCurrentCountry);
-  els.countrySelect.addEventListener('keydown', (event) => {
+  els.countryInput.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
       useSelectedCountry();
     }
@@ -226,17 +294,17 @@ function renderControls() {
 
 function renderCountrySelect() {
   const selected = [...state.selectedRegions][0] || DETECTED_REGION;
+  const region = getRegion(selected);
   const fragment = document.createDocumentFragment();
 
-  for (const region of state.regions) {
+  for (const r of state.regions) {
     const option = document.createElement('option');
-    option.value = region.code;
-    option.textContent = `${region.name} (${region.code})`;
+    option.value = `${r.name} (${r.code})`;
     fragment.append(option);
   }
 
-  els.countrySelect.replaceChildren(fragment);
-  els.countrySelect.value = selected;
+  els.countryList.replaceChildren(fragment);
+  els.countryInput.value = `${region.name} (${region.code})`;
 }
 
 function renderProducts() {
@@ -259,11 +327,24 @@ function renderProducts() {
       updateSummary();
     });
 
+    const content = document.createElement('span');
+    content.className = 'chip-content';
+
+    if (product.icon) {
+      const img = document.createElement('img');
+      img.className = 'chip-icon';
+      img.src = product.icon;
+      img.alt = '';
+      img.onerror = () => { img.style.display = 'none'; };
+      content.append(img);
+    }
+
     const name = document.createElement('span');
     name.className = 'chip-name';
     name.textContent = product.name;
 
-    label.append(checkbox, name);
+    content.append(name);
+    label.append(checkbox, content);
     fragment.append(label);
   }
 
@@ -698,6 +779,11 @@ async function requestNotifications() {
   }
 }
 
+function testSound() {
+  unlockAudio();
+  playAlertSound();
+}
+
 async function testNotification() {
   try {
     const granted = await ensureNotificationPermission();
@@ -885,9 +971,10 @@ async function notify(title, body, url) {
 }
 
 function useSelectedCountry() {
-  const code = normalizeRegion(els.countrySelect.value);
+  const match = els.countryInput.value.match(/\(([A-Z]{2})\)\s*$/);
+  const code = match ? normalizeRegion(match[1]) : null;
   if (!code) {
-    setMessage('Select a country.');
+    setMessage('Select a country from the list.');
     return;
   }
 
@@ -899,7 +986,6 @@ function useSelectedCountry() {
 
 function useCurrentCountry() {
   state.selectedRegions = new Set([DETECTED_REGION]);
-  els.countrySelect.value = DETECTED_REGION;
   setMessage('');
   savePreferences();
   render();
