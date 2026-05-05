@@ -42,6 +42,19 @@ This project is ready for Vercel as a static site plus one serverless proxy func
 
 The included `vercel.json` configures the build, static output, service-worker cache header, and rewrites `/proxy` to `/api/proxy`.
 
+Production deployments are handled by GitHub Actions on every push to `main`. The deploy workflow runs syntax checks, builds with Vercel, and deploys the prebuilt output to production.
+
+Required GitHub repository secrets:
+
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+- `RELEASE_PLEASE_TOKEN` recommended, optional fallback is `GITHUB_TOKEN`
+
+## Releases
+
+Releases are managed with release-please. Conventional commits merged into `main` open or update a release PR. Merging that release PR creates the GitHub release, tag, changelog, and package version bump.
+
 ## Why There Is A Proxy
 
 The app's stock-checking logic lives in `public/app.js`, and the product/country catalogs are client-side. Steam does not currently send browser CORS headers for the hardware API or product pages, so live checks need a tiny allowlisted proxy.
