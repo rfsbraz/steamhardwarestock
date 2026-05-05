@@ -255,7 +255,8 @@ select {
 .chip-icon {
   flex: 0 0 auto;
   height: 26px;
-  width: auto;
+  width: 44px;
+  object-fit: cover;
   border-radius: 3px;
 }
 

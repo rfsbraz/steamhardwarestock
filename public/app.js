@@ -12,7 +12,7 @@ const PRODUCTS = [
   {
     id: 'steam-controller',
     name: 'Steam Controller',
-    icon: 'https://cdn.cloudflare.steamstatic.com/steam/apps/4165870/capsule_sm_120.jpg',
+    icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/9d5d7384c51cd831aaf52dd47184ecd3.avif',
     paths: ['/hardware/steamcontroller/', '/sale/steamcontroller'],
     fallbackPackageIds: [1558609],
     fallbackAppIds: [4165870]
@@ -20,7 +20,7 @@ const PRODUCTS = [
   {
     id: 'steam-deck',
     name: 'Steam Deck',
-    icon: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1675200/capsule_sm_120.jpg',
+    icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/6163a5d5ee139c8c07485f6e72fba875.avif',
     paths: ['/steamdeck/'],
     fallbackPackageIds: [],
     fallbackAppIds: [1675200]
@@ -28,6 +28,7 @@ const PRODUCTS = [
   {
     id: 'steam-frame',
     name: 'Steam Frame',
+    icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/82a194cce9b0912b2501236f4f4ef757.avif',
     paths: ['/hardware/steamframe/', '/sale/steamframe'],
     fallbackPackageIds: [],
     fallbackAppIds: []
@@ -35,6 +36,7 @@ const PRODUCTS = [
   {
     id: 'steam-machine',
     name: 'Steam Machine',
+    icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/d3888f2e560b3a837f6f0a25345b03b6.avif',
     paths: ['/hardware/steammachine/', '/sale/steammachine'],
     fallbackPackageIds: [],
     fallbackAppIds: []
