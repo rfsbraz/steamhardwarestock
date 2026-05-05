@@ -1003,10 +1003,10 @@ function clearChangelog() {
 }
 
 function renderChangelog() {
-  const hasEntries = state.changeLog.length > 0;
-  els.changelogSection.hidden = !hasEntries;
+  els.changelogSection.hidden = false;
 
-  if (!hasEntries) {
+  if (!state.changeLog.length) {
+    els.changelogList.innerHTML = '<div class="empty-state">No changes logged yet. Status transitions are recorded while watching.</div>';
     return;
   }
 
