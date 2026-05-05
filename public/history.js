@@ -152,6 +152,7 @@ async function performRecheck(entry) {
     && d.allow_purchase_in_country !== false
     && !d.account_restricted_from_purchasing
     && !d.requires_reservation
+    && !d.high_pending_orders
     && d.inventory_available
   );
 }

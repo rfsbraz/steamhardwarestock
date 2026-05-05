@@ -1554,21 +1554,21 @@ function classifyHardwareDetails(details) {
     };
   }
 
+  if (details.high_pending_orders) {
+    return {
+      found: false,
+      state: 'pending',
+      label: 'Backordered',
+      reason: 'Steam reports high pending orders; orders are queued rather than shipping immediately.'
+    };
+  }
+
   if (details.inventory_available) {
     return {
       found: true,
       state: 'available',
       label: 'In stock',
       reason: 'Steam reports inventory is available for this country.'
-    };
-  }
-
-  if (details.high_pending_orders) {
-    return {
-      found: false,
-      state: 'pending',
-      label: 'Out of stock',
-      reason: 'Steam reports high pending orders and no available inventory.'
     };
   }
 
