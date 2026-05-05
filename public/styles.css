@@ -931,7 +931,12 @@ h1 .history-link {
 .history-card-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
+}
+
+.recheck-btn {
+  margin-left: auto;
 }
 
 .site-footer {
