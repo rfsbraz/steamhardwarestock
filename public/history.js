@@ -98,6 +98,10 @@ function regionFullName(code) {
   return REGION_NAMES[code] || code;
 }
 
+function sourceLabel(source) {
+  return source === 'komodo' ? 'Komodo' : 'Steam';
+}
+
 function tsValue(entry) {
   return Math.max(
     entry.lastInStock ? Date.parse(entry.lastInStock) || 0 : 0,
