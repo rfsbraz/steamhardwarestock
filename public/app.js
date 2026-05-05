@@ -5,6 +5,8 @@ const STEAM_HARDWARE_API = 'https://api.steampowered.com/IStoreBrowseService/Get
 const DISCOVERY_CACHE_MS = 60 * 1000;
 const DEFAULT_PRODUCTS = ['steam-controller'];
 const STORAGE_KEY = 'steam-hardware-stock-tracker-v3';
+const CHANGELOG_KEY = 'steam-hardware-changelog-v1';
+const CHANGELOG_MAX = 100;
 const ORIGINAL_TITLE = document.title;
 const MAJOR_REGIONS = new Set(['US', 'CA', 'GB', 'AU', 'NZ', 'DE', 'FR', 'IT', 'ES', 'NL', 'SE', 'PL', 'BR', 'MX', 'JP', 'KR', 'SG']);
 let audioContext = null;
@@ -189,7 +191,8 @@ const state = {
   timer: null,
   nextCheckAt: null,
   running: false,
-  checking: false
+  checking: false,
+  changeLog: []
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -228,7 +231,10 @@ function bindElements() {
     'lastCheckedLabel',
     'baseSteamLink',
     'messageArea',
-    'resultsGrid'
+    'resultsGrid',
+    'changelogSection',
+    'changelogList',
+    'clearLogButton'
   ]) {
     els[id] = document.getElementById(id);
   }
@@ -241,6 +247,7 @@ function bindEvents() {
   els.notifyButton.addEventListener('click', requestNotifications);
   els.testNotifyButton.addEventListener('click', testNotification);
   els.testSoundButton.addEventListener('click', testSound);
+  els.clearLogButton.addEventListener('click', clearChangelog);
   els.addRegionButton.addEventListener('click', useSelectedCountry);
   els.currentRegionButton.addEventListener('click', useCurrentCountry);
   els.countryInput.addEventListener('input', () => {
@@ -275,6 +282,15 @@ function loadPreferences() {
   } catch {
     localStorage.removeItem(STORAGE_KEY);
   }
+
+  try {
+    const log = JSON.parse(localStorage.getItem(CHANGELOG_KEY) || '[]');
+    if (Array.isArray(log)) {
+      state.changeLog = log;
+    }
+  } catch {
+    localStorage.removeItem(CHANGELOG_KEY);
+  }
 }
 
 function savePreferences() {
@@ -293,6 +309,7 @@ function render() {
   renderRegions();
   renderResults();
   updateSummary();
+  renderChangelog();
 }
 
 function renderControls() {
@@ -860,7 +877,12 @@ function maybeNotify(result, manual) {
   const key = resultKey(result.product.id, result.region);
   const isAvailable = Boolean(result.status && result.status.found);
   const wasAvailable = state.availability.get(key) === true;
+  const hadPriorReading = state.availability.has(key);
   state.availability.set(key, isAvailable);
+
+  if (hadPriorReading && isAvailable !== wasAvailable) {
+    logChange(result, isAvailable);
+  }
 
   if (!isAvailable || wasAvailable) {
     return;
@@ -878,6 +900,62 @@ function maybeNotify(result, manual) {
     `${result.status.reason} ${suffix}`,
     result.pageUrl
   ).catch((error) => setMessage(error.message));
+}
+
+function logChange(result, isAvailable) {
+  state.changeLog.unshift({
+    ts: new Date().toISOString(),
+    productName: result.product.name,
+    region: result.region,
+    available: isAvailable,
+    label: result.status.label
+  });
+  if (state.changeLog.length > CHANGELOG_MAX) {
+    state.changeLog.length = CHANGELOG_MAX;
+  }
+  localStorage.setItem(CHANGELOG_KEY, JSON.stringify(state.changeLog));
+}
+
+function clearChangelog() {
+  state.changeLog = [];
+  localStorage.removeItem(CHANGELOG_KEY);
+  renderChangelog();
+}
+
+function renderChangelog() {
+  const hasEntries = state.changeLog.length > 0;
+  els.changelogSection.hidden = !hasEntries;
+
+  if (!hasEntries) {
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  for (const entry of state.changeLog) {
+    const el = document.createElement('div');
+    el.className = 'changelog-entry';
+
+    const time = document.createElement('span');
+    time.className = 'changelog-time';
+    time.textContent = formatTime(entry.ts);
+
+    const product = document.createElement('span');
+    product.className = 'changelog-product';
+    product.textContent = entry.productName;
+
+    const region = document.createElement('span');
+    region.className = 'changelog-region';
+    region.textContent = entry.region;
+
+    const badge = document.createElement('span');
+    badge.className = `badge ${entry.available ? 'available' : 'out'}`;
+    badge.textContent = entry.label;
+
+    el.append(time, product, region, badge);
+    fragment.appendChild(el);
+  }
+
+  els.changelogList.replaceChildren(fragment);
 }
 
 async function ensureNotificationPermission() {
