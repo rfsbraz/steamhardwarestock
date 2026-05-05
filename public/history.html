@@ -18,8 +18,8 @@
   </script>
 </head>
 <body>
-  <div class="app-shell">
-    <div class="topbar">
+  <main class="app-shell">
+    <header class="topbar">
       <div>
         <p class="eyebrow">Steam hardware</p>
         <h1>Stock history</h1>
@@ -29,18 +29,62 @@
           <span id="themeToggleLabel">Auto</span>
         </button>
       </div>
-    </div>
-    <p class="intro">All recorded stock transitions. History is captured while the tracker is watching.</p>
-    <div class="results-section" id="historySection">
+    </header>
+
+    <p class="intro">
+      All recorded stock transitions across products and regions. History is captured while the tracker is watching.
+      <span id="historyAsOf" class="history-as-of"></span>
+    </p>
+
+    <section class="results-section" aria-label="History filters">
+      <div class="history-filters">
+        <label class="field">
+          <span>Search region</span>
+          <input id="filterRegion" type="search" placeholder="US, JP, Germany...">
+        </label>
+        <label class="field">
+          <span>Sort by</span>
+          <select id="filterSort">
+            <option value="lastInStock">Last in stock (newest)</option>
+            <option value="lastOutOfStock">Last out of stock (newest)</option>
+            <option value="product">Product</option>
+            <option value="region">Region</option>
+            <option value="events">Event count</option>
+          </select>
+        </label>
+        <fieldset class="field history-fieldset">
+          <legend>Status</legend>
+          <label><input type="radio" name="filterStatus" value="all" checked> All</label>
+          <label><input type="radio" name="filterStatus" value="in"> In stock</label>
+          <label><input type="radio" name="filterStatus" value="out"> Out of stock</label>
+        </fieldset>
+        <fieldset class="field history-fieldset">
+          <legend>Source</legend>
+          <label><input type="radio" name="filterSource" value="all" checked> All</label>
+          <label><input type="radio" name="filterSource" value="steam"> Steam</label>
+          <label><input type="radio" name="filterSource" value="komodo"> Komodo</label>
+        </fieldset>
+        <fieldset class="field history-fieldset history-fieldset-products" id="filterProducts">
+          <legend>Products</legend>
+        </fieldset>
+      </div>
+      <div class="history-summary">
+        <span id="historyCounts">0 entries</span>
+        <button id="filterReset" type="button" class="btn-utility">Reset filters</button>
+      </div>
+    </section>
+
+    <section class="results-section" id="historySection" aria-label="History results">
       <div class="message-area" id="historyMessage">Loading history...</div>
       <div id="historyContent"></div>
-    </div>
+    </section>
+
     <footer class="site-footer">
       <div class="footer-inner">
         <a href="/">Back to tracker</a>
       </div>
     </footer>
-  </div>
+  </main>
   <script>
     (function () {
       var btn = document.getElementById('themeToggle');
