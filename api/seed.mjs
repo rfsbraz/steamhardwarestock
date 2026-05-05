@@ -1,4 +1,4 @@
-import { get, put } from '@vercel/blob';
+import { head, put, BlobNotFoundError } from '@vercel/blob';
 
 process.env.VERCEL_BLOB_RETRIES = process.env.VERCEL_BLOB_RETRIES || '1';
 
@@ -50,22 +50,28 @@ export default {
     const readController = new AbortController();
     const readTimer = setTimeout(() => readController.abort(), BLOB_TIMEOUT_MS);
     try {
-      const result = await get(HISTORY_BLOB, {
-        access: 'public',
-        token: process.env.BLOB_READ_WRITE_TOKEN,
-        useCache: false,
-        abortSignal: readController.signal
-      });
-      clearTimeout(readTimer);
-      if (result) {
-        const text = await new Response(result.stream).text();
-        existing = JSON.parse(text);
-        etag = result.blob.etag || null;
+      let info;
+      try {
+        info = await head(HISTORY_BLOB, {
+          token: process.env.BLOB_READ_WRITE_TOKEN,
+          abortSignal: readController.signal
+        });
+      } catch (error) {
+        if (!(error instanceof BlobNotFoundError)) throw error;
       }
+      if (info) {
+        const fetchUrl = `${info.downloadUrl || info.url}${(info.downloadUrl || info.url).includes('?') ? '&' : '?'}ts=${Date.now()}`;
+        const res = await fetch(fetchUrl, { cache: 'no-store', signal: readController.signal });
+        if (!res.ok) throw new Error(`blob fetch failed: ${res.status}`);
+        const text = await res.text();
+        existing = text ? JSON.parse(text) : {};
+        etag = info.etag || null;
+      }
+      clearTimeout(readTimer);
       existingLoaded = true;
     } catch (error) {
       clearTimeout(readTimer);
-      console.error('seed read error:', error?.name, error?.message);
+      console.error('seed read error:', error?.name, error?.message, error?.stack);
     }
 
     if (!existingLoaded) {

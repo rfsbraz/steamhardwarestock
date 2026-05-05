@@ -1,4 +1,4 @@
-import { get, put, BlobPreconditionFailedError } from '@vercel/blob';
+import { head, put, BlobPreconditionFailedError, BlobNotFoundError } from '@vercel/blob';
 
 process.env.VERCEL_BLOB_RETRIES = process.env.VERCEL_BLOB_RETRIES || '1';
 
@@ -12,16 +12,23 @@ async function readHistoryFresh() {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), BLOB_TIMEOUT_MS);
   try {
-    const result = await get(HISTORY_BLOB, {
-      access: 'public',
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-      useCache: false,
-      abortSignal: controller.signal
-    });
-    clearTimeout(timer);
-    if (!result) return { history: {}, etag: null };
-    const text = await new Response(result.stream).text();
-    return { history: JSON.parse(text), etag: result.blob.etag || null };
+    let info;
+    try {
+      info = await head(HISTORY_BLOB, {
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+        abortSignal: controller.signal
+      });
+    } catch (error) {
+      if (error instanceof BlobNotFoundError) {
+        return { history: {}, etag: null };
+      }
+      throw error;
+    }
+    const fetchUrl = `${info.downloadUrl || info.url}${(info.downloadUrl || info.url).includes('?') ? '&' : '?'}ts=${Date.now()}`;
+    const res = await fetch(fetchUrl, { cache: 'no-store', signal: controller.signal });
+    if (!res.ok) throw new Error(`blob fetch failed: ${res.status}`);
+    const text = await res.text();
+    return { history: text ? JSON.parse(text) : {}, etag: info.etag || null };
   } finally {
     clearTimeout(timer);
   }
@@ -113,7 +120,7 @@ export default {
     try {
       read = await readHistoryFresh();
     } catch (error) {
-      console.error('record read error:', error?.name, error?.message);
+      console.error('record read error:', error?.name, error?.message, error?.stack);
       return new Response(JSON.stringify({ error: 'history unavailable, refusing to overwrite' }), {
         status: 503,
         headers: { ...CORS, 'content-type': 'application/json' }
