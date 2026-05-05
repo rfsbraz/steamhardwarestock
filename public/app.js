@@ -209,12 +209,15 @@ const state = {
   nextCheckAt: null,
   running: false,
   checking: false,
-  changeLog: []
+  changeLog: [],
+  history: new Map(),
+  pendingRecord: new Map()
 };
 
 document.addEventListener('DOMContentLoaded', () => {
   bindElements();
   loadPreferences();
+  loadHistory();
   loadFromUrl();
   bindEvents();
   registerServiceWorker();
@@ -512,6 +515,7 @@ function createRegionCard(regionCode, productIds) {
         <div class="detail"><span>Packages</span><span>${escapeHtml(formatPackageCount(result))}</span></div>
         <div class="detail"><span>Delivery</span><span>${escapeHtml(formatDelivery(details))}</span></div>
         <div class="detail"><span>Checked</span><span>${escapeHtml(result ? formatTime(result.checkedAt) : 'Never')}</span></div>
+        ${formatLastStock(key) ? `<div class="detail"><span>Last stock</span><span>${escapeHtml(formatLastStock(key))}</span></div>` : ''}
       </div>
       ${renderPackageModels(result)}
       <div class="card-actions">
@@ -540,6 +544,7 @@ function createRegionCard(regionCode, productIds) {
           <span class="badge ${escapeHtml(status.state)}">${escapeHtml(status.label)}</span>
         </div>
         <div class="reason">${escapeHtml(status.reason || '')}</div>
+        ${formatLastStock(key) ? `<div class="last-stock-hint">Last in stock: ${escapeHtml(formatLastStock(key))}</div>` : ''}
         ${renderPackageModels(result)}
         <div class="card-actions">
           <a href="${escapeAttribute(pageUrl)}" target="_blank" rel="noreferrer">Komodo page</a>
@@ -726,6 +731,7 @@ async function checkNow({ manual }) {
     return;
   }
 
+  flushPendingRecords();
   state.checking = true;
   setMessage('Checking...');
   renderControls();
@@ -1150,6 +1156,82 @@ function logChange(result, isAvailable) {
     state.changeLog.length = CHANGELOG_MAX;
   }
   localStorage.setItem(CHANGELOG_KEY, JSON.stringify(state.changeLog));
+
+  const key = getResultKey(result);
+  if (!isAvailable) {
+    state.pendingRecord.delete(key);
+    postHistoryRecord(result, false);
+  } else {
+    state.pendingRecord.set(key, { result, ts: new Date().toISOString() });
+  }
+}
+
+async function loadHistory() {
+  try {
+    const res = await fetch('/api/history');
+    if (!res.ok) return;
+    const data = await res.json();
+    for (const [key, entry] of Object.entries(data)) {
+      state.history.set(key, entry);
+    }
+    renderResults();
+  } catch {}
+}
+
+function flushPendingRecords() {
+  for (const [key, pending] of state.pendingRecord) {
+    if (state.availability.get(key) === true) {
+      postHistoryRecord(pending.result, true, pending.ts);
+    }
+    state.pendingRecord.delete(key);
+  }
+}
+
+function postHistoryRecord(result, isAvailable, ts) {
+  const recordTs = ts || new Date().toISOString();
+  fetch('/api/record', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      key: getResultKey(result),
+      productId: result.product.id,
+      productName: result.product.name,
+      region: result.region,
+      source: result.source || 'steam',
+      available: isAvailable,
+      label: result.status.label,
+      ts: recordTs
+    })
+  }).then(res => {
+    if (res.ok) {
+      const key = getResultKey(result);
+      const entry = state.history.get(key) || {};
+      if (isAvailable) {
+        entry.lastInStock = recordTs;
+      } else {
+        entry.lastOutOfStock = recordTs;
+      }
+      state.history.set(key, entry);
+      renderResults();
+    }
+  }).catch(() => {});
+}
+
+function formatLastStock(key) {
+  const entry = state.history.get(key);
+  if (!entry || !entry.lastInStock) return null;
+  return formatRelativeTime(entry.lastInStock);
+}
+
+function formatRelativeTime(isoString) {
+  const diff = Date.now() - new Date(isoString).getTime();
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor(diff / 3600000);
+  const mins = Math.floor(diff / 60000);
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  if (mins > 0) return `${mins}m ago`;
+  return 'Just now';
 }
 
 function clearChangelog() {

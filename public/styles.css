@@ -581,6 +581,32 @@ select {
   letter-spacing: 0.02em;
 }
 
+.last-stock-hint {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.history-table th,
+.history-table td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.history-table th {
+  font-weight: 800;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
 .site-footer {
   border-top: 1px solid var(--line);
   margin-top: 40px;

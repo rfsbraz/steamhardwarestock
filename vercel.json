@@ -9,8 +9,16 @@
       "destination": "/index.html"
     },
     {
+      "source": "/history",
+      "destination": "/history.html"
+    },
+    {
       "source": "/proxy",
       "destination": "/api/proxy"
+    },
+    {
+      "source": "/record",
+      "destination": "/api/record"
     }
   ],
   "headers": [
@@ -24,7 +32,7 @@
       ]
     },
     {
-      "source": "/(app\\.[a-f0-9]+\\.js|styles\\.[a-f0-9]+\\.css)",
+      "source": "/(app\\.[a-f0-9]+\\.js|styles\\.[a-f0-9]+\\.css|history\\.[a-f0-9]+\\.js)",
       "headers": [
         {
           "key": "Cache-Control",

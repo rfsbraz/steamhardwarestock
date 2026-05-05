@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock history - Steam hardware stock tracker</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <div class="topbar">
+      <div>
+        <p class="eyebrow">Steam hardware</p>
+        <h1>Stock history</h1>
+      </div>
+    </div>
+    <p class="intro">All recorded stock transitions. History is captured while the tracker is watching.</p>
+    <div class="results-section" id="historySection">
+      <div class="message-area" id="historyMessage">Loading history...</div>
+      <div id="historyContent"></div>
+    </div>
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <a href="/">Back to tracker</a>
+      </div>
+    </footer>
+  </div>
+  <script src="/history.js"></script>
+</body>
+</html>
