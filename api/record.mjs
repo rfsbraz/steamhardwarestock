@@ -4,8 +4,9 @@ process.env.VERCEL_BLOB_RETRIES = process.env.VERCEL_BLOB_RETRIES || '1';
 
 const CORS = { 'access-control-allow-origin': '*' };
 const HISTORY_BLOB = 'stock-history.json';
-const MAX_EVENTS_PER_KEY = 200;
+const MAX_EVENTS_PER_KEY = 50;
 const BLOB_TIMEOUT_MS = 4000;
+const DEDUP_WINDOW_MS = 60 * 60 * 1000;
 
 export default {
   async fetch(request) {
@@ -28,7 +29,7 @@ export default {
       return new Response('invalid json', { status: 400, headers: CORS });
     }
 
-    const { key, productId, productName, region, source, available, label, ts } = event;
+    const { key, productId, productName, region, source, available, ts } = event;
     if (!key || !productId || !region || typeof available !== 'boolean' || !ts) {
       return new Response('missing fields', { status: 400, headers: CORS });
     }
@@ -60,13 +61,25 @@ export default {
       events: []
     };
 
+    const last = entry.events[0];
+    const tsMs = Date.parse(ts);
+    if (
+      last
+      && last.available === available
+      && Number.isFinite(tsMs)
+      && Number.isFinite(Date.parse(last.ts))
+      && tsMs - Date.parse(last.ts) < DEDUP_WINDOW_MS
+    ) {
+      return new Response('ok', { status: 200, headers: CORS });
+    }
+
     if (available) {
       entry.lastInStock = ts;
     } else {
       entry.lastOutOfStock = ts;
     }
 
-    entry.events.unshift({ ts, available, label });
+    entry.events.unshift({ ts, available });
     if (entry.events.length > MAX_EVENTS_PER_KEY) {
       entry.events.length = MAX_EVENTS_PER_KEY;
     }

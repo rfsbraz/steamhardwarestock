@@ -44,7 +44,7 @@ export default {
         headers: {
           ...CORS,
           'content-type': 'application/json',
-          'cache-control': 'public, s-maxage=30, stale-while-revalidate=60'
+          'cache-control': 'public, s-maxage=300, stale-while-revalidate=600'
         }
       });
     } catch (error) {

@@ -1220,7 +1220,6 @@ function postHistoryRecord(result, isAvailable, ts) {
       region: result.region,
       source: result.source || 'steam',
       available: isAvailable,
-      label: result.status.label,
       ts: recordTs
     })
   }).then(res => {
