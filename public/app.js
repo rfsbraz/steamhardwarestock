@@ -1558,8 +1558,8 @@ function classifyHardwareDetails(details) {
     return {
       found: false,
       state: 'pending',
-      label: 'Backordered',
-      reason: 'Steam reports high pending orders; orders are queued rather than shipping immediately.'
+      label: 'Out of stock',
+      reason: 'Steam reports high pending orders; the buy button is unavailable in this country.'
     };
   }
 
