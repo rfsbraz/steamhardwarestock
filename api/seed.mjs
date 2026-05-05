@@ -137,7 +137,7 @@ export default {
         contentType: 'application/json',
         addRandomSuffix: false,
         allowOverwrite: true,
-        cacheControlMaxAge: 60,
+        cacheControlMaxAge: 0,
         ifMatch: etag || undefined,
         token: process.env.BLOB_READ_WRITE_TOKEN,
         abortSignal: putController.signal
