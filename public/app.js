@@ -6,7 +6,9 @@ const DISCOVERY_CACHE_MS = 60 * 1000;
 const DEFAULT_PRODUCTS = ['steam-controller'];
 const STORAGE_KEY = 'steam-hardware-stock-tracker-v3';
 const ORIGINAL_TITLE = document.title;
+const MAJOR_REGIONS = new Set(['US', 'CA', 'GB', 'AU', 'NZ', 'DE', 'FR', 'IT', 'ES', 'NL', 'SE', 'PL', 'BR', 'MX', 'JP', 'KR', 'SG']);
 let audioContext = null;
+let acIndex = -1;
 
 const PRODUCTS = [
   {
@@ -201,7 +203,7 @@ function bindElements() {
   for (const id of [
     'watchState',
     'countryInput',
-    'countryList',
+    'countryDropdown',
     'currentRegionButton',
     'intervalInput',
     'addRegionButton',
@@ -234,11 +236,11 @@ function bindEvents() {
   els.testSoundButton.addEventListener('click', testSound);
   els.addRegionButton.addEventListener('click', useSelectedCountry);
   els.currentRegionButton.addEventListener('click', useCurrentCountry);
-  els.countryInput.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-      useSelectedCountry();
-    }
+  els.countryInput.addEventListener('input', () => {
+    showCountryDropdown(filterCountries(els.countryInput.value));
   });
+  els.countryInput.addEventListener('keydown', handleCountryKeydown);
+  els.countryInput.addEventListener('blur', () => hideCountryDropdown());
 
   els.intervalInput.addEventListener('change', () => {
     savePreferences();
@@ -295,18 +297,7 @@ function renderControls() {
 }
 
 function renderCountrySelect() {
-  const selected = [...state.selectedRegions][0] || DETECTED_REGION;
-  const region = getRegion(selected);
-  const fragment = document.createDocumentFragment();
-
-  for (const r of state.regions) {
-    const option = document.createElement('option');
-    option.value = `${r.name} (${r.code})`;
-    fragment.append(option);
-  }
-
-  els.countryList.replaceChildren(fragment);
-  els.countryInput.value = `${region.name} (${region.code})`;
+  // Autocomplete dropdown is populated dynamically on input
 }
 
 function renderProducts() {
@@ -355,7 +346,8 @@ function renderProducts() {
 
 function renderRegions() {
   const fragment = document.createDocumentFragment();
-  for (const region of state.regions) {
+  const toShow = state.regions.filter(r => MAJOR_REGIONS.has(r.code) || state.selectedRegions.has(r.code));
+  for (const region of toShow) {
     const label = document.createElement('label');
     label.className = 'select-chip';
 
@@ -972,25 +964,90 @@ async function notify(title, body, url) {
   }
 }
 
-function useSelectedCountry() {
-  const match = els.countryInput.value.match(/\(([A-Z]{2})\)\s*$/);
-  const code = match ? normalizeRegion(match[1]) : null;
-  if (!code) {
-    setMessage('Select a country from the list.');
-    return;
-  }
+function filterCountries(query) {
+  const q = query.toLowerCase().trim();
+  if (!q) return [];
+  return state.regions.filter(r =>
+    r.name.toLowerCase().includes(q) || r.code.toLowerCase().startsWith(q)
+  ).slice(0, 8);
+}
 
-  state.selectedRegions = new Set([code]);
+function showCountryDropdown(results) {
+  acIndex = -1;
+  if (!results.length) { hideCountryDropdown(); return; }
+  const frag = document.createDocumentFragment();
+  for (const r of results) {
+    const div = document.createElement('div');
+    div.className = 'country-option';
+    div.textContent = `${r.name} (${r.code})`;
+    div.dataset.code = r.code;
+    div.addEventListener('mousedown', e => {
+      e.preventDefault();
+      addCountryToSelection(r.code);
+    });
+    frag.append(div);
+  }
+  els.countryDropdown.replaceChildren(frag);
+  els.countryDropdown.classList.add('open');
+}
+
+function hideCountryDropdown() {
+  els.countryDropdown.classList.remove('open');
+  acIndex = -1;
+}
+
+function handleCountryKeydown(e) {
+  const options = [...els.countryDropdown.querySelectorAll('.country-option')];
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    acIndex = Math.min(acIndex + 1, options.length - 1);
+    options.forEach((o, i) => o.classList.toggle('active', i === acIndex));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acIndex = Math.max(acIndex - 1, -1);
+    options.forEach((o, i) => o.classList.toggle('active', i === acIndex));
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const active = options[acIndex] ?? options[0];
+    if (active) addCountryToSelection(active.dataset.code);
+    else useSelectedCountry();
+  } else if (e.key === 'Escape') {
+    hideCountryDropdown();
+  }
+}
+
+function addCountryToSelection(code) {
+  const normalized = normalizeRegion(code);
+  if (!normalized) return;
+  state.selectedRegions.add(normalized);
+  els.countryInput.value = '';
+  hideCountryDropdown();
   setMessage('');
   savePreferences();
   render();
 }
 
+function useSelectedCountry() {
+  const val = els.countryInput.value.trim();
+  if (!val) return;
+  let code = normalizeRegion(val.toUpperCase());
+  if (!code) {
+    const m = val.match(/\(([A-Z]{2})\)\s*$/);
+    if (m) code = normalizeRegion(m[1]);
+  }
+  if (!code) {
+    const results = filterCountries(val);
+    if (results.length) code = results[0].code;
+  }
+  if (!code) {
+    setMessage('Country not found. Type and select from the list.');
+    return;
+  }
+  addCountryToSelection(code);
+}
+
 function useCurrentCountry() {
-  state.selectedRegions = new Set([DETECTED_REGION]);
-  setMessage('');
-  savePreferences();
-  render();
+  addCountryToSelection(DETECTED_REGION);
 }
 
 function classifyHardwareDetails(details) {

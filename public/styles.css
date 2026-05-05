@@ -190,8 +190,38 @@ select {
   justify-content: stretch;
 }
 
-.inline-input input:not(#countryInput) {
-  text-transform: uppercase;
+.country-input-wrap {
+  position: relative;
+}
+
+.country-dropdown {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  display: none;
+}
+
+.country-dropdown.open {
+  display: block;
+}
+
+.country-option {
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.country-option:hover,
+.country-option.active {
+  background: var(--gray-bg);
 }
 
 .product-panel,

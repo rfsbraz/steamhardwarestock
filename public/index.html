@@ -70,8 +70,10 @@
           <label class="field">
             <span>Country</span>
             <span class="inline-input country-picker">
-              <input id="countryInput" list="countryList" autocomplete="off" placeholder="Search...">
-              <datalist id="countryList"></datalist>
+              <span class="country-input-wrap">
+                <input id="countryInput" autocomplete="off" placeholder="Search country...">
+                <div id="countryDropdown" class="country-dropdown" role="listbox"></div>
+              </span>
               <button id="addRegionButton" type="button">Add</button>
               <button id="currentRegionButton" type="button">Current</button>
             </span>
