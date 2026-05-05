@@ -8,7 +8,7 @@ const STORAGE_KEY = 'steam-hardware-stock-tracker-v3';
 const CHANGELOG_KEY = 'steam-hardware-changelog-v1';
 const CHANGELOG_MAX = 100;
 const ORIGINAL_TITLE = document.title;
-const MAJOR_REGIONS = new Set(['US', 'CA', 'GB', 'AU', 'NZ', 'DE', 'FR', 'IT', 'ES', 'NL', 'SE', 'PL', 'BR', 'MX', 'JP', 'KR', 'SG']);
+const MAJOR_REGIONS = new Set(['US', 'CA', 'GB', 'AU', 'NZ', 'DE', 'FR', 'IT', 'ES', 'NL', 'SE', 'PL', 'BR', 'MX', 'JP', 'KR', 'HK', 'TW']);
 const KOMODO_ORIGIN = 'https://komodostation.com';
 const KOMODO_REGIONS = new Set(['JP', 'KR', 'HK', 'TW']);
 const KOMODO_CATALOG = {
@@ -125,7 +125,6 @@ const COMMON_REGIONS = [
   ['KR', 'South Korea'],
   ['MY', 'Malaysia'],
   ['PH', 'Philippines'],
-  ['SG', 'Singapore'],
   ['TW', 'Taiwan'],
   ['TH', 'Thailand'],
   ['VN', 'Vietnam'],
@@ -165,7 +164,6 @@ const TIMEZONE_REGION_HINTS = new Map([
   ['Asia/Seoul', 'KR'],
   ['Asia/Taipei', 'TW'],
   ['Asia/Hong_Kong', 'HK'],
-  ['Asia/Singapore', 'SG'],
   ['Australia/Sydney', 'AU'],
   ['Australia/Melbourne', 'AU'],
   ['Pacific/Auckland', 'NZ'],
