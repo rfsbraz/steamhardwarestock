@@ -196,7 +196,11 @@ document.addEventListener('DOMContentLoaded', () => {
   bindEvents();
   registerServiceWorker();
   render();
-  checkNow({ manual: false });
+  if (state.running) {
+    resumeWatching();
+  } else {
+    checkNow({ manual: false });
+  }
 });
 
 function bindElements() {
@@ -262,6 +266,9 @@ function loadPreferences() {
     if (stored.interval) {
       els.intervalInput.value = String(stored.interval);
     }
+    if (stored.running) {
+      state.running = true;
+    }
   } catch {
     localStorage.removeItem(STORAGE_KEY);
   }
@@ -271,7 +278,8 @@ function savePreferences() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
     selectedProducts: [...state.selectedProducts],
     selectedRegions: [...state.selectedRegions],
-    interval: getInterval()
+    interval: getInterval(),
+    running: state.running
   }));
 }
 
@@ -486,8 +494,20 @@ function stopWatching() {
     clearTimeout(state.timer);
     state.timer = null;
   }
+  savePreferences();
   renderControls();
   updateSummary();
+}
+
+async function resumeWatching() {
+  if (!state.selectedProducts.size || !state.selectedRegions.size) {
+    state.running = false;
+    savePreferences();
+    return;
+  }
+  renderControls();
+  await checkNow({ manual: false });
+  scheduleNextCheck();
 }
 
 function scheduleNextCheck() {
