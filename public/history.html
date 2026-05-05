@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stock history - Steam hardware stock tracker</title>
   <link rel="stylesheet" href="/styles.css">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('theme');
+        if (t !== 'light' && t !== 'dark') t = 'auto';
+        document.documentElement.dataset.theme = t;
+      } catch (_) {
+        document.documentElement.dataset.theme = 'auto';
+      }
+    })();
+  </script>
 </head>
 <body>
   <div class="app-shell">
@@ -12,6 +23,11 @@
       <div>
         <p class="eyebrow">Steam hardware</p>
         <h1>Stock history</h1>
+      </div>
+      <div class="topbar-right">
+        <button id="themeToggle" type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+          <span id="themeToggleLabel">Auto</span>
+        </button>
       </div>
     </div>
     <p class="intro">All recorded stock transitions. History is captured while the tracker is watching.</p>
@@ -25,6 +41,26 @@
       </div>
     </footer>
   </div>
+  <script>
+    (function () {
+      var btn = document.getElementById('themeToggle');
+      var label = document.getElementById('themeToggleLabel');
+      if (!btn || !label) return;
+      var order = ['auto', 'light', 'dark'];
+      var labels = { auto: 'Auto', light: 'Light', dark: 'Dark' };
+      function render() {
+        label.textContent = labels[document.documentElement.dataset.theme] || 'Auto';
+      }
+      render();
+      btn.addEventListener('click', function () {
+        var current = document.documentElement.dataset.theme || 'auto';
+        var next = order[(order.indexOf(current) + 1) % order.length];
+        document.documentElement.dataset.theme = next;
+        try { localStorage.setItem('theme', next); } catch (_) {}
+        render();
+      });
+    })();
+  </script>
   <script src="/history.js"></script>
 </body>
 </html>

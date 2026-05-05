@@ -19,6 +19,17 @@
     <link rel="canonical" href="https://steamhardwarestock.com/">
     <link rel="manifest" href="/site.webmanifest">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t !== 'light' && t !== 'dark') t = 'auto';
+          document.documentElement.dataset.theme = t;
+        } catch (_) {
+          document.documentElement.dataset.theme = 'auto';
+        }
+      })();
+    </script>
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Steam Hardware Stock Tracker">
     <meta property="og:url" content="https://steamhardwarestock.com/">
@@ -60,7 +71,12 @@
           <p class="eyebrow">Unofficial tracker</p>
           <h1>Steam hardware stock</h1>
         </div>
-        <div class="status-pill" id="watchState">Idle</div>
+        <div class="topbar-right">
+          <button id="themeToggle" type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+            <span id="themeToggleLabel">Auto</span>
+          </button>
+          <div class="status-pill" id="watchState">Idle</div>
+        </div>
       </header>
 
       <p class="intro">Mark the products and countries you want, click <strong>Start watching</strong>, and keep this tab open - you'll get a browser notification when something comes in stock.</p>
@@ -157,6 +173,26 @@
       </div>
     </footer>
 
+    <script>
+      (function () {
+        var btn = document.getElementById('themeToggle');
+        var label = document.getElementById('themeToggleLabel');
+        if (!btn || !label) return;
+        var order = ['auto', 'light', 'dark'];
+        var labels = { auto: 'Auto', light: 'Light', dark: 'Dark' };
+        function render() {
+          label.textContent = labels[document.documentElement.dataset.theme] || 'Auto';
+        }
+        render();
+        btn.addEventListener('click', function () {
+          var current = document.documentElement.dataset.theme || 'auto';
+          var next = order[(order.indexOf(current) + 1) % order.length];
+          document.documentElement.dataset.theme = next;
+          try { localStorage.setItem('theme', next); } catch (_) {}
+          render();
+        });
+      })();
+    </script>
     <script src="/app.js" defer></script>
     <script>
       window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
