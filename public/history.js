@@ -349,69 +349,74 @@ function renderCards() {
 
   messageEl.textContent = '';
 
-  const grid = document.createElement('div');
-  grid.className = 'history-grid';
+  const sortKey = state.filters.sort;
+  const wrapper = document.createElement('div');
+  wrapper.className = 'history-table-wrap';
+  const table = document.createElement('table');
+  table.className = 'history-table';
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th data-sort="product" class="${sortKey === 'product' ? 'sorted' : ''}" scope="col">Product</th>
+        <th data-sort="region" class="${sortKey === 'region' ? 'sorted' : ''}" scope="col">Region</th>
+        <th scope="col">Source</th>
+        <th scope="col">Status</th>
+        <th data-sort="lastInStock" class="${sortKey === 'lastInStock' ? 'sorted' : ''}" scope="col">Last in stock</th>
+        <th data-sort="lastOutOfStock" class="${sortKey === 'lastOutOfStock' ? 'sorted' : ''}" scope="col">Last out of stock</th>
+        <th data-sort="events" class="${sortKey === 'events' ? 'sorted' : ''}" scope="col">Events</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+  `;
 
+  const tbody = document.createElement('tbody');
   for (const entry of filtered) {
     const product = PRODUCTS[entry.productId];
     const status = statusInfo(entry);
     const link = storeUrl(entry);
     const eventCount = Array.isArray(entry.events) ? entry.events.length : 0;
-    const sourceTag = entry.source === 'komodo' ? '<span class="source-tag">Komodo</span>' : '';
-    const timelineRel = status.timelineTs ? formatRelativeTime(status.timelineTs) : '—';
-    const timelineAbs = status.timelineTs ? formatDateTime(status.timelineTs) : '';
 
-    const card = document.createElement('article');
-    card.className = 'history-card';
-    card.innerHTML = `
-      <header class="history-card-head">
-        <div class="history-product">
-          ${product?.icon ? `<img class="history-product-icon" src="${escapeAttribute(product.icon)}" alt="" loading="lazy">` : ''}
-          <div class="history-product-meta">
-            <span class="history-product-name">${escapeHtml(entry.productName || product?.name || entry.productId || '—')} ${sourceTag}</span>
-            <span class="history-region">
-              <span class="history-region-code">${escapeHtml(entry.region || '—')}</span>
-              <span class="region-full-name">${escapeHtml(regionFullName(entry.region))}</span>
-            </span>
-          </div>
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="col-product">
+        <div class="cell-product">
+          ${product?.icon ? `<img class="cell-product-icon" src="${escapeAttribute(product.icon)}" alt="" loading="lazy">` : ''}
+          <span class="cell-product-name">${escapeHtml(entry.productName || product?.name || entry.productId || '—')}</span>
         </div>
-        <span class="badge ${status.cssClass}">${escapeHtml(status.label)}</span>
-      </header>
-
-      <div class="history-timeline">
-        <span class="history-timeline-label">${escapeHtml(status.timelineLabel)}</span>
-        <span class="history-timeline-value">${escapeHtml(timelineRel)}</span>
-        ${timelineAbs ? `<span class="history-timeline-abs">${escapeHtml(timelineAbs)}</span>` : ''}
-      </div>
-
-      <dl class="history-meta">
-        <div>
-          <dt>Last in stock</dt>
-          <dd>${entry.lastInStock ? escapeHtml(formatRelativeTime(entry.lastInStock)) : '—'}</dd>
-        </div>
-        <div>
-          <dt>Last out of stock</dt>
-          <dd>${entry.lastOutOfStock ? escapeHtml(formatRelativeTime(entry.lastOutOfStock)) : '—'}</dd>
-        </div>
-        <div>
-          <dt>Events</dt>
-          <dd>${eventCount}</dd>
-        </div>
-      </dl>
-
-      <div class="history-card-actions">
-        ${link ? `<a href="${escapeAttribute(link)}" target="_blank" rel="noreferrer">${entry.source === 'komodo' ? 'Komodo' : 'Steam'} page →</a>` : ''}
-        ${isCurrentlyInStock(entry) && canRecheck(entry) ? `<button type="button" class="btn-utility recheck-btn" data-key="${escapeAttribute(entryKey(entry))}">Recheck</button>` : ''}
-      </div>
+      </td>
+      <td class="col-region">
+        <span class="cell-region-code">${escapeHtml(entry.region || '—')}</span>
+        <span class="cell-region-name">${escapeHtml(regionFullName(entry.region))}</span>
+      </td>
+      <td>${escapeHtml(sourceLabel(entry.source))}</td>
+      <td><span class="badge ${status.cssClass}">${escapeHtml(status.label)}</span></td>
+      <td title="${entry.lastInStock ? escapeAttribute(formatDateTime(entry.lastInStock)) : ''}">${entry.lastInStock ? escapeHtml(formatRelativeTime(entry.lastInStock)) : '—'}</td>
+      <td title="${entry.lastOutOfStock ? escapeAttribute(formatDateTime(entry.lastOutOfStock)) : ''}">${entry.lastOutOfStock ? escapeHtml(formatRelativeTime(entry.lastOutOfStock)) : '—'}</td>
+      <td class="col-events">${eventCount}</td>
+      <td class="col-actions">
+        ${link ? `<a href="${escapeAttribute(link)}" target="_blank" rel="noreferrer">${entry.source === 'komodo' ? 'Komodo' : 'Steam'} →</a>` : ''}
+        ${isCurrentlyInStock(entry) && canRecheck(entry) ? `<button type="button" class="btn-utility recheck-btn">Recheck</button>` : ''}
+      </td>
     `;
-    const recheckBtn = card.querySelector('.recheck-btn');
+    const recheckBtn = tr.querySelector('.recheck-btn');
     if (recheckBtn) {
       recheckBtn.addEventListener('click', () => recheckEntry(entry, recheckBtn));
     }
-    grid.append(card);
+    tbody.append(tr);
+  }
+  table.append(tbody);
+
+  for (const th of table.querySelectorAll('th[data-sort]')) {
+    th.addEventListener('click', () => {
+      state.filters.sort = th.dataset.sort;
+      const sortSelect = document.getElementById('filterSort');
+      if (sortSelect) sortSelect.value = state.filters.sort;
+      renderCards();
+    });
   }
 
-  contentEl.append(grid);
+  wrapper.append(table);
+  contentEl.append(wrapper);
 }
 
 function bindFilters() {
