@@ -559,6 +559,22 @@ select {
   font-weight: 700;
 }
 
+.site-footer {
+  border-top: 1px solid var(--line);
+  margin-top: 40px;
+  padding: 20px 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 @media (max-width: 760px) {
   .app-shell {
     width: min(100% - 20px, 1180px);
