@@ -198,6 +198,7 @@ const state = {
 document.addEventListener('DOMContentLoaded', () => {
   bindElements();
   loadPreferences();
+  loadFromUrl();
   bindEvents();
   registerServiceWorker();
   render();
@@ -300,6 +301,34 @@ function savePreferences() {
     interval: getInterval(),
     running: state.running
   }));
+  updateUrl();
+}
+
+function updateUrl() {
+  const params = new URLSearchParams();
+  if (state.selectedProducts.size) {
+    params.set('p', [...state.selectedProducts].join(','));
+  }
+  if (state.selectedRegions.size) {
+    params.set('r', [...state.selectedRegions].join(','));
+  }
+  const query = params.toString();
+  history.replaceState(null, '', query ? `?${query}` : location.pathname);
+}
+
+function loadFromUrl() {
+  const params = new URLSearchParams(location.search);
+  const p = params.get('p');
+  const r = params.get('r');
+  if (!p && !r) return;
+  if (p) {
+    const products = p.split(',').map(normalizeProductId).filter(Boolean);
+    if (products.length) state.selectedProducts = new Set(products);
+  }
+  if (r) {
+    const regions = r.split(',').map(normalizeRegion).filter(Boolean);
+    if (regions.length) state.selectedRegions = new Set(regions);
+  }
 }
 
 function render() {
