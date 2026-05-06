@@ -12,13 +12,15 @@
     </script>
     <title>Steam Hardware Stock Tracker | Deck, Controller, Frame, Machine Stock Alerts</title>
     <meta name="description" content="Track Steam Deck, Steam Controller, Steam Frame, and Steam Machine stock by country. Get browser alerts for official Steam availability and avoid scalpers.">
-    <meta name="keywords" content="Steam hardware stock, Steam Deck stock, Steam Controller stock, Steam Frame stock, Steam Machine stock, Steam hardware tracker, Steam stock alerts, avoid scalpers">
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
     <meta name="application-name" content="Steam Hardware Stock Tracker">
     <meta name="theme-color" content="#202124">
     <link rel="canonical" href="https://steamhardwarestock.com/">
     <link rel="manifest" href="/site.webmanifest">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://clan.akamai.steamstatic.com">
+    <link rel="preconnect" href="https://clan.fastly.steamstatic.com">
+    <link rel="preconnect" href="https://www.googletagmanager.com">
     <script>
       (function () {
         try {
@@ -35,9 +37,11 @@
     <meta property="og:url" content="https://steamhardwarestock.com/">
     <meta property="og:title" content="Steam Hardware Stock Tracker">
     <meta property="og:description" content="Check Steam Deck, Steam Controller, Steam Frame, and Steam Machine stock by country and get alerts when official Steam hardware is available, so you can avoid scalpers.">
-    <meta name="twitter:card" content="summary">
+    <meta property="og:image" content="https://steamhardwarestock.com/og.png">
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Steam Hardware Stock Tracker">
     <meta name="twitter:description" content="Track official Steam hardware stock by country and get alerts when products become available.">
+    <meta name="twitter:image" content="https://steamhardwarestock.com/og.png">
     <link rel="stylesheet" href="/styles.css">
     <script type="application/ld+json">
       {
@@ -163,6 +167,17 @@
         <div id="changelogList" class="changelog-list"></div>
       </section>
     </main>
+
+    <nav class="app-shell browse-grid" aria-label="Browse by product">
+      <h2>Browse by product</h2>
+      <ul>
+        <li><a href="/steam-deck">Steam Deck stock by country</a></li>
+        <li><a href="/steam-controller">Steam Controller stock by country</a></li>
+        <li><a href="/steam-dock">Steam Deck Dock stock by country</a></li>
+        <li><a href="/steam-frame">Steam Frame availability</a></li>
+        <li><a href="/steam-machine">Steam Machine availability</a></li>
+      </ul>
+    </nav>
 
     <footer class="site-footer">
       <div class="app-shell footer-inner">
