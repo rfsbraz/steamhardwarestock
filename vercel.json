@@ -19,6 +19,14 @@
     {
       "source": "/record",
       "destination": "/api/record"
+    },
+    {
+      "source": "/:product(steam-controller|steam-deck|steam-dock|steam-frame|steam-machine)",
+      "destination": "/api/landing?product=:product"
+    },
+    {
+      "source": "/:product(steam-controller|steam-deck|steam-dock|steam-frame|steam-machine)/:region([a-zA-Z]{2})",
+      "destination": "/api/landing?product=:product&region=:region"
     }
   ],
   "crons": [

@@ -960,6 +960,38 @@ h1 .history-link {
   }
 }
 
+.browse-grid {
+  margin-top: 32px;
+  padding: 16px 0;
+}
+
+.browse-grid h2 {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 10px;
+}
+
+.browse-grid ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px 16px;
+}
+
+.browse-grid a {
+  text-decoration: none;
+  color: var(--text);
+}
+
+.browse-grid a:hover {
+  text-decoration: underline;
+}
+
 .site-footer {
   border-top: 1px solid var(--line);
   margin-top: 40px;

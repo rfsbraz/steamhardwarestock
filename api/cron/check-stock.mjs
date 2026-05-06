@@ -1,24 +1,14 @@
 import { BlobPreconditionFailedError } from '@vercel/blob';
 import { readHistoryFresh, mergeEvent, writeHistory } from '../record.mjs';
+import { PRODUCTS, REGIONS, isCheckable } from '../../lib/products.mjs';
 
 const CORS = { 'access-control-allow-origin': '*' };
 const STEAM_API = 'https://api.steampowered.com/IStoreBrowseService/GetHardwareItems/v1/';
 const BATCH_SIZE = 10;
 const FETCH_TIMEOUT_MS = 8000;
 
-const PRODUCTS = [
-  { id: 'steam-controller', name: 'Steam Controller', packageIds: [1558609] },
-  { id: 'steam-deck', name: 'Steam Deck', packageIds: [946113, 946114] },
-  { id: 'steam-dock', name: 'Steam Deck Dock', packageIds: [761892] }
-];
-
-const REGIONS = [
-  'US', 'CA', 'GB', 'IE', 'AU', 'NZ', 'AT', 'BE', 'BG', 'HR', 'CY', 'CZ',
-  'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IS', 'IT', 'LV', 'LT', 'LU',
-  'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'SK', 'SI', 'ES', 'SE', 'CH',
-  'TR', 'UA', 'AR', 'BR', 'CL', 'CO', 'MX', 'PE', 'HK', 'IN', 'ID', 'JP',
-  'KZ', 'KR', 'MY', 'PH', 'TW', 'TH', 'VN', 'AE', 'IL', 'SA', 'ZA'
-];
+const CHECKABLE_PRODUCTS = PRODUCTS.filter(isCheckable);
+const REGION_CODES = REGIONS.map((r) => r.code);
 
 async function fetchStock(product, region) {
   const input = {
@@ -48,8 +38,8 @@ async function fetchStock(product, region) {
 
 async function checkAll() {
   const pairs = [];
-  for (const product of PRODUCTS) {
-    for (const region of REGIONS) {
+  for (const product of CHECKABLE_PRODUCTS) {
+    for (const region of REGION_CODES) {
       pairs.push({ product, region });
     }
   }
