@@ -6,7 +6,6 @@ const CORS = { 'access-control-allow-origin': '*' };
 const HISTORY_BLOB = 'stock-history.json';
 const MAX_EVENTS_PER_KEY = 50;
 const BLOB_TIMEOUT_MS = 4000;
-const DEDUP_WINDOW_MS = 60 * 60 * 1000;
 
 async function readHistoryFresh() {
   const controller = new AbortController();
@@ -45,14 +44,7 @@ function mergeEvent(history, event) {
   };
 
   const last = entry.events[0];
-  const tsMs = Date.parse(ts);
-  if (
-    last
-    && last.available === available
-    && Number.isFinite(tsMs)
-    && Number.isFinite(Date.parse(last.ts))
-    && tsMs - Date.parse(last.ts) < DEDUP_WINDOW_MS
-  ) {
+  if (last && last.available === available) {
     return false;
   }
 

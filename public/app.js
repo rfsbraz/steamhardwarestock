@@ -1148,7 +1148,23 @@ function seedChangelogFromHistory() {
   for (const item of state.changeLog) seen.set(sig(item), item);
   for (const item of seeded) if (!seen.has(sig(item))) seen.set(sig(item), item);
 
-  state.changeLog = [...seen.values()]
+  const sorted = [...seen.values()].sort((a, b) => Date.parse(b.ts) - Date.parse(a.ts));
+  const grouped = new Map();
+  for (const item of sorted) {
+    const key = `${item.productName}|${item.region}`;
+    const arr = grouped.get(key) || [];
+    arr.push(item);
+    grouped.set(key, arr);
+  }
+  const collapsed = [];
+  for (const arr of grouped.values()) {
+    for (let i = 0; i < arr.length; i++) {
+      const newer = arr[i - 1];
+      if (!newer || newer.available !== arr[i].available) collapsed.push(arr[i]);
+    }
+  }
+
+  state.changeLog = collapsed
     .sort((a, b) => Date.parse(b.ts) - Date.parse(a.ts))
     .slice(0, CHANGELOG_MAX);
   try {
