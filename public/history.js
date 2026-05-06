@@ -102,6 +102,18 @@ function sourceLabel(source) {
   return source === 'komodo' ? 'Komodo' : 'Steam';
 }
 
+const STOCK_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+function stockInLast24h(entry) {
+  if (!Array.isArray(entry.events)) return 0;
+  const cutoff = Date.now() - STOCK_WINDOW_MS;
+  let count = 0;
+  for (const ev of entry.events) {
+    if (ev && ev.available && Date.parse(ev.ts) > cutoff) count++;
+  }
+  return count;
+}
+
 function tsValue(entry) {
   return Math.max(
     entry.lastInStock ? Date.parse(entry.lastInStock) || 0 : 0,
@@ -269,8 +281,8 @@ function applySort(entries) {
     case 'region':
       sorted.sort((a, b) => (a.region || '').localeCompare(b.region || '') || (a.productName || '').localeCompare(b.productName || ''));
       break;
-    case 'events':
-      sorted.sort((a, b) => (b.events?.length || 0) - (a.events?.length || 0));
+    case 'stock24h':
+      sorted.sort((a, b) => stockInLast24h(b) - stockInLast24h(a));
       break;
     case 'recent':
       sorted.sort((a, b) => tsValue(b) - tsValue(a));
@@ -367,7 +379,7 @@ function renderCards() {
         <th scope="col">Status</th>
         <th data-sort="lastInStock" class="${sortKey === 'lastInStock' ? 'sorted' : ''}" scope="col">Last in stock</th>
         <th data-sort="lastOutOfStock" class="${sortKey === 'lastOutOfStock' ? 'sorted' : ''}" scope="col">Last out of stock</th>
-        <th data-sort="events" class="${sortKey === 'events' ? 'sorted' : ''}" scope="col">Events</th>
+        <th data-sort="stock24h" class="${sortKey === 'stock24h' ? 'sorted' : ''}" scope="col" title="Times this region came into stock in the last 24 hours">In stock 24h</th>
         <th scope="col">Actions</th>
       </tr>
     </thead>
@@ -378,7 +390,7 @@ function renderCards() {
     const product = PRODUCTS[entry.productId];
     const status = statusInfo(entry);
     const link = storeUrl(entry);
-    const eventCount = Array.isArray(entry.events) ? entry.events.length : 0;
+    const stockCount = stockInLast24h(entry);
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -396,7 +408,7 @@ function renderCards() {
       <td><span class="badge ${status.cssClass}">${escapeHtml(status.label)}</span></td>
       <td title="${entry.lastInStock ? escapeAttribute(formatDateTime(entry.lastInStock)) : ''}">${entry.lastInStock ? escapeHtml(formatRelativeTime(entry.lastInStock)) : '—'}</td>
       <td title="${entry.lastOutOfStock ? escapeAttribute(formatDateTime(entry.lastOutOfStock)) : ''}">${entry.lastOutOfStock ? escapeHtml(formatRelativeTime(entry.lastOutOfStock)) : '—'}</td>
-      <td class="col-events">${eventCount}</td>
+      <td class="col-events">${stockCount}</td>
       <td class="col-actions">
         ${link ? `<a href="${escapeAttribute(link)}" target="_blank" rel="noreferrer">${entry.source === 'komodo' ? 'Komodo' : 'Steam'} →</a>` : ''}
         ${isCurrentlyInStock(entry) && canRecheck(entry) ? `<button type="button" class="btn-utility recheck-btn">Recheck</button>` : ''}
