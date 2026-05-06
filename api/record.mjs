@@ -7,7 +7,7 @@ const HISTORY_BLOB = 'stock-history.json';
 const MAX_EVENTS_PER_KEY = 50;
 const BLOB_TIMEOUT_MS = 4000;
 
-async function readHistoryFresh() {
+export async function readHistoryFresh() {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), BLOB_TIMEOUT_MS);
   try {
@@ -33,7 +33,7 @@ async function readHistoryFresh() {
   }
 }
 
-function mergeEvent(history, event) {
+export function mergeEvent(history, event) {
   const { key, productId, productName, region, source, available, ts } = event;
   const entry = history[key] || {
     productId,
@@ -63,7 +63,7 @@ function mergeEvent(history, event) {
   return true;
 }
 
-async function writeHistory(history, etag) {
+export async function writeHistory(history, etag) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), BLOB_TIMEOUT_MS);
   try {

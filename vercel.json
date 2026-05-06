@@ -21,6 +21,12 @@
       "destination": "/api/record"
     }
   ],
+  "crons": [
+    {
+      "path": "/api/cron/check-stock",
+      "schedule": "*/10 * * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/sw.js",

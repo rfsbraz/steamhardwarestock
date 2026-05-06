@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node scripts/build.js",
     "start": "node server.js",
-    "check": "node --check server.js && node --check api/proxy.mjs && node --check api/history.mjs && node --check api/record.mjs && node --check api/seed.mjs && node --check scripts/build.js && node --check public/app.js && node --check public/sw.js"
+    "check": "node --check server.js && node --check api/proxy.mjs && node --check api/history.mjs && node --check api/record.mjs && node --check api/seed.mjs && node --check api/cron/check-stock.mjs && node --check scripts/build.js && node --check public/app.js && node --check public/sw.js"
   },
   "keywords": [
     "steam",
