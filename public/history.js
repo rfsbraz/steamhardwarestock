@@ -272,9 +272,6 @@ function applyFilters(entries) {
 function applySort(entries) {
   const sorted = entries.slice();
   switch (state.filters.sort) {
-    case 'lastOutOfStock':
-      sorted.sort((a, b) => (Date.parse(b.lastOutOfStock) || 0) - (Date.parse(a.lastOutOfStock) || 0));
-      break;
     case 'product':
       sorted.sort((a, b) => (a.productName || '').localeCompare(b.productName || '') || (a.region || '').localeCompare(b.region || ''));
       break;
@@ -283,9 +280,6 @@ function applySort(entries) {
       break;
     case 'stock24h':
       sorted.sort((a, b) => stockInLast24h(b) - stockInLast24h(a));
-      break;
-    case 'recent':
-      sorted.sort((a, b) => tsValue(b) - tsValue(a));
       break;
     case 'lastInStock':
     default:
@@ -378,7 +372,6 @@ function renderCards() {
         <th scope="col">Source</th>
         <th scope="col">Status</th>
         <th data-sort="lastInStock" class="${sortKey === 'lastInStock' ? 'sorted' : ''}" scope="col">Last in stock</th>
-        <th data-sort="lastOutOfStock" class="${sortKey === 'lastOutOfStock' ? 'sorted' : ''}" scope="col">Last out of stock</th>
         <th data-sort="stock24h" class="${sortKey === 'stock24h' ? 'sorted' : ''}" scope="col" title="Times this region came into stock in the last 24 hours">In stock 24h</th>
         <th scope="col">Actions</th>
       </tr>
@@ -407,7 +400,6 @@ function renderCards() {
       <td>${escapeHtml(sourceLabel(entry.source))}</td>
       <td><span class="badge ${status.cssClass}">${escapeHtml(status.label)}</span></td>
       <td title="${entry.lastInStock ? escapeAttribute(formatDateTime(entry.lastInStock)) : ''}">${entry.lastInStock ? escapeHtml(formatRelativeTime(entry.lastInStock)) : '—'}</td>
-      <td title="${entry.lastOutOfStock ? escapeAttribute(formatDateTime(entry.lastOutOfStock)) : ''}">${entry.lastOutOfStock ? escapeHtml(formatRelativeTime(entry.lastOutOfStock)) : '—'}</td>
       <td class="col-events">${stockCount}</td>
       <td class="col-actions">
         ${link ? `<a href="${escapeAttribute(link)}" target="_blank" rel="noreferrer">${entry.source === 'komodo' ? 'Komodo' : 'Steam'} →</a>` : ''}
