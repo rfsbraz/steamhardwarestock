@@ -575,44 +575,6 @@ function createRegionCard(regionCode, productIds) {
   return card;
 }
 
-function createResultCard(productId, regionCode, result) {
-  const product = result ? result.product : getProduct(productId);
-  const region = getRegion(regionCode);
-  const status = result ? result.status : {
-    state: 'unknown',
-    label: 'Waiting',
-    reason: 'Not checked yet.'
-  };
-  const details = primaryDetails(result);
-  const card = document.createElement('article');
-  card.className = 'result-card';
-
-  card.innerHTML = `
-    <div class="result-top">
-      <div class="region-title">
-        <span class="region-code">${escapeHtml(product.name)}</span>
-        <span class="region-full-name">${escapeHtml(region.code)} - ${escapeHtml(region.name)}</span>
-      </div>
-      <span class="badge ${escapeHtml(status.state)}">${escapeHtml(status.label)}</span>
-    </div>
-    <div class="reason">${escapeHtml(status.reason)}</div>
-    <div class="detail-grid">
-      <div class="detail"><span>Inventory</span><span>${formatBoolean(details.inventory_available)}</span></div>
-      <div class="detail"><span>Purchasable</span><span>${formatBoolean(details.allow_purchase_in_country)}</span></div>
-      <div class="detail"><span>Pending</span><span>${formatBoolean(details.high_pending_orders)}</span></div>
-      <div class="detail"><span>Packages</span><span>${escapeHtml(formatPackageCount(result))}</span></div>
-      <div class="detail"><span>Delivery</span><span>${escapeHtml(formatDelivery(details))}</span></div>
-      <div class="detail"><span>Checked</span><span>${escapeHtml(result ? formatTime(result.checkedAt) : 'Never')}</span></div>
-    </div>
-    ${renderPackageModels(result)}
-    <div class="card-actions">
-      <a href="${escapeAttribute(result ? result.pageUrl : productPageUrl(product, regionCode))}" target="_blank" rel="noreferrer">Steam page</a>
-    </div>
-  `;
-
-  return card;
-}
-
 function updateSummary() {
   const productIds = [...state.selectedProducts];
   const regionCodes = [...state.selectedRegions];
@@ -676,7 +638,6 @@ function stopWatching() {
   savePreferences();
   renderControls();
   updateSummary();
-  updateSummary();
 }
 
 async function resumeWatching() {
@@ -705,6 +666,7 @@ function scheduleNextCheck() {
 
   state.timer = setTimeout(async () => {
     await checkNow({ manual: false });
+    if (!state.running) return;
     scheduleNextCheck();
   }, delay);
 }

@@ -49,9 +49,9 @@ export function mergeEvent(history, event) {
   }
 
   if (available) {
-    entry.lastInStock = ts;
+    if (!entry.lastInStock || ts > entry.lastInStock) entry.lastInStock = ts;
   } else {
-    entry.lastOutOfStock = ts;
+    if (!entry.lastOutOfStock || ts > entry.lastOutOfStock) entry.lastOutOfStock = ts;
   }
 
   entry.events.unshift({ ts, available });

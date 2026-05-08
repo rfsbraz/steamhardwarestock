@@ -71,6 +71,10 @@ function isAllowedProxyUrl(targetUrl) {
       || targetUrl.pathname.startsWith('/sale/');
   }
 
+  if (targetUrl.hostname === 'komodostation.com') {
+    return targetUrl.pathname.startsWith('/product/');
+  }
+
   return false;
 }
 
