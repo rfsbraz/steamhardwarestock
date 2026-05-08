@@ -7,7 +7,26 @@ const STORAGE_KEY = 'steam-hardware-stock-tracker-v3';
 const CHANGELOG_KEY = 'steam-hardware-changelog-v1';
 const CHANGELOG_MAX = 100;
 const ORIGINAL_TITLE = document.title;
-const MAJOR_REGIONS = new Set(['US', 'CA', 'GB', 'AU', 'NZ', 'DE', 'FR', 'IT', 'ES', 'NL', 'SE', 'PL', 'BR', 'MX', 'JP', 'KR', 'HK', 'TW']);
+const MAJOR_REGIONS = new Set([
+  'US',
+  'CA',
+  'GB',
+  'AU',
+  'NZ',
+  'DE',
+  'FR',
+  'IT',
+  'ES',
+  'NL',
+  'SE',
+  'PL',
+  'BR',
+  'MX',
+  'JP',
+  'KR',
+  'HK',
+  'TW'
+]);
 const KOMODO_ORIGIN = 'https://komodostation.com';
 const KOMODO_REGIONS = new Set(['JP', 'KR', 'HK', 'TW']);
 const KOMODO_CATALOG = {
@@ -324,12 +343,15 @@ function loadPreferences() {
 }
 
 function savePreferences() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    selectedProducts: [...state.selectedProducts],
-    selectedRegions: [...state.selectedRegions],
-    interval: getInterval(),
-    running: state.running
-  }));
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({
+      selectedProducts: [...state.selectedProducts],
+      selectedRegions: [...state.selectedRegions],
+      interval: getInterval(),
+      running: state.running
+    })
+  );
   updateUrl();
 }
 
@@ -414,7 +436,9 @@ function renderProducts() {
       img.className = 'chip-icon';
       img.src = product.icon;
       img.alt = '';
-      img.onerror = () => { img.style.display = 'none'; };
+      img.onerror = () => {
+        img.style.display = 'none';
+      };
       content.append(img);
     }
 
@@ -432,7 +456,7 @@ function renderProducts() {
 
 function renderRegions() {
   const fragment = document.createDocumentFragment();
-  const toShow = state.regions.filter(r => MAJOR_REGIONS.has(r.code) || state.selectedRegions.has(r.code));
+  const toShow = state.regions.filter((r) => MAJOR_REGIONS.has(r.code) || state.selectedRegions.has(r.code));
   for (const region of toShow) {
     const label = document.createElement('label');
     label.className = 'select-chip';
@@ -529,7 +553,9 @@ function createRegionCard(regionCode, productIds) {
         <div class="detail"><span>Checked</span><span>${escapeHtml(result ? formatTime(result.checkedAt) : 'Never')}</span></div>
         ${(() => {
           const h = formatStockHistory(key, Boolean(status && status.found));
-          return h ? `<div class="detail"><span>${escapeHtml(h.label)}</span><span>${escapeHtml(h.value)}</span></div>` : '';
+          return h
+            ? `<div class="detail"><span>${escapeHtml(h.label)}</span><span>${escapeHtml(h.value)}</span></div>`
+            : '';
         })()}
       </div>
       ${renderPackageModels(result)}
@@ -546,9 +572,7 @@ function createRegionCard(regionCode, productIds) {
       const key = komodoResultKey(productId, regionCode);
       const result = state.results.get(key);
       const product = result ? result.product : getProduct(productId);
-      const status = result
-        ? result.status
-        : { state: 'unknown', label: 'Waiting', reason: 'Not checked yet.' };
+      const status = result ? result.status : { state: 'unknown', label: 'Waiting', reason: 'Not checked yet.' };
       const pageUrl = `${KOMODO_ORIGIN}${KOMODO_CATALOG[productId].path}`;
 
       const section = document.createElement('div');
@@ -578,11 +602,13 @@ function createRegionCard(regionCode, productIds) {
 function createResultCard(productId, regionCode, result) {
   const product = result ? result.product : getProduct(productId);
   const region = getRegion(regionCode);
-  const status = result ? result.status : {
-    state: 'unknown',
-    label: 'Waiting',
-    reason: 'Not checked yet.'
-  };
+  const status = result
+    ? result.status
+    : {
+        state: 'unknown',
+        label: 'Waiting',
+        reason: 'Not checked yet.'
+      };
   const details = primaryDetails(result);
   const card = document.createElement('article');
   card.className = 'result-card';
@@ -772,26 +798,28 @@ async function checkNow({ manual }) {
 
   try {
     const [steamResults, komodoSettled] = await Promise.all([
-      Promise.all(checks.map(async ({ product, region }) => {
-        try {
-          return await checkProductRegion(product, region);
-        } catch (error) {
-          return {
-            product: publicProduct(product, region),
-            region,
-            pageUrl: productPageUrl(product, region),
-            checkedAt: new Date().toISOString(),
-            packageCount: 0,
-            packages: [],
-            status: {
-              found: false,
-              state: 'error',
-              label: 'Error',
-              reason: error.message
-            }
-          };
-        }
-      })),
+      Promise.all(
+        checks.map(async ({ product, region }) => {
+          try {
+            return await checkProductRegion(product, region);
+          } catch (error) {
+            return {
+              product: publicProduct(product, region),
+              region,
+              pageUrl: productPageUrl(product, region),
+              checkedAt: new Date().toISOString(),
+              packageCount: 0,
+              packages: [],
+              status: {
+                found: false,
+                state: 'error',
+                label: 'Error',
+                reason: error.message
+              }
+            };
+          }
+        })
+      ),
       Promise.allSettled(komodoChecks)
     ]);
 
@@ -861,7 +889,12 @@ async function checkKomodoProductRegion(productId, region, htmlCache = new Map()
       checkedAt,
       packageCount: 0,
       packages: [],
-      status: { found: false, state: 'unpublished', label: 'Coming soon', reason: 'Komodo Station has not yet listed this product.' }
+      status: {
+        found: false,
+        state: 'unpublished',
+        label: 'Coming soon',
+        reason: 'Komodo Station has not yet listed this product.'
+      }
     };
   }
 
@@ -869,16 +902,17 @@ async function checkKomodoProductRegion(productId, region, htmlCache = new Map()
 
   try {
     if (!htmlCache.has(pageUrl)) {
-      htmlCache.set(pageUrl, fetch(`/proxy?url=${encodeURIComponent(pageUrl)}`).then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.text();
-      }));
+      htmlCache.set(
+        pageUrl,
+        fetch(`/proxy?url=${encodeURIComponent(pageUrl)}`).then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.text();
+        })
+      );
     }
     const html = await htmlCache.get(pageUrl);
 
-    const packages = entry.models
-      ? parseKomodoModels(html, entry.models)
-      : [parseKomodoSingle(html)];
+    const packages = entry.models ? parseKomodoModels(html, entry.models) : [parseKomodoSingle(html)];
 
     return {
       source: 'komodo',
@@ -899,7 +933,12 @@ async function checkKomodoProductRegion(productId, region, htmlCache = new Map()
       checkedAt,
       packageCount: 0,
       packages: [],
-      status: { found: false, state: 'error', label: 'Error', reason: `Could not reach Komodo Station: ${error.message}` }
+      status: {
+        found: false,
+        state: 'error',
+        label: 'Error',
+        reason: `Could not reach Komodo Station: ${error.message}`
+      }
     };
   }
 }
@@ -943,9 +982,8 @@ async function fetchHardwareItems(region, packageIds) {
   const apiUrl = new URL(STEAM_HARDWARE_API);
   apiUrl.searchParams.set('input_json', JSON.stringify(input));
   const payload = await fetchSteamJson(apiUrl.toString());
-  const details = payload && payload.response && Array.isArray(payload.response.details)
-    ? payload.response.details
-    : [];
+  const details =
+    payload && payload.response && Array.isArray(payload.response.details) ? payload.response.details : [];
 
   return {
     apiUrl: apiUrl.toString(),
@@ -979,7 +1017,9 @@ async function fetchReadableSteamData(url, responseType, options = {}) {
   }
 
   const reason = lastError ? lastError.message : 'request failed';
-  throw new Error(`Browser could not read Steam data (${reason}). Steam does not allow direct browser reads from arbitrary sites, so this deployment needs a small allowlisted proxy.`);
+  throw new Error(
+    `Browser could not read Steam data (${reason}). Steam does not allow direct browser reads from arbitrary sites, so this deployment needs a small allowlisted proxy.`
+  );
 }
 
 function buildFetchAttempts(url, { maxBytes } = {}) {
@@ -1164,9 +1204,7 @@ function seedChangelogFromHistory() {
     }
   }
 
-  state.changeLog = collapsed
-    .sort((a, b) => Date.parse(b.ts) - Date.parse(a.ts))
-    .slice(0, CHANGELOG_MAX);
+  state.changeLog = collapsed.sort((a, b) => Date.parse(b.ts) - Date.parse(a.ts)).slice(0, CHANGELOG_MAX);
   try {
     localStorage.setItem(CHANGELOG_KEY, JSON.stringify(state.changeLog));
   } catch {}
@@ -1195,28 +1233,28 @@ function postHistoryRecord(result, isAvailable, ts) {
       available: isAvailable,
       ts: recordTs
     })
-  }).then(res => {
-    if (res.ok) {
-      const key = getResultKey(result);
-      const entry = state.history.get(key) || {};
-      if (isAvailable) {
-        entry.lastInStock = recordTs;
-      } else {
-        entry.lastOutOfStock = recordTs;
+  })
+    .then((res) => {
+      if (res.ok) {
+        const key = getResultKey(result);
+        const entry = state.history.get(key) || {};
+        if (isAvailable) {
+          entry.lastInStock = recordTs;
+        } else {
+          entry.lastOutOfStock = recordTs;
+        }
+        state.history.set(key, entry);
+        renderResults();
       }
-      state.history.set(key, entry);
-      renderResults();
-    }
-  }).catch(() => {});
+    })
+    .catch(() => {});
 }
 
 function formatStockHistory(key, isAvailable) {
   const entry = state.history.get(key);
   if (!entry) return null;
   if (isAvailable) {
-    return entry.lastInStock
-      ? { label: 'In stock since', value: formatRelativeTime(entry.lastInStock) }
-      : null;
+    return entry.lastInStock ? { label: 'In stock since', value: formatRelativeTime(entry.lastInStock) } : null;
   }
   if (entry.lastInStock) {
     return { label: 'Last in stock', value: formatRelativeTime(entry.lastInStock) };
@@ -1248,7 +1286,8 @@ function renderChangelog() {
   els.changelogSection.hidden = false;
 
   if (!state.changeLog.length) {
-    els.changelogList.innerHTML = '<div class="empty-state">No changes logged yet. Status transitions are recorded while watching.</div>';
+    els.changelogList.innerHTML =
+      '<div class="empty-state">No changes logged yet. Status transitions are recorded while watching.</div>';
     return;
   }
 
@@ -1353,21 +1392,26 @@ function playAlertSound() {
   }
   const ctx = audioContext;
   const resume = ctx.state === 'suspended' ? ctx.resume() : Promise.resolve();
-  resume.then(() => {
-    const now = ctx.currentTime;
-    for (const [offset, freq] of [[0, 880], [0.25, 1100]]) {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.3, now + offset);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.22);
-      osc.start(now + offset);
-      osc.stop(now + offset + 0.22);
-    }
-  }).catch(() => {});
+  resume
+    .then(() => {
+      const now = ctx.currentTime;
+      for (const [offset, freq] of [
+        [0, 880],
+        [0.25, 1100]
+      ]) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.3, now + offset);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.22);
+        osc.start(now + offset);
+        osc.stop(now + offset + 0.22);
+      }
+    })
+    .catch(() => {});
 }
 
 async function registerServiceWorker() {
@@ -1453,21 +1497,24 @@ async function notify(title, body, url) {
 function filterCountries(query) {
   const q = query.toLowerCase().trim();
   if (!q) return [];
-  return state.regions.filter(r =>
-    r.name.toLowerCase().includes(q) || r.code.toLowerCase().startsWith(q)
-  ).slice(0, 8);
+  return state.regions
+    .filter((r) => r.name.toLowerCase().includes(q) || r.code.toLowerCase().startsWith(q))
+    .slice(0, 8);
 }
 
 function showCountryDropdown(results) {
   acIndex = -1;
-  if (!results.length) { hideCountryDropdown(); return; }
+  if (!results.length) {
+    hideCountryDropdown();
+    return;
+  }
   const frag = document.createDocumentFragment();
   for (const r of results) {
     const div = document.createElement('div');
     div.className = 'country-option';
     div.textContent = `${r.name} (${r.code})`;
     div.dataset.code = r.code;
-    div.addEventListener('mousedown', e => {
+    div.addEventListener('mousedown', (e) => {
       e.preventDefault();
       addCountryToSelection(r.code);
     });
@@ -1578,7 +1625,8 @@ function classifyHardwareDetails(details) {
       found: false,
       state: 'pending',
       label: 'Out of stock',
-      reason: 'Steam has a queue of pending orders, so the buy button is deactivated. New units can still surface sporadically as queued orders get cancelled.'
+      reason:
+        'Steam has a queue of pending orders, so the buy button is deactivated. New units can still surface sporadically as queued orders get cancelled.'
     };
   }
 
@@ -1615,9 +1663,10 @@ function classifyProductPackages(packages) {
       found: true,
       state: 'available',
       label: 'In stock',
-      reason: packages.length > 1
-        ? `Steam reports ${formatPackageName(available)} has inventory available.`
-        : available.status.reason
+      reason:
+        packages.length > 1
+          ? `Steam reports ${formatPackageName(available)} has inventory available.`
+          : available.status.reason
     };
   }
 
@@ -1629,9 +1678,10 @@ function classifyProductPackages(packages) {
         found: false,
         state: match.status.state,
         label: match.status.label,
-        reason: packages.length > 1
-          ? `Steam reports ${match.status.label.toLowerCase()} for ${formatPackageName(match)}.`
-          : match.status.reason
+        reason:
+          packages.length > 1
+            ? `Steam reports ${match.status.label.toLowerCase()} for ${formatPackageName(match)}.`
+            : match.status.reason
       };
     }
   }
@@ -1730,19 +1780,21 @@ function renderPackageModels(result) {
     return '';
   }
 
-  const rows = result.packages.map((item) => {
-    const status = item.status || {
-      state: 'unknown',
-      label: 'Unknown'
-    };
-    return `
+  const rows = result.packages
+    .map((item) => {
+      const status = item.status || {
+        state: 'unknown',
+        label: 'Unknown'
+      };
+      return `
       <div class="model-row">
         <span class="model-name">${escapeHtml(formatPackageName(item))}</span>
         <span class="model-delivery">${escapeHtml(formatDelivery(item.details || {}))}</span>
         <span class="model-status badge ${escapeHtml(status.state)}">${escapeHtml(status.label)}</span>
       </div>
     `;
-  }).join('');
+    })
+    .join('');
 
   return `
     <div class="model-list" aria-label="Hardware options">
@@ -1787,7 +1839,9 @@ function getInterval() {
 }
 
 function normalizeRegion(value) {
-  const region = String(value || '').trim().toUpperCase();
+  const region = String(value || '')
+    .trim()
+    .toUpperCase();
   return /^[A-Z]{2}$/.test(region) ? region : null;
 }
 

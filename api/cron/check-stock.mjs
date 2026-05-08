@@ -23,13 +23,14 @@ async function fetchStock(product, region) {
     if (!res.ok) throw new Error(`steam ${res.status}`);
     const payload = await res.json();
     const details = payload?.response?.details || [];
-    return details.some((d) =>
-      d
-      && d.allow_purchase_in_country !== false
-      && !d.account_restricted_from_purchasing
-      && !d.requires_reservation
-      && !d.high_pending_orders
-      && d.inventory_available
+    return details.some(
+      (d) =>
+        d &&
+        d.allow_purchase_in_country !== false &&
+        !d.account_restricted_from_purchasing &&
+        !d.requires_reservation &&
+        !d.high_pending_orders &&
+        d.inventory_available
     );
   } finally {
     clearTimeout(timer);
@@ -48,16 +49,22 @@ async function checkAll() {
   const errors = [];
   for (let i = 0; i < pairs.length; i += BATCH_SIZE) {
     const batch = pairs.slice(i, i + BATCH_SIZE);
-    const settled = await Promise.allSettled(batch.map(async (pair) => ({
-      ...pair,
-      available: await fetchStock(pair.product, pair.region)
-    })));
+    const settled = await Promise.allSettled(
+      batch.map(async (pair) => ({
+        ...pair,
+        available: await fetchStock(pair.product, pair.region)
+      }))
+    );
     for (let j = 0; j < settled.length; j++) {
       const s = settled[j];
       if (s.status === 'fulfilled') {
         results.push(s.value);
       } else {
-        errors.push({ product: batch[j].product.id, region: batch[j].region, error: String(s.reason?.message || s.reason) });
+        errors.push({
+          product: batch[j].product.id,
+          region: batch[j].region,
+          error: String(s.reason?.message || s.reason)
+        });
       }
     }
   }
@@ -137,10 +144,13 @@ export default {
         etag = read.etag;
         transitions = applyAll(history, results, ts);
         if (transitions === 0) {
-          return new Response(JSON.stringify({ checked: results.length, transitions: 0, errors: errors.length, total }), {
-            status: 200,
-            headers: { ...CORS, 'content-type': 'application/json' }
-          });
+          return new Response(
+            JSON.stringify({ checked: results.length, transitions: 0, errors: errors.length, total }),
+            {
+              status: 200,
+              headers: { ...CORS, 'content-type': 'application/json' }
+            }
+          );
         }
         await writeHistory(history, etag);
       } else {
