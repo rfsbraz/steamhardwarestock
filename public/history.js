@@ -40,17 +40,65 @@ const PRODUCTS = {
 };
 
 const REGION_NAMES = {
-  US: 'United States', CA: 'Canada', GB: 'United Kingdom', IE: 'Ireland', AU: 'Australia',
-  NZ: 'New Zealand', AT: 'Austria', BE: 'Belgium', BG: 'Bulgaria', HR: 'Croatia', CY: 'Cyprus',
-  CZ: 'Czechia', DK: 'Denmark', EE: 'Estonia', FI: 'Finland', FR: 'France', DE: 'Germany',
-  GR: 'Greece', HU: 'Hungary', IS: 'Iceland', IT: 'Italy', LV: 'Latvia', LT: 'Lithuania',
-  LU: 'Luxembourg', MT: 'Malta', NL: 'Netherlands', NO: 'Norway', PL: 'Poland', PT: 'Portugal',
-  RO: 'Romania', RS: 'Serbia', SK: 'Slovakia', SI: 'Slovenia', ES: 'Spain', SE: 'Sweden',
-  CH: 'Switzerland', TR: 'Turkey', UA: 'Ukraine', AR: 'Argentina', BR: 'Brazil', CL: 'Chile',
-  CO: 'Colombia', MX: 'Mexico', PE: 'Peru', HK: 'Hong Kong', IN: 'India', ID: 'Indonesia',
-  JP: 'Japan', KZ: 'Kazakhstan', KR: 'South Korea', MY: 'Malaysia', PH: 'Philippines',
-  TW: 'Taiwan', TH: 'Thailand', VN: 'Vietnam', AE: 'United Arab Emirates', IL: 'Israel',
-  SA: 'Saudi Arabia', ZA: 'South Africa'
+  US: 'United States',
+  CA: 'Canada',
+  GB: 'United Kingdom',
+  IE: 'Ireland',
+  AU: 'Australia',
+  NZ: 'New Zealand',
+  AT: 'Austria',
+  BE: 'Belgium',
+  BG: 'Bulgaria',
+  HR: 'Croatia',
+  CY: 'Cyprus',
+  CZ: 'Czechia',
+  DK: 'Denmark',
+  EE: 'Estonia',
+  FI: 'Finland',
+  FR: 'France',
+  DE: 'Germany',
+  GR: 'Greece',
+  HU: 'Hungary',
+  IS: 'Iceland',
+  IT: 'Italy',
+  LV: 'Latvia',
+  LT: 'Lithuania',
+  LU: 'Luxembourg',
+  MT: 'Malta',
+  NL: 'Netherlands',
+  NO: 'Norway',
+  PL: 'Poland',
+  PT: 'Portugal',
+  RO: 'Romania',
+  RS: 'Serbia',
+  SK: 'Slovakia',
+  SI: 'Slovenia',
+  ES: 'Spain',
+  SE: 'Sweden',
+  CH: 'Switzerland',
+  TR: 'Turkey',
+  UA: 'Ukraine',
+  AR: 'Argentina',
+  BR: 'Brazil',
+  CL: 'Chile',
+  CO: 'Colombia',
+  MX: 'Mexico',
+  PE: 'Peru',
+  HK: 'Hong Kong',
+  IN: 'India',
+  ID: 'Indonesia',
+  JP: 'Japan',
+  KZ: 'Kazakhstan',
+  KR: 'South Korea',
+  MY: 'Malaysia',
+  PH: 'Philippines',
+  TW: 'Taiwan',
+  TH: 'Thailand',
+  VN: 'Vietnam',
+  AE: 'United Arab Emirates',
+  IL: 'Israel',
+  SA: 'Saudi Arabia',
+  ZA: 'South Africa'
 };
 
 const state = {
@@ -79,15 +127,21 @@ function formatRelativeTime(isoString) {
 function formatDateTime(isoString) {
   if (!isoString) return '';
   return new Intl.DateTimeFormat(undefined, {
-    year: 'numeric', month: 'short', day: 'numeric',
-    hour: '2-digit', minute: '2-digit'
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   }).format(new Date(isoString));
 }
 
 function escapeHtml(value) {
   return String(value)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function escapeAttribute(value) {
@@ -135,9 +189,7 @@ function canRecheck(entry) {
 }
 
 function entryKey(entry) {
-  return entry.source === 'komodo'
-    ? `komodo:${entry.productId}:${entry.region}`
-    : `${entry.productId}:${entry.region}`;
+  return entry.source === 'komodo' ? `komodo:${entry.productId}:${entry.region}` : `${entry.productId}:${entry.region}`;
 }
 
 async function performRecheck(entry) {
@@ -163,13 +215,14 @@ async function performRecheck(entry) {
   if (!res.ok) throw new Error(`proxy ${res.status}`);
   const payload = await res.json();
   const details = payload?.response?.details || [];
-  return details.some((d) =>
-    d
-    && d.allow_purchase_in_country !== false
-    && !d.account_restricted_from_purchasing
-    && !d.requires_reservation
-    && !d.high_pending_orders
-    && d.inventory_available
+  return details.some(
+    (d) =>
+      d &&
+      d.allow_purchase_in_country !== false &&
+      !d.account_restricted_from_purchasing &&
+      !d.requires_reservation &&
+      !d.high_pending_orders &&
+      d.inventory_available
   );
 }
 
@@ -273,10 +326,16 @@ function applySort(entries) {
   const sorted = entries.slice();
   switch (state.filters.sort) {
     case 'product':
-      sorted.sort((a, b) => (a.productName || '').localeCompare(b.productName || '') || (a.region || '').localeCompare(b.region || ''));
+      sorted.sort(
+        (a, b) =>
+          (a.productName || '').localeCompare(b.productName || '') || (a.region || '').localeCompare(b.region || '')
+      );
       break;
     case 'region':
-      sorted.sort((a, b) => (a.region || '').localeCompare(b.region || '') || (a.productName || '').localeCompare(b.productName || ''));
+      sorted.sort(
+        (a, b) =>
+          (a.region || '').localeCompare(b.region || '') || (a.productName || '').localeCompare(b.productName || '')
+      );
       break;
     case 'stock24h':
       sorted.sort((a, b) => stockInLast24h(b) - stockInLast24h(a));

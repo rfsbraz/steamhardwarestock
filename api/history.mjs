@@ -9,7 +9,10 @@ const BLOB_TIMEOUT_MS = 4000;
 export default {
   async fetch(request) {
     if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: { ...CORS, 'access-control-allow-methods': 'GET', 'access-control-allow-headers': 'content-type' } });
+      return new Response(null, {
+        status: 204,
+        headers: { ...CORS, 'access-control-allow-methods': 'GET', 'access-control-allow-headers': 'content-type' }
+      });
     }
 
     if (request.method !== 'GET') {

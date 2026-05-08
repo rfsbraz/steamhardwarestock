@@ -37,8 +37,11 @@ async function readHistory() {
 
 function escape(s) {
   return String(s ?? '')
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function isInStock(entry) {
@@ -144,16 +147,18 @@ function renderProductPage(product, history) {
     ? `${product.name} live stock status across ${REGIONS.length} countries on the Steam Store. Currently in stock in ${inStockCount} ${inStockCount === 1 ? 'region' : 'regions'}.`
     : `${product.name} is not yet available for purchase. Track availability across ${REGIONS.length} countries on Steam.`;
 
-  const tableRows = rows.map((r) => {
-    const url = `${SITE}/${product.id}/${r.region.code.toLowerCase()}`;
-    const statusLabel = !checkable ? 'Coming soon' : (r.inStock ? 'In stock' : 'Out of stock');
-    const statusClass = !checkable ? 'pending' : (r.inStock ? 'available' : 'out');
-    return `<tr>
+  const tableRows = rows
+    .map((r) => {
+      const url = `${SITE}/${product.id}/${r.region.code.toLowerCase()}`;
+      const statusLabel = !checkable ? 'Coming soon' : r.inStock ? 'In stock' : 'Out of stock';
+      const statusClass = !checkable ? 'pending' : r.inStock ? 'available' : 'out';
+      return `<tr>
       <td><a href="/${product.id}/${r.region.code.toLowerCase()}">${escape(r.region.code)} — ${escape(r.region.name)}</a></td>
       <td><span class="badge ${statusClass}">${statusLabel}</span></td>
       <td>${r.lastIn ? `<time datetime="${escape(r.entry.lastInStock)}">${escape(r.lastIn)}</time>` : '—'}</td>
     </tr>`;
-  }).join('');
+    })
+    .join('');
 
   const productLd = {
     '@context': 'https://schema.org',
@@ -162,13 +167,15 @@ function renderProductPage(product, history) {
     description: product.blurb,
     image: product.icon,
     brand: { '@type': 'Brand', name: 'Valve' },
-    offers: rows.filter((r) => checkable && r.entry).map((r) => ({
-      '@type': 'Offer',
-      url: steamUrl(product, r.region.code),
-      availability: r.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      areaServed: { '@type': 'Country', name: r.region.name },
-      seller: { '@type': 'Organization', name: 'Valve' }
-    }))
+    offers: rows
+      .filter((r) => checkable && r.entry)
+      .map((r) => ({
+        '@type': 'Offer',
+        url: steamUrl(product, r.region.code),
+        availability: r.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        areaServed: { '@type': 'Country', name: r.region.name },
+        seller: { '@type': 'Organization', name: 'Valve' }
+      }))
   };
 
   const breadcrumbs = breadcrumbsLd([
@@ -218,20 +225,20 @@ function renderRegionPage(product, region, history) {
   const inStock = checkable && isInStock(entry);
   const lastIn = entry?.lastInStock || null;
 
-  const status = !checkable ? 'Coming soon' : (inStock ? 'In stock' : 'Out of stock');
-  const statusClass = !checkable ? 'pending' : (inStock ? 'available' : 'out');
+  const status = !checkable ? 'Coming soon' : inStock ? 'In stock' : 'Out of stock';
+  const statusClass = !checkable ? 'pending' : inStock ? 'available' : 'out';
 
   const title = !checkable
     ? `${product.name} availability in ${region.name} — Steam Hardware Stock Tracker`
-    : (inStock
-        ? `${product.name} is in stock in ${region.name} on Steam`
-        : `${product.name} is out of stock in ${region.name} on Steam`);
+    : inStock
+      ? `${product.name} is in stock in ${region.name} on Steam`
+      : `${product.name} is out of stock in ${region.name} on Steam`;
 
   const description = !checkable
     ? `${product.name} is not yet available for purchase. Track availability in ${region.name} on the Steam Store.`
-    : (inStock
-        ? `${product.name} is currently available to buy from the Steam Store in ${region.name}.${lastIn ? ` In stock since ${formatDate(lastIn)}.` : ''}`
-        : `${product.name} is currently out of stock on the Steam Store in ${region.name}.${lastIn ? ` Last in stock ${relativeTime(lastIn)}.` : ' No in-stock observations recorded yet.'}`);
+    : inStock
+      ? `${product.name} is currently available to buy from the Steam Store in ${region.name}.${lastIn ? ` In stock since ${formatDate(lastIn)}.` : ''}`
+      : `${product.name} is currently out of stock on the Steam Store in ${region.name}.${lastIn ? ` Last in stock ${relativeTime(lastIn)}.` : ' No in-stock observations recorded yet.'}`;
 
   const productLd = {
     '@context': 'https://schema.org',
@@ -240,13 +247,15 @@ function renderRegionPage(product, region, history) {
     description: product.blurb,
     image: product.icon,
     brand: { '@type': 'Brand', name: 'Valve' },
-    offers: checkable ? {
-      '@type': 'Offer',
-      url: steamUrl(product, region.code),
-      availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      areaServed: { '@type': 'Country', name: region.name },
-      seller: { '@type': 'Organization', name: 'Valve' }
-    } : undefined
+    offers: checkable
+      ? {
+          '@type': 'Offer',
+          url: steamUrl(product, region.code),
+          availability: inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          areaServed: { '@type': 'Country', name: region.name },
+          seller: { '@type': 'Organization', name: 'Valve' }
+        }
+      : undefined
   };
 
   const breadcrumbs = breadcrumbsLd([

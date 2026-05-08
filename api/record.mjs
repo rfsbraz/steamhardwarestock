@@ -85,7 +85,10 @@ export async function writeHistory(history, etag) {
 export default {
   async fetch(request) {
     if (request.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: { ...CORS, 'access-control-allow-methods': 'POST', 'access-control-allow-headers': 'content-type' } });
+      return new Response(null, {
+        status: 204,
+        headers: { ...CORS, 'access-control-allow-methods': 'POST', 'access-control-allow-headers': 'content-type' }
+      });
     }
 
     if (request.method !== 'POST') {

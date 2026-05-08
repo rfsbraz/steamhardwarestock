@@ -1,137 +1,148 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stock history — Steam Hardware Stock Tracker</title>
-  <meta name="description" content="Recorded stock state transitions for Steam Deck, Steam Controller, Steam Frame, and Steam Machine across all tracked countries, sortable by recency, region, and product.">
-  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1">
-  <meta name="theme-color" content="#202124">
-  <link rel="canonical" href="https://steamhardwarestock.com/history">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="preconnect" href="https://clan.akamai.steamstatic.com">
-  <link rel="preconnect" href="https://clan.fastly.steamstatic.com">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Steam Hardware Stock Tracker">
-  <meta property="og:url" content="https://steamhardwarestock.com/history">
-  <meta property="og:title" content="Steam hardware stock history">
-  <meta property="og:description" content="Recorded stock transitions for Steam Deck, Steam Controller, and friends across all tracked countries.">
-  <meta property="og:image" content="https://steamhardwarestock.com/og.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Steam hardware stock history">
-  <meta name="twitter:description" content="Recorded stock transitions for Steam hardware across all tracked countries.">
-  <meta name="twitter:image" content="https://steamhardwarestock.com/og.png">
-  <link rel="stylesheet" href="/styles.css">
-  <script>
-    (function () {
-      try {
-        var t = localStorage.getItem('theme');
-        if (t !== 'light' && t !== 'dark') t = 'auto';
-        document.documentElement.dataset.theme = t;
-      } catch (_) {
-        document.documentElement.dataset.theme = 'auto';
-      }
-    })();
-  </script>
-</head>
-<body>
-  <main class="app-shell">
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">Steam hardware</p>
-        <h1>Stock history</h1>
-      </div>
-      <div class="topbar-right">
-        <a href="/" class="history-link" title="Back to tracker">← Tracker</a>
-        <button id="themeToggle" type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
-          <span id="themeToggleLabel">Auto</span>
-        </button>
-      </div>
-    </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stock history — Steam Hardware Stock Tracker</title>
+    <meta
+      name="description"
+      content="Recorded stock state transitions for Steam Deck, Steam Controller, Steam Frame, and Steam Machine across all tracked countries, sortable by recency, region, and product."
+    />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1" />
+    <meta name="theme-color" content="#202124" />
+    <link rel="canonical" href="https://steamhardwarestock.com/history" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://clan.akamai.steamstatic.com" />
+    <link rel="preconnect" href="https://clan.fastly.steamstatic.com" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Steam Hardware Stock Tracker" />
+    <meta property="og:url" content="https://steamhardwarestock.com/history" />
+    <meta property="og:title" content="Steam hardware stock history" />
+    <meta
+      property="og:description"
+      content="Recorded stock transitions for Steam Deck, Steam Controller, and friends across all tracked countries."
+    />
+    <meta property="og:image" content="https://steamhardwarestock.com/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Steam hardware stock history" />
+    <meta
+      name="twitter:description"
+      content="Recorded stock transitions for Steam hardware across all tracked countries."
+    />
+    <meta name="twitter:image" content="https://steamhardwarestock.com/og.png" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t !== 'light' && t !== 'dark') t = 'auto';
+          document.documentElement.dataset.theme = t;
+        } catch (_) {
+          document.documentElement.dataset.theme = 'auto';
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Steam hardware</p>
+          <h1>Stock history</h1>
+        </div>
+        <div class="topbar-right">
+          <a href="/" class="history-link" title="Back to tracker">← Tracker</a>
+          <button id="themeToggle" type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+            <span id="themeToggleLabel">Auto</span>
+          </button>
+        </div>
+      </header>
 
-    <p class="intro">
-      Recorded stock transitions across products and regions. History is captured while the tracker is watching.
-    </p>
-    <p class="history-as-of" id="historyAsOf"></p>
+      <p class="intro">
+        Recorded stock transitions across products and regions. History is captured while the tracker is watching.
+      </p>
+      <p class="history-as-of" id="historyAsOf"></p>
 
-    <section class="results-section history-toolbar" aria-label="History filters">
-      <div class="history-toolbar-row">
-        <label class="field grow">
-          <span>Search region</span>
-          <input id="filterRegion" type="search" placeholder="US, JP, Germany...">
-        </label>
-        <label class="field">
-          <span>Sort by</span>
-          <select id="filterSort">
-            <option value="lastInStock">Last in stock</option>
-            <option value="product">Product</option>
-            <option value="region">Region</option>
-            <option value="stock24h">In stock (last 24h)</option>
-          </select>
-        </label>
-      </div>
+      <section class="results-section history-toolbar" aria-label="History filters">
+        <div class="history-toolbar-row">
+          <label class="field grow">
+            <span>Search region</span>
+            <input id="filterRegion" type="search" placeholder="US, JP, Germany..." />
+          </label>
+          <label class="field">
+            <span>Sort by</span>
+            <select id="filterSort">
+              <option value="lastInStock">Last in stock</option>
+              <option value="product">Product</option>
+              <option value="region">Region</option>
+              <option value="stock24h">In stock (last 24h)</option>
+            </select>
+          </label>
+        </div>
 
-      <div class="history-toolbar-row">
-        <div class="field">
-          <span>Status</span>
-          <div class="segmented" data-filter="status" role="group" aria-label="Filter by status">
-            <button type="button" data-value="all" class="active">All</button>
-            <button type="button" data-value="in">In stock</button>
-            <button type="button" data-value="out">Out of stock</button>
+        <div class="history-toolbar-row">
+          <div class="field">
+            <span>Status</span>
+            <div class="segmented" data-filter="status" role="group" aria-label="Filter by status">
+              <button type="button" data-value="all" class="active">All</button>
+              <button type="button" data-value="in">In stock</button>
+              <button type="button" data-value="out">Out of stock</button>
+            </div>
+          </div>
+          <div class="field">
+            <span>Source</span>
+            <div class="segmented" data-filter="source" role="group" aria-label="Filter by source">
+              <button type="button" data-value="all" class="active">All</button>
+              <button type="button" data-value="steam">Steam</button>
+              <button type="button" data-value="komodo">Komodo</button>
+            </div>
           </div>
         </div>
+
         <div class="field">
-          <span>Source</span>
-          <div class="segmented" data-filter="source" role="group" aria-label="Filter by source">
-            <button type="button" data-value="all" class="active">All</button>
-            <button type="button" data-value="steam">Steam</button>
-            <button type="button" data-value="komodo">Komodo</button>
-          </div>
+          <span>Products</span>
+          <div class="filter-chip-row" id="filterProducts"></div>
         </div>
-      </div>
 
-      <div class="field">
-        <span>Products</span>
-        <div class="filter-chip-row" id="filterProducts"></div>
-      </div>
+        <div class="history-summary">
+          <span id="historyCounts">0 entries</span>
+          <button id="filterReset" type="button" class="btn-utility">Reset filters</button>
+        </div>
+      </section>
 
-      <div class="history-summary">
-        <span id="historyCounts">0 entries</span>
-        <button id="filterReset" type="button" class="btn-utility">Reset filters</button>
-      </div>
-    </section>
+      <section id="historySection" aria-label="History results">
+        <div class="message-area" id="historyMessage">Loading history...</div>
+        <div id="historyContent"></div>
+      </section>
 
-    <section id="historySection" aria-label="History results">
-      <div class="message-area" id="historyMessage">Loading history...</div>
-      <div id="historyContent"></div>
-    </section>
-
-    <footer class="site-footer">
-      <div class="footer-inner">
-        <a href="/">Back to tracker</a>
-      </div>
-    </footer>
-  </main>
-  <script>
-    (function () {
-      var btn = document.getElementById('themeToggle');
-      var label = document.getElementById('themeToggleLabel');
-      if (!btn || !label) return;
-      var order = ['auto', 'light', 'dark'];
-      var labels = { auto: 'Auto', light: 'Light', dark: 'Dark' };
-      function render() {
-        label.textContent = labels[document.documentElement.dataset.theme] || 'Auto';
-      }
-      render();
-      btn.addEventListener('click', function () {
-        var current = document.documentElement.dataset.theme || 'auto';
-        var next = order[(order.indexOf(current) + 1) % order.length];
-        document.documentElement.dataset.theme = next;
-        try { localStorage.setItem('theme', next); } catch (_) {}
+      <footer class="site-footer">
+        <div class="footer-inner">
+          <a href="/">Back to tracker</a>
+        </div>
+      </footer>
+    </main>
+    <script>
+      (function () {
+        var btn = document.getElementById('themeToggle');
+        var label = document.getElementById('themeToggleLabel');
+        if (!btn || !label) return;
+        var order = ['auto', 'light', 'dark'];
+        var labels = { auto: 'Auto', light: 'Light', dark: 'Dark' };
+        function render() {
+          label.textContent = labels[document.documentElement.dataset.theme] || 'Auto';
+        }
         render();
-      });
-    })();
-  </script>
-  <script src="/history.js"></script>
-</body>
+        btn.addEventListener('click', function () {
+          var current = document.documentElement.dataset.theme || 'auto';
+          var next = order[(order.indexOf(current) + 1) % order.length];
+          document.documentElement.dataset.theme = next;
+          try {
+            localStorage.setItem('theme', next);
+          } catch (_) {}
+          render();
+        });
+      })();
+    </script>
+    <script src="/history.js"></script>
+  </body>
 </html>

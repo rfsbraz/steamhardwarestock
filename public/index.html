@@ -1,26 +1,31 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-D4LRTXD5LR"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
+      function gtag() {
+        dataLayer.push(arguments);
+      }
       gtag('js', new Date());
       gtag('config', 'G-D4LRTXD5LR');
     </script>
     <title>Steam Hardware Stock Tracker | Deck, Controller, Frame, Machine Stock Alerts</title>
-    <meta name="description" content="Track Steam Deck, Steam Controller, Steam Frame, and Steam Machine stock by country. Get browser alerts for official Steam availability and avoid scalpers.">
-    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
-    <meta name="application-name" content="Steam Hardware Stock Tracker">
-    <meta name="theme-color" content="#202124">
-    <link rel="canonical" href="https://steamhardwarestock.com/">
-    <link rel="manifest" href="/site.webmanifest">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="preconnect" href="https://clan.akamai.steamstatic.com">
-    <link rel="preconnect" href="https://clan.fastly.steamstatic.com">
-    <link rel="preconnect" href="https://www.googletagmanager.com">
+    <meta
+      name="description"
+      content="Track Steam Deck, Steam Controller, Steam Frame, and Steam Machine stock by country. Get browser alerts for official Steam availability and avoid scalpers."
+    />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <meta name="application-name" content="Steam Hardware Stock Tracker" />
+    <meta name="theme-color" content="#202124" />
+    <link rel="canonical" href="https://steamhardwarestock.com/" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://clan.akamai.steamstatic.com" />
+    <link rel="preconnect" href="https://clan.fastly.steamstatic.com" />
+    <link rel="preconnect" href="https://www.googletagmanager.com" />
     <script>
       (function () {
         try {
@@ -32,17 +37,23 @@
         }
       })();
     </script>
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Steam Hardware Stock Tracker">
-    <meta property="og:url" content="https://steamhardwarestock.com/">
-    <meta property="og:title" content="Steam Hardware Stock Tracker">
-    <meta property="og:description" content="Check Steam Deck, Steam Controller, Steam Frame, and Steam Machine stock by country and get alerts when official Steam hardware is available, so you can avoid scalpers.">
-    <meta property="og:image" content="https://steamhardwarestock.com/og.png">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Steam Hardware Stock Tracker">
-    <meta name="twitter:description" content="Track official Steam hardware stock by country and get alerts when products become available.">
-    <meta name="twitter:image" content="https://steamhardwarestock.com/og.png">
-    <link rel="stylesheet" href="/styles.css">
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Steam Hardware Stock Tracker" />
+    <meta property="og:url" content="https://steamhardwarestock.com/" />
+    <meta property="og:title" content="Steam Hardware Stock Tracker" />
+    <meta
+      property="og:description"
+      content="Check Steam Deck, Steam Controller, Steam Frame, and Steam Machine stock by country and get alerts when official Steam hardware is available, so you can avoid scalpers."
+    />
+    <meta property="og:image" content="https://steamhardwarestock.com/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Steam Hardware Stock Tracker" />
+    <meta
+      name="twitter:description"
+      content="Track official Steam hardware stock by country and get alerts when products become available."
+    />
+    <meta name="twitter:image" content="https://steamhardwarestock.com/og.png" />
+    <link rel="stylesheet" href="/styles.css" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -73,7 +84,9 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">Unofficial tracker</p>
-          <h1>Steam hardware stock <a href="/history" class="history-link" title="Browse stock history">History →</a></h1>
+          <h1>
+            Steam hardware stock <a href="/history" class="history-link" title="Browse stock history">History →</a>
+          </h1>
         </div>
         <div class="topbar-right">
           <button id="themeToggle" type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
@@ -83,7 +96,10 @@
         </div>
       </header>
 
-      <p class="intro">Mark the products and countries you want, click <strong>Start watching</strong>, and keep this tab open - you'll get a browser notification when something comes in stock.</p>
+      <p class="intro">
+        Mark the products and countries you want, click <strong>Start watching</strong>, and keep this tab open - you'll
+        get a browser notification when something comes in stock.
+      </p>
 
       <section class="controls" aria-label="Tracker controls">
         <div class="control-row">
@@ -91,7 +107,7 @@
             <span>Country</span>
             <span class="inline-input country-picker">
               <span class="country-input-wrap">
-                <input id="countryInput" autocomplete="off" placeholder="Search country...">
+                <input id="countryInput" autocomplete="off" placeholder="Search country..." />
                 <div id="countryDropdown" class="country-dropdown" role="listbox"></div>
               </span>
               <button id="addRegionButton" type="button">Add</button>
@@ -153,7 +169,13 @@
       <section class="results-section" aria-label="Stock results">
         <div class="results-head">
           <h2>Watch matrix</h2>
-          <a id="baseSteamLink" href="https://store.steampowered.com/hardware/steamcontroller/?cc=US&l=english" target="_blank" rel="noreferrer">Open Steam page</a>
+          <a
+            id="baseSteamLink"
+            href="https://store.steampowered.com/hardware/steamcontroller/?cc=US&l=english"
+            target="_blank"
+            rel="noreferrer"
+            >Open Steam page</a
+          >
         </div>
         <div id="messageArea" class="message-area" role="status"></div>
         <div class="results-grid" id="resultsGrid"></div>
@@ -182,8 +204,15 @@
     <footer class="site-footer">
       <div class="app-shell footer-inner">
         <span><a href="/history">Stock history</a></span>
-        <span>Open source on <a href="https://github.com/rfsbraz/steamhardwarestock" target="_blank" rel="noreferrer">GitHub</a></span>
-        <span><a href="https://github.com/rfsbraz/steamhardwarestock/issues" target="_blank" rel="noreferrer">Report an issue</a></span>
+        <span
+          >Open source on
+          <a href="https://github.com/rfsbraz/steamhardwarestock" target="_blank" rel="noreferrer">GitHub</a></span
+        >
+        <span
+          ><a href="https://github.com/rfsbraz/steamhardwarestock/issues" target="_blank" rel="noreferrer"
+            >Report an issue</a
+          ></span
+        >
         <span><a href="https://buymeacoffee.com/rfsbraz" target="_blank" rel="noreferrer">Buy me a coffee</a></span>
       </div>
     </footer>
@@ -203,14 +232,20 @@
           var current = document.documentElement.dataset.theme || 'auto';
           var next = order[(order.indexOf(current) + 1) % order.length];
           document.documentElement.dataset.theme = next;
-          try { localStorage.setItem('theme', next); } catch (_) {}
+          try {
+            localStorage.setItem('theme', next);
+          } catch (_) {}
           render();
         });
       })();
     </script>
     <script src="/app.js" defer></script>
     <script>
-      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+      window.va =
+        window.va ||
+        function () {
+          (window.vaq = window.vaq || []).push(arguments);
+        };
     </script>
     <script defer src="/_vercel/insights/script.js"></script>
   </body>

@@ -46,7 +46,7 @@ async function fetchWithTimeout(url) {
     return await fetch(url, {
       signal: controller.signal,
       headers: {
-        'accept': 'application/json,text/html;q=0.9,*/*;q=0.8',
+        accept: 'application/json,text/html;q=0.9,*/*;q=0.8',
         'user-agent': 'Mozilla/5.0 SteamHardwareStockTracker/1.0'
       }
     });
@@ -65,10 +65,12 @@ function isAllowedProxyUrl(targetUrl) {
   }
 
   if (targetUrl.hostname === 'store.steampowered.com') {
-    return targetUrl.pathname === '/steamdeck'
-      || targetUrl.pathname === '/steamdeck/'
-      || targetUrl.pathname.startsWith('/hardware/')
-      || targetUrl.pathname.startsWith('/sale/');
+    return (
+      targetUrl.pathname === '/steamdeck' ||
+      targetUrl.pathname === '/steamdeck/' ||
+      targetUrl.pathname.startsWith('/hardware/') ||
+      targetUrl.pathname.startsWith('/sale/')
+    );
   }
 
   return false;

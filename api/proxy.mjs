@@ -8,10 +8,12 @@ function isAllowedProxyUrl(targetUrl) {
     return targetUrl.pathname === '/IStoreBrowseService/GetHardwareItems/v1/';
   }
   if (targetUrl.hostname === 'store.steampowered.com') {
-    return targetUrl.pathname === '/steamdeck'
-      || targetUrl.pathname === '/steamdeck/'
-      || targetUrl.pathname.startsWith('/hardware/')
-      || targetUrl.pathname.startsWith('/sale/');
+    return (
+      targetUrl.pathname === '/steamdeck' ||
+      targetUrl.pathname === '/steamdeck/' ||
+      targetUrl.pathname.startsWith('/hardware/') ||
+      targetUrl.pathname.startsWith('/sale/')
+    );
   }
   if (targetUrl.hostname === 'komodostation.com') {
     return targetUrl.pathname.startsWith('/product/');
@@ -79,7 +81,7 @@ export default async function handler(request) {
     clearTimeout(timer);
 
     const fullBody = request.method === 'HEAD' ? null : await upstream.text();
-    const body = (maxBytes && fullBody && fullBody.length > maxBytes) ? fullBody.slice(0, maxBytes) : fullBody;
+    const body = maxBytes && fullBody && fullBody.length > maxBytes ? fullBody.slice(0, maxBytes) : fullBody;
 
     return new Response(body, {
       status: upstream.status,
@@ -91,9 +93,9 @@ export default async function handler(request) {
     });
   } catch (error) {
     clearTimeout(timer);
-    return new Response(
-      JSON.stringify({ error: 'Unable to fetch Steam data.', details: error.message }),
-      { status: 502, headers: { ...CORS, 'content-type': 'application/json', 'cache-control': 'no-store' } }
-    );
+    return new Response(JSON.stringify({ error: 'Unable to fetch Steam data.', details: error.message }), {
+      status: 502,
+      headers: { ...CORS, 'content-type': 'application/json', 'cache-control': 'no-store' }
+    });
   }
 }
