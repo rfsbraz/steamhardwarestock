@@ -29,6 +29,7 @@ let audioContext = null;
 let acIndex = -1;
 let countdownInterval = null;
 let alertLoopTimer = null;
+let relativeTimeInterval = null;
 const ALERT_LOOP_INTERVAL_MS = 3000;
 
 const PRODUCTS = [
@@ -224,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindEvents();
   registerServiceWorker();
   render();
+  scheduleRelativeTimeUpdate();
   if (state.running) {
     resumeWatching();
   } else {
@@ -526,7 +528,7 @@ function createRegionCard(regionCode, productIds) {
         <div class="detail"><span>Pending</span><span>${formatBoolean(details.high_pending_orders)}</span></div>
         <div class="detail"><span>Packages</span><span>${escapeHtml(formatPackageCount(result))}</span></div>
         <div class="detail"><span>Delivery</span><span>${escapeHtml(formatDelivery(details))}</span></div>
-        <div class="detail"><span>Checked</span><span>${escapeHtml(result ? formatTime(result.checkedAt) : 'Never')}</span></div>
+        <div class="detail"><span>Checked</span><span title="${escapeAttribute(result ? formatAbsoluteDateTime(result.checkedAt) : '')}">${escapeHtml(result ? formatTime(result.checkedAt) : 'Never')}</span></div>
         ${(() => {
           const h = formatStockHistory(key, Boolean(status && status.found));
           return h ? `<div class="detail"><span>${escapeHtml(h.label)}</span><span>${escapeHtml(h.value)}</span></div>` : '';
@@ -635,6 +637,7 @@ function updateSummary() {
   els.regionCount.textContent = String(regionCodes.length);
   if (!state.running) {
     els.lastChecked.textContent = latest ? formatTime(new Date(latest).toISOString()) : 'Never';
+    els.lastChecked.title = latest ? formatAbsoluteDateTime(new Date(latest).toISOString()) : '';
     els.lastCheckedLabel.textContent = 'last check';
   }
 
@@ -720,6 +723,23 @@ function stopCountdown() {
     clearInterval(countdownInterval);
     countdownInterval = null;
   }
+}
+
+function scheduleRelativeTimeUpdate() {
+  if (relativeTimeInterval) clearInterval(relativeTimeInterval);
+  const allTimestamps = state.changeLog.map(e => e.ts)
+    .concat([...state.results.values()].map(r => r.checkedAt).filter(Boolean));
+  const youngest = allTimestamps.reduce((min, ts) => {
+    const diff = Date.now() - new Date(ts).getTime();
+    return diff >= 0 && diff < min ? diff : min;
+  }, Infinity);
+  const delay = youngest < 60000 ? 1000 : 60000;
+  relativeTimeInterval = setInterval(() => {
+    renderChangelog();
+    renderResults();
+    updateSummary();
+    scheduleRelativeTimeUpdate();
+  }, delay);
 }
 
 function tickCountdown() {
@@ -1228,14 +1248,7 @@ function formatStockHistory(key, isAvailable) {
 }
 
 function formatRelativeTime(isoString) {
-  const diff = Date.now() - new Date(isoString).getTime();
-  const days = Math.floor(diff / 86400000);
-  const hours = Math.floor(diff / 3600000);
-  const mins = Math.floor(diff / 60000);
-  if (days > 0) return `${days}d ago`;
-  if (hours > 0) return `${hours}h ago`;
-  if (mins > 0) return `${mins}m ago`;
-  return 'Just now';
+  return formatTime(isoString);
 }
 
 function clearChangelog() {
@@ -1259,7 +1272,8 @@ function renderChangelog() {
 
     const time = document.createElement('span');
     time.className = 'changelog-time';
-    time.textContent = formatTime(entry.ts);
+    time.textContent = isToday(entry.ts) ? formatTime(entry.ts) : formatClockTime(entry.ts);
+    time.title = formatAbsoluteDateTime(entry.ts);
 
     const product = document.createElement('span');
     product.className = 'changelog-product';
@@ -1851,14 +1865,48 @@ function formatDelivery(details) {
 
 function formatTime(value) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return 'Never';
-  }
+  if (Number.isNaN(date.getTime())) return 'Never';
+  const diff = Date.now() - date.getTime();
+  if (diff < 0) return 'Just now';
+  const secs = Math.floor(diff / 1000);
+  if (secs < 60) return `${secs}s ago`;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(diff / 3600000);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(diff / 86400000);
+  return `${days}d ago`;
+}
+
+function formatClockTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Never';
   return new Intl.DateTimeFormat(undefined, {
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
+}
+
+function formatAbsoluteDateTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit'
   }).format(date);
+}
+
+function isToday(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+  const now = new Date();
+  return date.getFullYear() === now.getFullYear()
+    && date.getMonth() === now.getMonth()
+    && date.getDate() === now.getDate();
 }
 
 function setMessage(message) {
