@@ -1253,7 +1253,18 @@ function renderChangelog() {
   }
 
   const fragment = document.createDocumentFragment();
+  let lastDateKey = '';
   for (const entry of state.changeLog) {
+    const date = new Date(entry.ts);
+    const dateKey = Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString();
+    if (dateKey && dateKey !== lastDateKey) {
+      const sep = document.createElement('div');
+      sep.className = 'changelog-date-separator';
+      sep.textContent = formatDateHeading(date);
+      fragment.appendChild(sep);
+      lastDateKey = dateKey;
+    }
+
     const el = document.createElement('div');
     el.className = 'changelog-entry';
 
@@ -1860,6 +1871,21 @@ function formatTime(value) {
     second: '2-digit'
   }).format(date);
 }
+
+function formatDateHeading(date) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.round((today - target) / 86400000);
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  }).format(date);
+}
+
 
 function setMessage(message) {
   els.messageArea.textContent = message;

@@ -644,6 +644,21 @@ select {
   gap: 6px;
 }
 
+.changelog-date-separator {
+  padding: 6px 10px 2px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.changelog-date-separator:not(:first-child) {
+  margin-top: 6px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
 .changelog-entry {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto auto;
