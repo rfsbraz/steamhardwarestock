@@ -76,7 +76,6 @@ export default async function handler(request) {
         'user-agent': 'Mozilla/5.0 SteamHardwareStockTracker/1.0'
       }
     });
-    clearTimeout(timer);
 
     const fullBody = request.method === 'HEAD' ? null : await upstream.text();
     const body = (maxBytes && fullBody && fullBody.length > maxBytes) ? fullBody.slice(0, maxBytes) : fullBody;
@@ -90,10 +89,11 @@ export default async function handler(request) {
       }
     });
   } catch (error) {
-    clearTimeout(timer);
     return new Response(
       JSON.stringify({ error: 'Unable to fetch Steam data.', details: error.message }),
       { status: 502, headers: { ...CORS, 'content-type': 'application/json', 'cache-control': 'no-store' } }
     );
+  } finally {
+    clearTimeout(timer);
   }
 }

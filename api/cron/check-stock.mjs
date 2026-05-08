@@ -1,4 +1,4 @@
-import { BlobPreconditionFailedError } from '@vercel/blob';
+import { BlobPreconditionFailedError, BlobServiceRateLimited } from '@vercel/blob';
 import { readHistoryFresh, mergeEvent, writeHistory } from '../record.mjs';
 import { PRODUCTS, REGIONS, isCheckable } from '../../lib/products.mjs';
 
@@ -142,7 +142,22 @@ export default {
             headers: { ...CORS, 'content-type': 'application/json' }
           });
         }
-        await writeHistory(history, etag);
+        try {
+          await writeHistory(history, etag);
+        } catch (finalError) {
+          if (finalError instanceof BlobServiceRateLimited) {
+            const retryAfter = Math.max(1, Number(finalError.retryAfter) || 1);
+            return new Response(JSON.stringify({ error: 'rate limited' }), {
+              status: 429,
+              headers: { ...CORS, 'content-type': 'application/json', 'retry-after': String(retryAfter) }
+            });
+          }
+          console.error('cron retry write error:', finalError?.name, finalError?.message);
+          return new Response(JSON.stringify({ error: finalError.message }), {
+            status: 500,
+            headers: { ...CORS, 'content-type': 'application/json' }
+          });
+        }
       } else {
         console.error('cron write error:', error?.name, error?.message);
         return new Response(JSON.stringify({ error: error.message }), {
