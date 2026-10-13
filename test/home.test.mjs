@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { prerenderHome } from '../scripts/prerender.mjs';
 import { REGIONS, VALVE_SELLS } from '../lib/products.mjs';
+import { CHECKED_REGIONS } from '../lib/steam.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = readFileSync(path.join(root, 'public/index.html'), 'utf8');
@@ -18,13 +19,14 @@ test('the homepage H1 has no link and carries the real country count', () => {
   const html = prerenderHome(source, status, history);
   const h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)[1];
   assert.ok(!/<a\b/.test(h1), 'no link inside the H1');
-  assert.equal(h1, `Steam Hardware Tracker: Stock and Reservation Status in ${REGIONS.length} Countries`);
+  assert.equal(h1, `Steam Hardware Tracker: Stock and Reservation Status in ${CHECKED_REGIONS.length} Countries`);
+  assert.notEqual(CHECKED_REGIONS.length, REGIONS.length, 'counts checked regions, not every country page');
   assert.equal((html.match(/<h1\b/g) || []).length, 1);
   assert.match(html, /<a href="\/history"[^>]*>[^<]*history/i, 'History is still linked near the top');
 });
 
 test('the count follows the data, not a constant', () => {
-  const fewer = prerenderHome(source, status, history, { regions: REGIONS.slice(0, 7) });
+  const fewer = prerenderHome(source, status, history, { regions: CHECKED_REGIONS.slice(0, 7) });
   assert.match(fewer, /Status in 7 Countries<\/h1>/);
   assert.ok(!/\b55\b/.test(source), 'no hard-coded 55 in index.html');
 });
@@ -53,8 +55,16 @@ for (const cf of ['', '1']) {
     writeFileSync(path.join(dir, 'fx.json'), JSON.stringify({ status, history, prices: {} }));
     execFileSync(process.execPath, ['scripts/build.js'], { cwd: root, env: { ...process.env, BUILD_DIST: path.join(dir, 'd'), PRERENDER_FIXTURE: path.join(dir, 'fx.json'), PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: cf }, stdio: 'pipe' });
     const html = readFileSync(path.join(dir, 'd', 'index.html'), 'utf8');
-    assert.match(html, new RegExp(`Status in ${REGIONS.length} Countries</h1>`));
+    assert.match(html, new RegExp(`Status in ${CHECKED_REGIONS.length} Countries</h1>`));
     assert.match(html, /class="home-intro"/);
     assert.match(html, /"dateModified":\s*"2026-10-12T08:00:00.000Z"/);
   });
 }
+
+test('checker and homepage share one region list', () => {
+  assert.deepEqual(CHECKED_REGIONS, VALVE_SELLS);
+  const html = prerenderHome(source, status, history);
+  const intro = html.match(/<section class="home-intro"[\s\S]*?<\/section>/)[0];
+  assert.ok(!intro.includes(`${REGIONS.length} countries`), 'never claims the full country list');
+  assert.ok(intro.includes(`checks ${CHECKED_REGIONS.length} countries`));
+});
