@@ -6,6 +6,21 @@ const crypto = require('node:crypto');
 
 const root = path.resolve(__dirname, '..');
 const source = path.join(root, 'public');
+
+const CF_HEADERS = `/sw.js
+  Cache-Control: no-cache
+/app.*.js
+  Cache-Control: public, max-age=31536000, immutable
+/history.*.js
+  Cache-Control: public, max-age=31536000, immutable
+/stock-status.*.js
+  Cache-Control: public, max-age=31536000, immutable
+/styles.*.css
+  Cache-Control: public, max-age=31536000, immutable
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+`;
 const destination = path.join(root, 'dist');
 
 const HASHED_ASSETS = ['app.js', 'styles.css', 'history.js', 'stock-status.js'];
@@ -66,6 +81,11 @@ async function build() {
   const { loadData, prerender } = await import('./prerender.mjs');
   const pages = await prerender(destination, await loadData());
   console.log(`Prerendered ${pages} landing pages`);
+
+  // Cloudflare Pages sets CF_PAGES=1. vercel.json covers the same headers on Vercel.
+  if (process.env.CF_PAGES) {
+    await fs.writeFile(path.join(destination, '_headers'), CF_HEADERS);
+  }
 
   await writeSitemap();
 

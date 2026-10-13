@@ -44,6 +44,10 @@ npm start
 
 Then open `http://127.0.0.1:5177`.
 
+## Hosting
+
+Production runs on Vercel (`vercel.json`). A Cloudflare Pages and Worker setup is ready but not deployed; see [docs/cloudflare.md](docs/cloudflare.md).
+
 ## Contributing
 
 Small, focused changes are most welcome. Run `npm run check` before opening a PR, and open an issue first for larger behavior changes.
