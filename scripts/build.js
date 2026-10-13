@@ -30,8 +30,6 @@ const HASHED_ASSETS = ['app.js', 'styles.css', 'history.js', 'stock-status.js', 
 // styles.css is also emitted unhashed so the prerendered landing pages can link it.
 const ALSO_EMIT_UNHASHED = new Set(['styles.css']);
 
-const SITE = 'https://steamhardwarestock.com';
-
 const Affiliate = require('../public/affiliate.js');
 const CONFIG_RE = /\/\*AFFILIATE_CONFIG\*\/[\s\S]*?\/\*END_AFFILIATE_CONFIG\*\//;
 
@@ -84,7 +82,7 @@ async function build() {
     await fs.writeFile(path.join(destination, htmlFile), html);
   }
 
-  const skip = new Set([...HTML_FILES, ...HASHED_ASSETS, 'sitemap.xml']);
+  const skip = new Set([...HTML_FILES, ...HASHED_ASSETS]);
   const entries = await fs.readdir(source, { withFileTypes: true });
   for (const entry of entries) {
     if (skip.has(entry.name)) continue;
@@ -106,38 +104,8 @@ async function build() {
     await fs.writeFile(path.join(destination, '_headers'), CF_HEADERS);
   }
 
-  await writeSitemap();
-
   const summary = HASHED_ASSETS.map((n) => `${n}=${hashes[n]}`).join(', ');
   console.log(`Built: ${summary}`);
-}
-
-async function writeSitemap() {
-  const products = (await import('../lib/products.mjs')).PRODUCTS;
-  const regions = (await import('../lib/products.mjs')).REGIONS;
-  const lastmod = new Date().toISOString().slice(0, 10);
-
-  const urls = [
-    { loc: `${SITE}/`, priority: '1.0' },
-    { loc: `${SITE}/history`, priority: '0.6' }
-  ];
-  for (const p of products) {
-    urls.push({ loc: `${SITE}/${p.id}`, priority: '0.9' });
-    for (const r of regions) {
-      urls.push({ loc: `${SITE}/${p.id}/${r.code.toLowerCase()}`, priority: '0.7' });
-    }
-  }
-
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map((u) => `  <url>
-    <loc>${u.loc}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <priority>${u.priority}</priority>
-  </url>`).join('\n')}
-</urlset>
-`;
-  await fs.writeFile(path.join(destination, 'sitemap.xml'), xml);
 }
 
 build().catch((error) => {
