@@ -37,7 +37,10 @@ test('every product has an explainer that links an official Valve page', () => {
     assert.ok(EXPLAINERS[id].points.some((t) => /72 hours/.test(t)), `${id} explains the 72 hour window`);
     assert.ok(EXPLAINERS[id].points.some((t) => /waitlist/i.test(t)), `${id} explains the waitlist`);
   }
-  assert.ok(!EXPLAINERS['steam-controller'].points.some((t) => /72/.test(t)), 'not verified for the controller');
+  const pad = EXPLAINERS['steam-controller'];
+  assert.ok(pad.points.some((t) => /72 hours/.test(t)), 'controller explains the 72 hour window');
+  assert.equal(pad.update?.url, 'https://store.steampowered.com/news/group/45479024/view/697641379212297809');
+  assert.match(pad.update?.date, /^2026-06-18$/);
 });
 
 function build(cf) {
@@ -60,6 +63,9 @@ for (const cf of ['', '1']) {
     const frame = readFileSync(path.join(dist, 'steam-frame', 'index.html'), 'utf8');
     assert.match(frame, /id="status-explained"/);
     assert.match(frame, /72 hours/);
+    const pad = readFileSync(path.join(dist, 'steam-controller', 'index.html'), 'utf8');
+    assert.match(pad, /72 hours/);
+    assert.match(pad, /href="https:\/\/store\.steampowered\.com\/news\/group\/45479024\/view\/697641379212297809"/);
     assert.match(frame, /href="https:\/\/store\.steampowered\.com\/hardware\/steamframe\/"/);
     for (const f of walk(dist)) {
       const html = readFileSync(f, 'utf8');
