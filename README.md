@@ -45,6 +45,12 @@ npm start
 
 Then open `http://127.0.0.1:5177`.
 
+## Install and How it works
+
+The site has a web app manifest (`public/site.webmanifest`) with PNG icons in `public/icons`, including maskable ones, so browsers offer to install it. The icons are rendered from `public/favicon.svg` by `scripts/make-icons.cjs`; run it again after changing the logo.
+
+`/how-it-works` explains where the data comes from and what each status means. Each product page has a short status explainer from `lib/explainers.mjs` that links Valve's own page. The reservation rules there were checked against Valve's pages on 13 Oct 2026 (`VERIFIED_ON`). Recheck them when Valve changes how a product is sold.
+
 ## Hosting
 
 Production runs on Cloudflare Pages, with a Worker for the stock check. See [docs/cloudflare.md](docs/cloudflare.md).
