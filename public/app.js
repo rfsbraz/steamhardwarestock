@@ -504,6 +504,12 @@ function renderResults() {
   els.resultsGrid.replaceChildren(fragment);
 }
 
+// Empty when affiliate.js is missing or has no IDs configured.
+function affiliateBlock(productId) {
+  const affiliate = window.SteamAffiliate;
+  return affiliate ? affiliate.accessoryBlock(productId) : '';
+}
+
 function createRegionCard(regionCode, productIds) {
   const region = getRegion(regionCode);
   const card = document.createElement('article');
@@ -561,6 +567,7 @@ function createRegionCard(regionCode, productIds) {
       <div class="card-actions">
         <a href="${escapeAttribute(pageUrl)}" target="_blank" rel="noreferrer">Steam page</a>
       </div>
+      ${affiliateBlock(productId)}
     `;
     card.append(section);
   }

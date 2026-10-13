@@ -49,6 +49,10 @@ Then open `http://127.0.0.1:5177`.
 
 Production runs on Vercel (`vercel.json`). A Cloudflare Pages and Worker setup is ready but not deployed; see [docs/cloudflare.md](docs/cloudflare.md).
 
+## Affiliate links
+
+The site can show JSAUX and Amazon accessory links. They are off until the IDs are set; see [docs/affiliate.md](docs/affiliate.md).
+
 ## Contributing
 
 Small, focused changes are most welcome. Run `npm run check` before opening a PR, and open an issue first for larger behavior changes.
