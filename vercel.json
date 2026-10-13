@@ -22,11 +22,11 @@
     },
     {
       "source": "/:product(steam-controller|steam-deck|steam-dock|steam-frame|steam-machine)",
-      "destination": "/api/landing?product=:product"
+      "destination": "/:product/index.html"
     },
     {
-      "source": "/:product(steam-controller|steam-deck|steam-dock|steam-frame|steam-machine)/:region([a-zA-Z]{2})",
-      "destination": "/api/landing?product=:product&region=:region"
+      "source": "/:product(steam-controller|steam-deck|steam-dock|steam-frame|steam-machine)/:region([a-z]{2})",
+      "destination": "/:product/:region/index.html"
     }
   ],
   "crons": [

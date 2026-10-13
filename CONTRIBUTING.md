@@ -17,6 +17,7 @@ How stock data flows:
 
 - The cron (`api/cron/check-stock.mjs`, every 10 minutes) checks Steam and writes `status.json` and the history to Vercel Blob. It is the only writer.
 - Browsers read `/status.json` (served by `api/status.mjs` and cached by the CDN for a minute) and the history from `/api/history`. They never call Steam.
+- `npm run build` prerenders `/`, `/<product>` and `/<product>/<region>` into `dist/` with the current status (`scripts/prerender.mjs`, templates in `lib/landing.mjs`). It reads `status.json` and the history from Blob when `BLOB_READ_WRITE_TOKEN` is set, and otherwise runs one live check. Set `PRERENDER_OFFLINE=1` to skip the live check. On Vercel the static pages are as fresh as the last deploy.
 - `api/proxy.mjs` is only used for Komodo Station pages (Japan, Korea, Hong Kong, Taiwan).
 - Locally, `npm start` serves a live `status.json` from one check per request. Set `STATUS_FIXTURE=path/to/status.json` to serve a file instead, for example to test alerts.
 
