@@ -46,7 +46,7 @@
       ]
     },
     {
-      "source": "/(app\\.[a-f0-9]+\\.js|styles\\.[a-f0-9]+\\.css|history\\.[a-f0-9]+\\.js|stock-status\\.[a-f0-9]+\\.js)",
+      "source": "/(app\\.[a-f0-9]+\\.js|styles\\.[a-f0-9]+\\.css|history\\.[a-f0-9]+\\.js|stock-status\\.[a-f0-9]+\\.js|affiliate\\.[a-f0-9]+\\.js)",
       "headers": [
         {
           "key": "Cache-Control",

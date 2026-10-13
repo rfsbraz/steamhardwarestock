@@ -34,6 +34,10 @@ jobs:
         env:
           CF_PAGES: '1'
           PRERENDER_SOURCE_URL: https://steamhardwarestock.pages.dev
+          # Optional repo variables (not secrets). Empty means no affiliate links.
+          AFFILIATE_JSAUX_REF: ${{ vars.AFFILIATE_JSAUX_REF }}
+          AFFILIATE_AMAZON_ENABLED: ${{ vars.AFFILIATE_AMAZON_ENABLED }}
+          AFFILIATE_AMAZON_TAG: ${{ vars.AFFILIATE_AMAZON_TAG }}
 
       - name: Deploy to Cloudflare Pages
         run: npx --yes wrangler@4 pages deploy dist --project-name steamhardwarestock --branch main

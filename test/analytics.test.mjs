@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+import { mkdtempSync } from 'node:fs';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -16,12 +18,13 @@ function htmlFiles(dir) {
 }
 
 test('every built HTML page carries the GA tag, Vercel Analytics and the Cloudflare beacon', () => {
+  const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-dist-'));
   execFileSync(process.execPath, ['scripts/build.js'], {
     cwd: root,
-    env: { ...process.env, PRERENDER_OFFLINE: '1', BLOB_READ_WRITE_TOKEN: '', PRERENDER_SOURCE_URL: '' },
+    env: { ...process.env, PRERENDER_OFFLINE: '1', BLOB_READ_WRITE_TOKEN: '', PRERENDER_SOURCE_URL: '', BUILD_DIST: dist },
     stdio: 'pipe'
   });
-  const files = htmlFiles(path.join(root, 'dist'));
+  const files = htmlFiles(dist);
   assert.ok(files.length > 100, `only ${files.length} HTML files built`);
   for (const file of files) {
     const html = readFileSync(file, 'utf8');

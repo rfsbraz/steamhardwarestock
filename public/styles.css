@@ -1040,3 +1040,26 @@ h1 .history-link {
     grid-column: 1 / -1;
   }
 }
+
+.affiliate-block {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border, rgba(127, 127, 127, 0.3));
+  font-size: 0.85rem;
+}
+.affiliate-title {
+  font-weight: 600;
+}
+.affiliate-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 4px 0;
+  padding: 0;
+  list-style: none;
+}
+.affiliate-disclosure {
+  margin: 0;
+  opacity: 0.75;
+  font-size: 0.78rem;
+}

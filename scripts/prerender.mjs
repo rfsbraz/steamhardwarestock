@@ -90,7 +90,7 @@ export function prerenderHome(html, status) {
   return out;
 }
 
-export async function prerender(dist, { status, history }) {
+export async function prerender(dist, { status, history, affiliate }) {
   const indexPath = path.join(dist, 'index.html');
   const index = await fs.readFile(indexPath, 'utf8');
   await fs.writeFile(indexPath, prerenderHome(index, status));
@@ -99,12 +99,12 @@ export async function prerender(dist, { status, history }) {
   for (const product of PRODUCTS) {
     const dir = path.join(dist, product.id);
     await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(path.join(dir, 'index.html'), renderProductPage(product, history, status));
+    await fs.writeFile(path.join(dir, 'index.html'), renderProductPage(product, history, status, { affiliate }));
     pages++;
     for (const region of REGIONS) {
       const regionDir = path.join(dir, region.code.toLowerCase());
       await fs.mkdir(regionDir, { recursive: true });
-      await fs.writeFile(path.join(regionDir, 'index.html'), renderRegionPage(product, region, history, status));
+      await fs.writeFile(path.join(regionDir, 'index.html'), renderRegionPage(product, region, history, status, { affiliate }));
       pages++;
     }
   }
