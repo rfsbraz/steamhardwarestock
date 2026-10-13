@@ -49,6 +49,10 @@ Then open `http://127.0.0.1:5177`.
 
 Production runs on Vercel (`vercel.json`). A Cloudflare Pages and Worker setup is ready but not deployed; see [docs/cloudflare.md](docs/cloudflare.md).
 
+## SEO
+
+Canonical host, page rules, structured data and the sitemap are described in [docs/seo.md](docs/seo.md).
+
 ## Affiliate links
 
 The site can show JSAUX and Amazon accessory links. They are off until the IDs are set; see [docs/affiliate.md](docs/affiliate.md).

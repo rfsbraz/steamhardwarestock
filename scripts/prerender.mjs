@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { PRODUCTS, REGIONS } from '../lib/products.mjs';
 import { renderProductPage, renderRegionPage } from '../lib/landing.mjs';
+import { isIndexable, latestEvent } from '../lib/seo.mjs';
+import { buildSitemap } from '../lib/sitemap.mjs';
 import StockStatus from '../public/stock-status.js';
 
 function escape(s) {
@@ -28,8 +30,14 @@ async function loadFromUrl(base, fetchImpl) {
 }
 
 export async function loadData({ env = process.env, fetchImpl = (...a) => fetch(...a) } = {}) {
+  // PRERENDER_FIXTURE: a JSON file with { status, history, prices }, for tests.
+  if (env.PRERENDER_FIXTURE) {
+    const data = JSON.parse(await fs.readFile(env.PRERENDER_FIXTURE, 'utf8'));
+    return { status: data.status || null, history: data.history || {}, prices: data.prices || {} };
+  }
   let status = null;
   let history = {};
+  let prices = {};
   if (env.PRERENDER_SOURCE_URL) {
     ({ status, history } = await loadFromUrl(env.PRERENDER_SOURCE_URL, fetchImpl));
   } else if (env.BLOB_READ_WRITE_TOKEN) {
@@ -56,7 +64,13 @@ export async function loadData({ env = process.env, fetchImpl = (...a) => fetch(
       console.warn('prerender: live check failed:', error?.message);
     }
   }
-  return { status, history };
+  // Prices for the Product JSON-LD and the country pages. Without them the
+  // pages build without offers.
+  if (env.PRERENDER_OFFLINE !== '1') {
+    const { fetchPrices } = await import('../lib/prices.mjs');
+    prices = await fetchPrices({ fetchImpl });
+  }
+  return { status, history, prices };
 }
 
 function summary(status) {
@@ -90,23 +104,37 @@ export function prerenderHome(html, status) {
   return out;
 }
 
-export async function prerender(dist, { status, history, affiliate }) {
+// Writes the homepage status, every landing page and sitemap.xml. The sitemap
+// lists only indexable pages, each with the time of its last recorded stock
+// change as lastmod (omitted when there is none).
+export async function prerender(dist, { status, history = {}, affiliate, prices = {} }) {
   const indexPath = path.join(dist, 'index.html');
   const index = await fs.readFile(indexPath, 'utf8');
   await fs.writeFile(indexPath, prerenderHome(index, status));
 
+  const allKeys = Object.keys(history || {});
+  const sitemap = [
+    { path: '/', lastmod: latestEvent(history, allKeys) },
+    { path: '/history', lastmod: latestEvent(history, allKeys) }
+  ];
   let pages = 0;
   for (const product of PRODUCTS) {
     const dir = path.join(dist, product.id);
     await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(path.join(dir, 'index.html'), renderProductPage(product, history, status, { affiliate }));
+    await fs.writeFile(path.join(dir, 'index.html'), renderProductPage(product, history, status, { affiliate, prices }));
+    sitemap.push({ path: `/${product.id}`, lastmod: latestEvent(history, REGIONS.map((r) => `${product.id}:${r.code}`)) });
     pages++;
     for (const region of REGIONS) {
-      const regionDir = path.join(dir, region.code.toLowerCase());
+      const code = region.code.toLowerCase();
+      const regionDir = path.join(dir, code);
       await fs.mkdir(regionDir, { recursive: true });
-      await fs.writeFile(path.join(regionDir, 'index.html'), renderRegionPage(product, region, history, status, { affiliate }));
+      await fs.writeFile(path.join(regionDir, 'index.html'), renderRegionPage(product, region, history, status, { affiliate, prices }));
+      if (isIndexable(product, region.code)) {
+        sitemap.push({ path: `/${product.id}/${code}`, lastmod: latestEvent(history, [`${product.id}:${region.code}`]) });
+      }
       pages++;
     }
   }
+  await fs.writeFile(path.join(dist, 'sitemap.xml'), buildSitemap(sitemap));
   return pages;
 }
