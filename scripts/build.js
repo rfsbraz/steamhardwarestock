@@ -15,6 +15,8 @@ const CF_HEADERS = `/sw.js
   Cache-Control: public, max-age=31536000, immutable
 /stock-status.*.js
   Cache-Control: public, max-age=31536000, immutable
+/changelog-time.*.js
+  Cache-Control: public, max-age=31536000, immutable
 /affiliate.*.js
   Cache-Control: public, max-age=31536000, immutable
 /styles.*.css
@@ -26,7 +28,7 @@ const CF_HEADERS = `/sw.js
 // BUILD_DIST lets tests build into a temp dir so parallel test files do not clash.
 const destination = process.env.BUILD_DIST ? path.resolve(process.env.BUILD_DIST) : path.join(root, 'dist');
 
-const HASHED_ASSETS = ['app.js', 'styles.css', 'history.js', 'stock-status.js', 'affiliate.js'];
+const HASHED_ASSETS = ['app.js', 'styles.css', 'history.js', 'stock-status.js', 'changelog-time.js', 'affiliate.js'];
 // styles.css is also emitted unhashed so the prerendered landing pages can link it.
 const ALSO_EMIT_UNHASHED = new Set(['styles.css']);
 

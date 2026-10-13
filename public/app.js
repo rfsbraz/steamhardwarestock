@@ -1176,31 +1176,53 @@ function renderChangelog() {
   }
 
   const fragment = document.createDocumentFragment();
-  for (const entry of state.changeLog) {
-    const el = document.createElement('div');
-    el.className = 'changelog-entry';
+  // Grouped by day in the visitor's time zone. The list is empty in the
+  // prerendered HTML, so no date is shown until this runs.
+  changelogDay = window.ChangelogTime.dayKey(new Date());
+  for (const group of window.ChangelogTime.groupEntries(state.changeLog)) {
+    const header = document.createElement('h3');
+    header.className = 'changelog-date';
+    header.textContent = group.label;
+    fragment.appendChild(header);
 
-    const time = document.createElement('span');
-    time.className = 'changelog-time';
-    time.textContent = formatTime(entry.ts);
-
-    const product = document.createElement('span');
-    product.className = 'changelog-product';
-    product.textContent = entry.productName;
-
-    const region = document.createElement('span');
-    region.className = 'changelog-region';
-    region.textContent = entry.region;
-
-    const badge = document.createElement('span');
-    badge.className = `badge ${entry.available ? 'available' : 'out'}`;
-    badge.textContent = entry.label;
-
-    el.append(time, product, region, badge);
-    fragment.appendChild(el);
+    for (const row of group.entries) {
+      fragment.appendChild(renderChangelogEntry(row));
+    }
   }
 
   els.changelogList.replaceChildren(fragment);
+}
+
+// Re-render once the visitor's date changes, so Today becomes Yesterday.
+let changelogDay = '';
+setInterval(() => {
+  if (changelogDay && window.ChangelogTime.dayKey(new Date()) !== changelogDay) renderChangelog();
+}, 60000);
+
+function renderChangelogEntry({ entry, time: clock, title, datetime }) {
+  const el = document.createElement('div');
+  el.className = 'changelog-entry';
+
+  const time = document.createElement('time');
+  time.className = 'changelog-time';
+  time.dateTime = datetime;
+  time.title = title;
+  time.textContent = clock;
+
+  const product = document.createElement('span');
+  product.className = 'changelog-product';
+  product.textContent = entry.productName;
+
+  const region = document.createElement('span');
+  region.className = 'changelog-region';
+  region.textContent = entry.region;
+
+  const badge = document.createElement('span');
+  badge.className = `badge ${entry.available ? 'available' : 'out'}`;
+  badge.textContent = entry.label;
+
+  el.append(time, product, region, badge);
+  return el;
 }
 
 async function ensureNotificationPermission() {
