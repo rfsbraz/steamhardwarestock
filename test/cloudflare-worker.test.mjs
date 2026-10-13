@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import worker, { runCheck } from '../cloudflare/worker.mjs';
 import { onRequestGet as statusGet } from '../functions/status.json.js';
 import { onRequestGet as historyGet } from '../functions/api/history.js';
@@ -52,17 +53,87 @@ test('a second run with no change does not rewrite history', async () => {
   assert.equal(env.STOCK_KV.store.get('stock-history.json'), before);
 });
 
-test('pings the Pages deploy hook on a change, at most once per hour', async () => {
-  const pings = [];
-  const env = { STOCK_KV: fakeKV(), PAGES_DEPLOY_HOOK: 'https://hook.example/x' };
-  const wrap = (steam) => async (url, init) => {
-    if (String(url).startsWith('https://hook.example')) { pings.push(init?.method); return new Response('{}'); }
+function withDispatch(dispatches, status = 204) {
+  return (steam) => async (url, init) => {
+    if (String(url).startsWith('https://api.github.com/')) {
+      dispatches.push({ url: String(url), init });
+      return new Response(null, { status });
+    }
     return steam(url, init);
   };
-  await runCheck(env, { fetchImpl: wrap(steamFetch(true).impl), now: new Date('2026-10-13T12:00:00Z') });
-  await runCheck(env, { fetchImpl: wrap(steamFetch(false).impl), now: new Date('2026-10-13T12:10:00Z') });
-  await runCheck(env, { fetchImpl: wrap(steamFetch(true).impl), now: new Date('2026-10-13T13:20:00Z') });
-  assert.deepEqual(pings, ['POST', 'POST']);
+}
+
+test('a status change dispatches the Pages deploy workflow on GitHub', async () => {
+  const dispatches = [];
+  const env = { STOCK_KV: fakeKV(), GH_DISPATCH_TOKEN: 'tok' };
+  await runCheck(env, { fetchImpl: withDispatch(dispatches)(steamFetch(true).impl), now: new Date('2026-10-13T12:00:00Z') });
+  assert.equal(dispatches.length, 1);
+  const { url, init } = dispatches[0];
+  assert.equal(url, 'https://api.github.com/repos/rfsbraz/steamhardwarestock/actions/workflows/pages-deploy.yml/dispatches');
+  assert.equal(init.method, 'POST');
+  assert.equal(init.headers.authorization, 'Bearer tok');
+  assert.equal(init.headers.accept, 'application/vnd.github+json');
+  assert.ok(init.headers['user-agent'], 'GitHub requires a User-Agent');
+  assert.deepEqual(JSON.parse(init.body), { ref: 'main' });
+});
+
+test('dispatches are debounced to one per 10 minutes', async () => {
+  const dispatches = [];
+  const env = { STOCK_KV: fakeKV(), GH_DISPATCH_TOKEN: 'tok' };
+  const run = (inStock, iso) => runCheck(env, { fetchImpl: withDispatch(dispatches)(steamFetch(inStock).impl), now: new Date(iso) });
+  await run(true, '2026-10-13T12:00:00Z');
+  await run(false, '2026-10-13T12:05:00Z');
+  await run(true, '2026-10-13T12:09:59Z');
+  assert.equal(dispatches.length, 1);
+  await run(false, '2026-10-13T12:10:00Z');
+  assert.equal(dispatches.length, 2);
+});
+
+test('no change means no dispatch', async () => {
+  const dispatches = [];
+  const env = { STOCK_KV: fakeKV(), GH_DISPATCH_TOKEN: 'tok' };
+  await runCheck(env, { fetchImpl: withDispatch(dispatches)(steamFetch(true).impl), now: new Date('2026-10-13T12:00:00Z') });
+  await runCheck(env, { fetchImpl: withDispatch(dispatches)(steamFetch(true).impl), now: new Date('2026-10-13T13:00:00Z') });
+  assert.equal(dispatches.length, 1);
+});
+
+test('a missing GH_DISPATCH_TOKEN skips the dispatch quietly', async () => {
+  const dispatches = [];
+  const env = { STOCK_KV: fakeKV() };
+  const errors = [];
+  const original = console.error;
+  console.error = (...a) => errors.push(a);
+  try {
+    const out = await runCheck(env, { fetchImpl: withDispatch(dispatches)(steamFetch(true).impl) });
+    assert.ok(out.transitions > 0);
+  } finally {
+    console.error = original;
+  }
+  assert.equal(dispatches.length, 0);
+  assert.deepEqual(errors, []);
+  assert.equal(env.STOCK_KV.store.has('dispatch-last'), false);
+});
+
+test('a failed dispatch is retried on the next change, not debounced', async () => {
+  const dispatches = [];
+  const env = { STOCK_KV: fakeKV(), GH_DISPATCH_TOKEN: 'tok' };
+  const original = console.error;
+  console.error = () => {};
+  try {
+    await runCheck(env, { fetchImpl: withDispatch(dispatches, 403)(steamFetch(true).impl), now: new Date('2026-10-13T12:00:00Z') });
+    await runCheck(env, { fetchImpl: withDispatch(dispatches)(steamFetch(false).impl), now: new Date('2026-10-13T12:01:00Z') });
+  } finally {
+    console.error = original;
+  }
+  assert.equal(dispatches.length, 2);
+});
+
+test('both wrangler.toml files bind the real STOCK_KV namespace', () => {
+  for (const file of ['wrangler.toml', 'cloudflare/wrangler.toml']) {
+    const toml = readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
+    assert.match(toml, /binding = "STOCK_KV"\nid = "ef31e7789d0949b987f9814a86ed0fce"/, file);
+    assert.ok(!toml.includes('PAGES_DEPLOY_HOOK'), file);
+  }
 });
 
 test('scheduled handler runs the check inside waitUntil', async () => {

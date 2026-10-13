@@ -15,7 +15,7 @@ function htmlFiles(dir) {
   });
 }
 
-test('every built HTML page carries the GA tag and Vercel Analytics', () => {
+test('every built HTML page carries the GA tag, Vercel Analytics and the Cloudflare beacon', () => {
   execFileSync(process.execPath, ['scripts/build.js'], {
     cwd: root,
     env: { ...process.env, PRERENDER_OFFLINE: '1', BLOB_READ_WRITE_TOKEN: '', PRERENDER_SOURCE_URL: '' },
@@ -29,6 +29,10 @@ test('every built HTML page carries the GA tag and Vercel Analytics', () => {
     assert.ok(html.includes('googletagmanager.com/gtag/js?id=G-D4LRTXD5LR'), `${rel} is missing the GA loader`);
     assert.ok(html.includes("gtag('config', 'G-D4LRTXD5LR')"), `${rel} is missing the GA config`);
     assert.ok(html.includes('/_vercel/insights/script.js'), `${rel} is missing Vercel Analytics`);
+    assert.ok(
+      html.includes(`<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"9f338d544ab84bbc920053a6f6cf222e"}'></script>`),
+      `${rel} is missing the Cloudflare Web Analytics beacon`
+    );
     assert.ok(!html.includes('<!-- analytics:'), `${rel} has an unreplaced analytics marker`);
   }
 });
