@@ -12,10 +12,9 @@ function escape(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-// Status and history at build time. Prefer what the cron stored in Blob; with
-// no token (forks, local builds) run one live Steam check instead.
-// PRERENDER_SOURCE_URL points at a deployed site (for example the Cloudflare
-// Pages build reading the live KV data through its own functions).
+// Status and history at build time. PRERENDER_SOURCE_URL points at a deployed
+// site (the Pages build reads the live KV data through its own functions).
+// Without it (forks, local builds) run one live Steam check instead.
 async function loadFromUrl(base, fetchImpl) {
   const get = async (path) => {
     const res = await fetchImpl(new URL(path, base));
@@ -40,19 +39,6 @@ export async function loadData({ env = process.env, fetchImpl = (...a) => fetch(
   let prices = {};
   if (env.PRERENDER_SOURCE_URL) {
     ({ status, history } = await loadFromUrl(env.PRERENDER_SOURCE_URL, fetchImpl));
-  } else if (env.BLOB_READ_WRITE_TOKEN) {
-    const store = await import('../lib/history-store.mjs');
-    try {
-      const text = await store.readStatusText();
-      status = text ? JSON.parse(text) : null;
-    } catch (error) {
-      console.warn('prerender: status.json unavailable:', error?.message);
-    }
-    try {
-      history = (await store.readHistoryFresh()).history;
-    } catch (error) {
-      console.warn('prerender: history unavailable:', error?.message);
-    }
   }
   if (!status && env.PRERENDER_OFFLINE !== '1') {
     try {

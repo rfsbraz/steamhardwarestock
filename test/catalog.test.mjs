@@ -25,15 +25,12 @@ test('Valve certified refurbished Decks are tracked', () => {
 test('every catalog copy lists the same products and packages', () => {
   const app = read('public/app.js');
   const history = read('public/history.js');
-  const seed = read('api/seed.mjs');
   const index = read('public/index.html');
-  const vercel = read('vercel.json');
   for (const product of PRODUCTS) {
-    for (const file of [['app.js', app], ['history.js', history], ['seed.mjs', seed]]) {
+    for (const file of [['app.js', app], ['history.js', history]]) {
       assert.ok(file[1].includes(`'${product.id}'`), `${product.id} missing from ${file[0]}`);
     }
     assert.ok(index.includes(`href="/${product.id}"`), `${product.id} missing from index.html`);
-    assert.ok(vercel.includes(`${product.id}|`) || vercel.includes(`|${product.id})`), `${product.id} missing from vercel.json`);
     for (const { id } of product.packages) {
       assert.ok(app.includes(`id: ${id},`), `${id} missing from app.js`);
       assert.ok(history.includes(String(id)), `${id} missing from history.js`);

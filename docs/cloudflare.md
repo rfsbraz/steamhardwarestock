@@ -1,6 +1,6 @@
 # Cloudflare hosting
 
-The site can run on Cloudflare next to Vercel.
+The site runs on Cloudflare. Vercel hosting was removed in October 2026.
 
 - **Pages** (`wrangler.toml`, project `steamhardwarestock`, direct upload, https://steamhardwarestock.pages.dev) serves `dist/` and three functions: `/status.json`, `/api/history` and `/proxy` (Komodo only).
 - **Worker** (`cloudflare/worker.mjs`, `cloudflare/wrangler.toml`) runs the stock check every 10 minutes. It writes `status.json` and `stock-history.json` to KV.
@@ -33,12 +33,20 @@ DNS access to the domain is only needed for the cutover.
 All tags come from `lib/analytics.mjs` and go into every built page. `test/analytics.test.mjs` checks for them.
 
 - **GA** (`G-D4LRTXD5LR`).
-- **Cloudflare Web Analytics** beacon (`static.cloudflareinsights.com/beacon.min.js`, public token `9f338d544ab84bbc920053a6f6cf222e`). It is a manual snippet because direct upload projects do not get the automatic one. It also counts visits while the site is still on Vercel. Leave automatic injection off in the dashboard, or pages count twice.
-- **Vercel Analytics** only works on Vercel. On Pages, `/_vercel/insights/script.js` returns 404, which is harmless.
+- **Cloudflare Web Analytics** beacon (`static.cloudflareinsights.com/beacon.min.js`, public token `9f338d544ab84bbc920053a6f6cf222e`). It is a manual snippet because direct upload projects do not get the automatic one. Leave automatic injection off in the dashboard, or pages count twice.
 
-## Parallel run and cutover
+## Importing the old Blob history
 
-1. Run both deploy workflows once by hand and leave Vercel as is. Run them side by side for at least 48 hours.
-2. Compare `https://steamhardwarestock.pages.dev/status.json` with the Vercel `/status.json`. The `regions` and `cells` should match, and `generatedAt` should move every 10 minutes.
-3. Check the Worker logs: 31 Steam requests per run and no errors.
-4. Only then point DNS at Pages. Keep the Vercel project for a quick rollback, then turn off its cron.
+`scripts/import-blob-history.mjs` is a one-off. It merges an old Vercel Blob `stock-history.json` export into the KV `stock-history.json`. Events from both sides are combined through `mergeHistories` in `lib/history-merge.mjs`, which drops duplicates, sorts them and keeps the newest 50 per product and region. Running it twice with the same export changes nothing.
+
+It needs Node 22 for wrangler 4 and a logged in wrangler (`wrangler login` or `CLOUDFLARE_API_TOKEN`). The namespace id comes from `wrangler.toml`.
+
+```sh
+# Dry run: reads KV, prints key and event counts, writes nothing.
+node scripts/import-blob-history.mjs ~/stock-history.blob.json
+
+# Write. Saves the current KV value to backups/kv-stock-history-<time>.json first.
+node scripts/import-blob-history.mjs ~/stock-history.blob.json --apply
+```
+
+With `--apply` it reads KV again right before the write and stops if the Worker changed it in the meantime. Run it again in that case. `backups/` is ignored by git. To roll back, put the backup file with `wrangler kv key put stock-history.json --path <backup> --namespace-id <id> --remote`.

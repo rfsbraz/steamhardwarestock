@@ -10,7 +10,7 @@ Do not publicly post exploitable details for proxy bypasses, cross-site scriptin
 
 Security-sensitive areas include:
 
-- `api/proxy.js`
+- `lib/komodo-proxy.mjs` and `functions/`
 - `server.js`
 - notification and service worker code in `public/app.js` and `public/sw.js`
 

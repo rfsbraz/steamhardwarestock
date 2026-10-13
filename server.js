@@ -56,7 +56,7 @@ async function fetchWithTimeout(url) {
 }
 
 function isAllowedProxyUrl(targetUrl) {
-  // Same rule as api/proxy.mjs: only Komodo Station goes through the proxy.
+  // Same rule as lib/komodo-proxy.mjs: only Komodo Station goes through the proxy.
   return targetUrl.protocol === 'https:'
     && targetUrl.hostname === 'komodostation.com'
     && targetUrl.pathname.startsWith('/product/');

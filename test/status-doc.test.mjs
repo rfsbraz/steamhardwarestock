@@ -4,7 +4,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { buildStatusDoc, STATUS_FIELDS } from '../lib/status-doc.mjs';
 import { PRODUCTS, VALVE_SELLS, isCheckable } from '../lib/products.mjs';
 import { checkAll } from '../lib/steam.mjs';
-import proxy from '../api/proxy.mjs';
+import proxy from '../lib/komodo-proxy.mjs';
 
 const fx = JSON.parse(readFileSync(new URL('./fixtures/hardware-items.json', import.meta.url)));
 

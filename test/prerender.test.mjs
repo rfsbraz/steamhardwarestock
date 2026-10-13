@@ -38,11 +38,11 @@ test('landing pages carry the status and the analytics script', async () => {
   await prerender(dist, { status, history });
   const deckUs = readFileSync(path.join(dist, 'steam-deck', 'us', 'index.html'), 'utf8');
   assert.match(deckUs, /In stock/);
-  assert.match(deckUs, /\/_vercel\/insights\/script\.js/);
+  assert.match(deckUs, /static\.cloudflareinsights\.com\/beacon\.min\.js/);
   assert.match(deckUs, /Last check/);
   const controller = readFileSync(path.join(dist, 'steam-controller', 'index.html'), 'utf8');
   assert.match(controller, /Reservations open/);
-  assert.match(controller, /\/_vercel\/insights\/script\.js/);
+  assert.match(controller, /static\.cloudflareinsights\.com\/beacon\.min\.js/);
   const notSold = readFileSync(path.join(dist, 'steam-deck', 'jp', 'index.html'), 'utf8');
   assert.match(notSold, /Not sold here/);
 });
