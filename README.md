@@ -10,18 +10,30 @@ Live at [steamhardwarestock.com](https://steamhardwarestock.com/)
 ## What it tracks
 
 - Steam Controller
-- Steam Deck
+- Steam Deck (OLED, and the LCD where Valve still sells it new)
+- Steam Deck (Valve Certified Refurbished)
+- Steam Deck Dock
 - Steam Frame
 - Steam Machine
 
-Checks official Steam product pages directly so you can watch for real stock instead of relying on scalpers or resale listings.
+Each product and country gets one of these statuses:
+
+- **In stock**: you can buy it now.
+- **Reservations open**: Steam takes a reservation and emails you when your order can be placed.
+- **Waitlist**: Steam has a queue. You join the waitlist on the Steam page.
+- **Out of stock**: no inventory right now.
+- **Not sold here**: Steam does not sell it in that country.
+
+The rules live in `public/stock-status.js`, which the browser and the server cron share.
+
+A server check reads Steam's official hardware API every 10 minutes, and every open tab reads that one result, so you can watch for real stock instead of relying on scalpers or resale listings.
 
 ## Features
 
 - Check availability across multiple countries at once
 - Browser notifications and audio alert when something comes in stock
 - Watching state persists across page reloads
-- No account, no server, no data collected
+- No account, no data collected
 
 ## Running locally
 
@@ -32,6 +44,14 @@ npm start
 ```
 
 Then open `http://127.0.0.1:5177`.
+
+## Hosting
+
+Production runs on Vercel (`vercel.json`). A Cloudflare Pages and Worker setup is ready but not deployed; see [docs/cloudflare.md](docs/cloudflare.md).
+
+## Affiliate links
+
+The site can show JSAUX and Amazon accessory links. They are off until the IDs are set; see [docs/affiliate.md](docs/affiliate.md).
 
 ## Contributing
 

@@ -2,17 +2,10 @@ export const config = { runtime: 'edge' };
 
 const REQUEST_TIMEOUT_MS = 8000;
 
+// Steam data now comes from the cron's status.json, so only Komodo Station
+// (Japan, Korea, Hong Kong, Taiwan) is still fetched through here.
 function isAllowedProxyUrl(targetUrl) {
   if (targetUrl.protocol !== 'https:') return false;
-  if (targetUrl.hostname === 'api.steampowered.com') {
-    return targetUrl.pathname === '/IStoreBrowseService/GetHardwareItems/v1/';
-  }
-  if (targetUrl.hostname === 'store.steampowered.com') {
-    return targetUrl.pathname === '/steamdeck'
-      || targetUrl.pathname === '/steamdeck/'
-      || targetUrl.pathname.startsWith('/hardware/')
-      || targetUrl.pathname.startsWith('/sale/');
-  }
   if (targetUrl.hostname === 'komodostation.com') {
     return targetUrl.pathname.startsWith('/product/');
   }

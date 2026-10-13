@@ -1,7 +1,6 @@
 'use strict';
 
 const STEAM_ORIGIN = 'https://store.steampowered.com';
-const STEAM_HARDWARE_API = 'https://api.steampowered.com/IStoreBrowseService/GetHardwareItems/v1/';
 const DEFAULT_PRODUCTS = ['steam-controller'];
 const STORAGE_KEY = 'steam-hardware-stock-tracker-v3';
 const CHANGELOG_KEY = 'steam-hardware-changelog-v1';
@@ -37,7 +36,7 @@ const PRODUCTS = [
     name: 'Steam Controller',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/9d5d7384c51cd831aaf52dd47184ecd3.avif',
     paths: ['/hardware/steamcontroller/', '/sale/steamcontroller'],
-    packages: [{ id: 1558609, label: null }]
+    packages: [{ id: 1558609, label: null, priceUsd: 99 }]
   },
   {
     id: 'steam-deck',
@@ -45,8 +44,9 @@ const PRODUCTS = [
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/6163a5d5ee139c8c07485f6e72fba875.avif',
     paths: ['/steamdeck/'],
     packages: [
-      { id: 946113, label: '512GB OLED' },
-      { id: 946114, label: '1TB OLED' }
+      { id: 946113, label: '512GB OLED', priceUsd: 789 },
+      { id: 946114, label: '1TB OLED', priceUsd: 949 },
+      { id: 595604, label: '256GB LCD', priceUsd: null }
     ]
   },
   {
@@ -54,19 +54,42 @@ const PRODUCTS = [
     name: 'Steam Deck Dock',
     icon: 'https://clan.fastly.steamstatic.com/images/39049601/c871cb610cd4de7f2cd695c04613ec2f11a16f22.png',
     paths: ['/steamdeckdock'],
-    packages: [{ id: 761892, label: null }]
+    packages: [{ id: 761892, label: null, priceUsd: 79 }]
+  },
+  {
+    id: 'steam-deck-refurbished',
+    name: 'Steam Deck (Refurbished)',
+    icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/6163a5d5ee139c8c07485f6e72fba875.avif',
+    paths: ['/sale/steamdeckrefurbished'],
+    packages: [
+      { id: 903905, label: '64GB LCD', priceUsd: 279 },
+      { id: 903906, label: '256GB LCD', priceUsd: 319 },
+      { id: 903907, label: '512GB LCD', priceUsd: 359 },
+      { id: 1202542, label: '512GB OLED', priceUsd: 629 },
+      { id: 1202547, label: '1TB OLED', priceUsd: 759 }
+    ]
   },
   {
     id: 'steam-frame',
     name: 'Steam Frame',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/82a194cce9b0912b2501236f4f4ef757.avif',
-    paths: ['/hardware/steamframe/', '/sale/steamframe']
+    paths: ['/hardware/steamframe/', '/sale/steamframe'],
+    packages: [
+      { id: 1629484, label: '256GB Kit', priceUsd: 1059 },
+      { id: 1629486, label: '1TB Kit', priceUsd: 1299 }
+    ]
   },
   {
     id: 'steam-machine',
     name: 'Steam Machine',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/d3888f2e560b3a837f6f0a25345b03b6.avif',
-    paths: ['/hardware/steammachine/', '/sale/steammachine']
+    paths: ['/hardware/steammachine/', '/sale/steammachine'],
+    packages: [
+      { id: 1629447, label: '512GB', priceUsd: 1049 },
+      { id: 1629446, label: '2TB', priceUsd: 1349 },
+      { id: 1629458, label: '512GB with Controller', priceUsd: 1128 },
+      { id: 1629460, label: '2TB with Controller', priceUsd: 1428 }
+    ]
   }
 ];
 
@@ -213,7 +236,7 @@ const state = {
   checking: false,
   changeLog: [],
   history: new Map(),
-  pendingRecord: new Map()
+  statusRequest: null
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -481,6 +504,12 @@ function renderResults() {
   els.resultsGrid.replaceChildren(fragment);
 }
 
+// Empty when affiliate.js is missing or has no IDs configured.
+function affiliateBlock(productId) {
+  const affiliate = window.SteamAffiliate;
+  return affiliate ? affiliate.accessoryBlock(productId) : '';
+}
+
 function createRegionCard(regionCode, productIds) {
   const region = getRegion(regionCode);
   const card = document.createElement('article');
@@ -516,7 +545,7 @@ function createRegionCard(regionCode, productIds) {
         <span class="product-section-name">${escapeHtml(product.name)}</span>
         <span class="badge-stack">
           <span class="badge ${escapeHtml(status.state)}">${escapeHtml(status.label)}</span>
-          ${status.state === 'pending' ? '<span class="info-chip" title="Technically not out of stock — the buy button is deactivated due to a pending-order queue. Pending or unpaid orders can be cancelled and units become available again sporadically.">ⓘ Pending queue</span>' : ''}
+          ${status.state === 'out_of_stock' && details.high_pending_orders ? '<span class="info-chip" title="Technically not out of stock — the buy button is deactivated due to a pending-order queue. Pending or unpaid orders can be cancelled and units become available again sporadically.">ⓘ Pending queue</span>' : ''}
         </span>
       </div>
       <div class="reason">${escapeHtml(status.reason || '')}</div>
@@ -527,7 +556,9 @@ function createRegionCard(regionCode, productIds) {
         <div class="detail"><span>Packages</span><span>${escapeHtml(formatPackageCount(result))}</span></div>
         <div class="detail"><span>Delivery</span><span>${escapeHtml(formatDelivery(details))}</span></div>
         <div class="detail"><span>Checked</span><span>${escapeHtml(result ? formatTime(result.checkedAt) : 'Never')}</span></div>
+        ${status.estimate ? `<div class="detail"><span>Order window</span><span>${escapeHtml(formatOrderWindow(status.estimate))}</span></div>` : ''}
         ${(() => {
+          if (status.state === 'reservation_open' || status.state === 'waitlist') return '';
           const h = formatStockHistory(key, Boolean(status && status.found));
           return h ? `<div class="detail"><span>${escapeHtml(h.label)}</span><span>${escapeHtml(h.value)}</span></div>` : '';
         })()}
@@ -536,6 +567,7 @@ function createRegionCard(regionCode, productIds) {
       <div class="card-actions">
         <a href="${escapeAttribute(pageUrl)}" target="_blank" rel="noreferrer">Steam page</a>
       </div>
+      ${affiliateBlock(productId)}
     `;
     card.append(section);
   }
@@ -560,6 +592,7 @@ function createRegionCard(regionCode, productIds) {
         </div>
         <div class="reason">${escapeHtml(status.reason || '')}</div>
         ${(() => {
+          if (status.state === 'reservation_open' || status.state === 'waitlist') return '';
           const h = formatStockHistory(key, Boolean(status && status.found));
           return h ? `<div class="last-stock-hint">${escapeHtml(h.label)}: ${escapeHtml(h.value)}</div>` : '';
         })()}
@@ -749,7 +782,8 @@ async function checkNow({ manual }) {
     return;
   }
 
-  flushPendingRecords();
+  // One status.json read per check cycle, shared by every product and region.
+  state.statusRequest = fetchStatusDoc();
   state.checking = true;
   setMessage('Checking...');
   renderControls();
@@ -829,18 +863,17 @@ async function checkProductRegion(product, region) {
   }
 
   const packageIds = product.packages.map((p) => p.id);
-  const { apiUrl, details } = await fetchHardwareItems(region, packageIds);
-  const packages = product.packages.map(({ id: packageId, label }) => {
+  const { generatedAt, details } = await statusDetails(region, product.id, packageIds);
+  const packages = product.packages.map(({ id: packageId, label, priceUsd }) => {
     const detail = details.find((item) => Number(item.packageid) === packageId) || null;
-    return { packageId, label, status: classifyHardwareDetails(detail), details: detail };
+    return { packageId, label, priceUsd, status: classifyHardwareDetails(detail), details: detail };
   });
 
   return {
     product: publicProduct(product, region),
     region,
     pageUrl: productPageUrl(product, region),
-    apiUrl,
-    checkedAt: new Date().toISOString(),
+    checkedAt: generatedAt,
     packageCount: packageIds.length,
     packages,
     status: classifyProductPackages(packages)
@@ -931,86 +964,33 @@ function parseKomodoSingle(html) {
   };
 }
 
-async function fetchHardwareItems(region, packageIds) {
-  const input = {
-    packageid: packageIds,
-    context: {
-      country_code: region,
-      language: 'english'
-    }
-  };
+// The cron writes status.json every 10 minutes, and the CDN caches it for a
+// minute, so tabs no longer call Steam or the proxy themselves.
+async function fetchStatusDoc() {
+  const response = await fetch('/status.json');
+  if (!response.ok) {
+    throw new Error(`Stock status is not available right now (HTTP ${response.status}).`);
+  }
+  return response.json();
+}
 
-  const apiUrl = new URL(STEAM_HARDWARE_API);
-  apiUrl.searchParams.set('input_json', JSON.stringify(input));
-  const payload = await fetchSteamJson(apiUrl.toString());
-  const details = payload && payload.response && Array.isArray(payload.response.details)
-    ? payload.response.details
-    : [];
-
+async function statusDetails(region, productId, packageIds) {
+  const doc = await (state.statusRequest || (state.statusRequest = fetchStatusDoc()));
+  if (!Array.isArray(doc.regions) || !doc.regions.includes(region)) {
+    // The cron only checks regions where Steam sells Valve hardware.
+    return {
+      generatedAt: doc.generatedAt,
+      details: packageIds.map((packageid) => ({ packageid, allow_purchase_in_country: false }))
+    };
+  }
+  const cell = doc.products && doc.products[productId] && doc.products[productId][region];
+  if (!cell) {
+    throw new Error('The last stock check did not cover this product here. It should appear after the next check.');
+  }
   return {
-    apiUrl: apiUrl.toString(),
-    details
+    generatedAt: doc.generatedAt,
+    details: cell.packages.map((p) => p.details).filter(Boolean)
   };
-}
-
-async function fetchSteamJson(url) {
-  return fetchReadableSteamData(url, 'json');
-}
-
-async function fetchReadableSteamData(url, responseType, options = {}) {
-  const attempts = buildFetchAttempts(url, options);
-  let lastError = null;
-
-  for (const attempt of attempts) {
-    try {
-      const response = await fetch(attempt.url, {
-        cache: 'no-store'
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      if (attempt.requiresTrackerProxyHeader && response.headers.get('x-steam-tracker-proxy') !== '1') {
-        throw new Error('same-origin proxy unavailable');
-      }
-      return responseType === 'json' ? response.json() : response.text();
-    } catch (error) {
-      lastError = error;
-    }
-  }
-
-  const reason = lastError ? lastError.message : 'request failed';
-  throw new Error(`Browser could not read Steam data (${reason}). Steam does not allow direct browser reads from arbitrary sites, so this deployment needs a small allowlisted proxy.`);
-}
-
-function buildFetchAttempts(url, { maxBytes } = {}) {
-  const attempts = [];
-  const config = window.STEAM_TRACKER_CONFIG || {};
-  const configuredTemplate = typeof config.proxyTemplate === 'string' ? config.proxyTemplate.trim() : '';
-
-  if (configuredTemplate) {
-    attempts.push({
-      url: applyProxyTemplate(configuredTemplate, url)
-    });
-  }
-
-  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
-    const proxyBase = `/proxy?url=${encodeURIComponent(url)}`;
-    attempts.push({
-      url: maxBytes ? `${proxyBase}&maxBytes=${maxBytes}` : proxyBase,
-      requiresTrackerProxyHeader: true
-    });
-  }
-
-  attempts.push({ url });
-
-  return [...new Map(attempts.map((attempt) => [attempt.url, attempt])).values()];
-}
-
-function applyProxyTemplate(template, url) {
-  if (template.includes('{url}')) {
-    return template.replace('{url}', encodeURIComponent(url));
-  }
-  return `${template}${encodeURIComponent(url)}`;
 }
 
 async function requestNotifications() {
@@ -1058,8 +1038,6 @@ function maybeNotify(result, manual) {
 
   if (hadPriorReading && isAvailable !== wasAvailable) {
     logChange(result, isAvailable);
-  } else if (!hadPriorReading && !state.history.has(key)) {
-    recordInitialState(result, isAvailable);
   }
 
   if (!isAvailable || wasAvailable) {
@@ -1080,15 +1058,6 @@ function maybeNotify(result, manual) {
   ).catch((error) => setMessage(error.message));
 }
 
-function recordInitialState(result, isAvailable) {
-  const key = getResultKey(result);
-  if (isAvailable) {
-    state.pendingRecord.set(key, { result, ts: new Date().toISOString() });
-  } else {
-    postHistoryRecord(result, false);
-  }
-}
-
 function logChange(result, isAvailable) {
   state.changeLog.unshift({
     ts: new Date().toISOString(),
@@ -1101,14 +1070,6 @@ function logChange(result, isAvailable) {
     state.changeLog.length = CHANGELOG_MAX;
   }
   localStorage.setItem(CHANGELOG_KEY, JSON.stringify(state.changeLog));
-
-  const key = getResultKey(result);
-  if (!isAvailable) {
-    state.pendingRecord.delete(key);
-    postHistoryRecord(result, false);
-  } else {
-    state.pendingRecord.set(key, { result, ts: new Date().toISOString() });
-  }
 }
 
 async function loadHistory() {
@@ -1170,44 +1131,6 @@ function seedChangelogFromHistory() {
   try {
     localStorage.setItem(CHANGELOG_KEY, JSON.stringify(state.changeLog));
   } catch {}
-}
-
-function flushPendingRecords() {
-  for (const [key, pending] of state.pendingRecord) {
-    if (state.availability.get(key) === true) {
-      postHistoryRecord(pending.result, true, pending.ts);
-    }
-    state.pendingRecord.delete(key);
-  }
-}
-
-function postHistoryRecord(result, isAvailable, ts) {
-  const recordTs = ts || new Date().toISOString();
-  fetch('/api/record', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      key: getResultKey(result),
-      productId: result.product.id,
-      productName: result.product.name,
-      region: result.region,
-      source: result.source || 'steam',
-      available: isAvailable,
-      ts: recordTs
-    })
-  }).then(res => {
-    if (res.ok) {
-      const key = getResultKey(result);
-      const entry = state.history.get(key) || {};
-      if (isAvailable) {
-        entry.lastInStock = recordTs;
-      } else {
-        entry.lastOutOfStock = recordTs;
-      }
-      state.history.set(key, entry);
-      renderResults();
-    }
-  }).catch(() => {});
 }
 
 function formatStockHistory(key, isAvailable) {
@@ -1537,66 +1460,8 @@ function useCurrentCountry() {
 }
 
 function classifyHardwareDetails(details) {
-  if (!details) {
-    return {
-      found: false,
-      state: 'unknown',
-      label: 'Unknown',
-      reason: 'Steam did not return hardware details for this package.'
-    };
-  }
-
-  if (details.account_restricted_from_purchasing) {
-    return {
-      found: false,
-      state: 'restricted',
-      label: 'Restricted',
-      reason: 'Purchasing is restricted for this account or context.'
-    };
-  }
-
-  if (details.allow_purchase_in_country === false) {
-    return {
-      found: false,
-      state: 'unsupported',
-      label: 'Not sold',
-      reason: 'Steam reports this hardware is not purchasable in the selected country.'
-    };
-  }
-
-  if (details.requires_reservation) {
-    return {
-      found: false,
-      state: 'reservation',
-      label: 'Reservation',
-      reason: 'Steam reports reservation is required.'
-    };
-  }
-
-  if (details.high_pending_orders) {
-    return {
-      found: false,
-      state: 'pending',
-      label: 'Out of stock',
-      reason: 'Steam has a queue of pending orders, so the buy button is deactivated. New units can still surface sporadically as queued orders get cancelled.'
-    };
-  }
-
-  if (details.inventory_available) {
-    return {
-      found: true,
-      state: 'available',
-      label: 'In stock',
-      reason: 'Steam reports inventory is available for this country.'
-    };
-  }
-
-  return {
-    found: false,
-    state: 'out',
-    label: 'Out of stock',
-    reason: 'Steam does not report available inventory.'
-  };
+  // Shared with the cron, see public/stock-status.js.
+  return window.SteamStockStatus.classifyDetails(details);
 }
 
 function classifyProductPackages(packages) {
@@ -1606,6 +1471,15 @@ function classifyProductPackages(packages) {
       state: 'unpublished',
       label: 'No package yet',
       reason: 'Steam has a product page, but no stock-checkable hardware package is published yet.'
+    };
+  }
+
+  if (packages.every((item) => item.status && item.status.status)) {
+    const best = window.SteamStockStatus.combineStatuses(packages.map((item) => item.status));
+    const match = packages.find((item) => item.status === best);
+    return {
+      ...best,
+      reason: packages.length > 1 && match ? `${formatPackageName(match)}: ${best.reason}` : best.reason
     };
   }
 
@@ -1752,7 +1626,14 @@ function renderPackageModels(result) {
 }
 
 function formatPackageName(item) {
-  return item && item.label ? item.label : `Package ${item.packageId}`;
+  const name = item && item.label ? item.label : `Package ${item.packageId}`;
+  return item && item.priceUsd ? `${name} ($${item.priceUsd.toLocaleString('en-US')} US)` : name;
+}
+
+function formatOrderWindow(iso) {
+  const date = new Date(iso);
+  if (!Number.isFinite(date.getTime())) return 'Unknown';
+  return `Around ${date.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })}`;
 }
 
 function productPageUrl(product, region, productPath = product.paths[0]) {

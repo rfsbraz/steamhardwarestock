@@ -9,6 +9,7 @@ const PRODUCTS = [
   { id: 'steam-controller', name: 'Steam Controller' },
   { id: 'steam-deck', name: 'Steam Deck' },
   { id: 'steam-dock', name: 'Steam Deck Dock' },
+  { id: 'steam-deck-refurbished', name: 'Steam Deck (Refurbished)' },
   { id: 'steam-frame', name: 'Steam Frame' },
   { id: 'steam-machine', name: 'Steam Machine' }
 ];

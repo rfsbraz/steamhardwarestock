@@ -1,0 +1,9 @@
+# Cloudflare Pages project: serves dist/ and functions/.
+# See docs/cloudflare.md.
+name = "steamhardwarestock"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"
+
+[[kv_namespaces]]
+binding = "STOCK_KV"
+id = "ef31e7789d0949b987f9814a86ed0fce"

@@ -3,3 +3,5 @@ dist/
 .env
 .DS_Store
 Thumbs.db
+.dev.vars
+.wrangler/

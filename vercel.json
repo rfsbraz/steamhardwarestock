@@ -13,20 +13,20 @@
       "destination": "/history.html"
     },
     {
+      "source": "/status.json",
+      "destination": "/api/status"
+    },
+    {
       "source": "/proxy",
       "destination": "/api/proxy"
     },
     {
-      "source": "/record",
-      "destination": "/api/record"
+      "source": "/:product(steam-controller|steam-deck|steam-deck-refurbished|steam-dock|steam-frame|steam-machine)",
+      "destination": "/:product/index.html"
     },
     {
-      "source": "/:product(steam-controller|steam-deck|steam-dock|steam-frame|steam-machine)",
-      "destination": "/api/landing?product=:product"
-    },
-    {
-      "source": "/:product(steam-controller|steam-deck|steam-dock|steam-frame|steam-machine)/:region([a-zA-Z]{2})",
-      "destination": "/api/landing?product=:product&region=:region"
+      "source": "/:product(steam-controller|steam-deck|steam-deck-refurbished|steam-dock|steam-frame|steam-machine)/:region([a-z]{2})",
+      "destination": "/:product/:region/index.html"
     }
   ],
   "crons": [
@@ -46,7 +46,7 @@
       ]
     },
     {
-      "source": "/(app\\.[a-f0-9]+\\.js|styles\\.[a-f0-9]+\\.css|history\\.[a-f0-9]+\\.js)",
+      "source": "/(app\\.[a-f0-9]+\\.js|styles\\.[a-f0-9]+\\.css|history\\.[a-f0-9]+\\.js|stock-status\\.[a-f0-9]+\\.js|affiliate\\.[a-f0-9]+\\.js)",
       "headers": [
         {
           "key": "Cache-Control",

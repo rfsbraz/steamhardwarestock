@@ -1,7 +1,6 @@
 'use strict';
 
 const STEAM_ORIGIN = 'https://store.steampowered.com';
-const STEAM_HARDWARE_API = 'https://api.steampowered.com/IStoreBrowseService/GetHardwareItems/v1/';
 const KOMODO_ORIGIN = 'https://komodostation.com';
 
 const PRODUCTS = {
@@ -17,7 +16,7 @@ const PRODUCTS = {
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/6163a5d5ee139c8c07485f6e72fba875.avif',
     steamPath: '/steamdeck/',
     komodoPath: '/product/steam-deck_jpy/',
-    packageIds: [946113, 946114]
+    packageIds: [946113, 946114, 595604]
   },
   'steam-dock': {
     name: 'Steam Deck Dock',
@@ -25,17 +24,23 @@ const PRODUCTS = {
     steamPath: '/steamdeckdock',
     packageIds: [761892]
   },
+  'steam-deck-refurbished': {
+    name: 'Steam Deck (Refurbished)',
+    icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/6163a5d5ee139c8c07485f6e72fba875.avif',
+    steamPath: '/sale/steamdeckrefurbished',
+    packageIds: [903905, 903906, 903907, 1202542, 1202547]
+  },
   'steam-frame': {
     name: 'Steam Frame',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/82a194cce9b0912b2501236f4f4ef757.avif',
     steamPath: '/hardware/steamframe/',
-    packageIds: []
+    packageIds: [1629484, 1629486]
   },
   'steam-machine': {
     name: 'Steam Machine',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/d3888f2e560b3a837f6f0a25345b03b6.avif',
     steamPath: '/hardware/steammachine/',
-    packageIds: []
+    packageIds: [1629447, 1629446, 1629458, 1629460]
   }
 };
 
@@ -127,92 +132,6 @@ function isCurrentlyInStock(entry) {
   return inTs > outTs;
 }
 
-function canRecheck(entry) {
-  const product = PRODUCTS[entry.productId];
-  if (!product) return false;
-  if (entry.source === 'komodo') return Boolean(product.komodoPath);
-  return Array.isArray(product.packageIds) && product.packageIds.length > 0;
-}
-
-function entryKey(entry) {
-  return entry.source === 'komodo'
-    ? `komodo:${entry.productId}:${entry.region}`
-    : `${entry.productId}:${entry.region}`;
-}
-
-async function performRecheck(entry) {
-  const product = PRODUCTS[entry.productId];
-  if (!product) throw new Error('Unknown product');
-
-  if (entry.source === 'komodo') {
-    if (!product.komodoPath) throw new Error('No Komodo path');
-    const url = `${KOMODO_ORIGIN}${product.komodoPath}?cb=${Date.now()}`;
-    const res = await fetch(`/proxy?url=${encodeURIComponent(url)}&maxBytes=65536`);
-    if (!res.ok) throw new Error(`proxy ${res.status}`);
-    const html = await res.text();
-    return html.includes('在庫あり');
-  }
-
-  if (!product.packageIds?.length) throw new Error('No package IDs');
-  const input = {
-    packageid: product.packageIds,
-    context: { country_code: entry.region, language: 'english' }
-  };
-  const apiUrl = `${STEAM_HARDWARE_API}?input_json=${encodeURIComponent(JSON.stringify(input))}`;
-  const res = await fetch(`/proxy?url=${encodeURIComponent(apiUrl)}`);
-  if (!res.ok) throw new Error(`proxy ${res.status}`);
-  const payload = await res.json();
-  const details = payload?.response?.details || [];
-  return details.some((d) =>
-    d
-    && d.allow_purchase_in_country !== false
-    && !d.account_restricted_from_purchasing
-    && !d.requires_reservation
-    && !d.high_pending_orders
-    && d.inventory_available
-  );
-}
-
-async function recheckEntry(entry, button) {
-  const originalLabel = button.textContent;
-  button.disabled = true;
-  button.textContent = 'Checking...';
-  try {
-    const isAvailable = await performRecheck(entry);
-    const ts = new Date().toISOString();
-    const recordRes = await fetch('/api/record', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        key: entryKey(entry),
-        productId: entry.productId,
-        productName: entry.productName || PRODUCTS[entry.productId]?.name || entry.productId,
-        region: entry.region,
-        source: entry.source || 'steam',
-        available: isAvailable,
-        ts
-      })
-    });
-    if (!recordRes.ok) throw new Error(`record ${recordRes.status}`);
-    if (isAvailable) {
-      entry.lastInStock = ts;
-    } else {
-      entry.lastOutOfStock = ts;
-    }
-    if (!Array.isArray(entry.events)) entry.events = [];
-    entry.events.unshift({ ts, available: isAvailable });
-    renderCards();
-  } catch (error) {
-    button.disabled = false;
-    button.textContent = 'Retry';
-    button.title = `Recheck failed: ${error.message}`;
-    setTimeout(() => {
-      button.textContent = originalLabel;
-      button.removeAttribute('title');
-    }, 4000);
-  }
-}
-
 function storeUrl(entry) {
   const product = PRODUCTS[entry.productId];
   if (!product) return null;
@@ -234,6 +153,14 @@ function statusInfo(entry) {
       label: 'In stock',
       timelineLabel: 'In stock since',
       timelineTs: entry.lastInStock
+    };
+  }
+  if (entry.status && entry.status !== 'in_stock' && entry.status !== 'out_of_stock') {
+    return {
+      cssClass: entry.status,
+      label: window.SteamStockStatus.copyFor(entry.status).label,
+      timelineLabel: entry.lastInStock ? 'Last in stock' : 'Out of stock since',
+      timelineTs: entry.lastInStock || entry.lastOutOfStock
     };
   }
   if (entry.lastInStock) {
@@ -403,13 +330,8 @@ function renderCards() {
       <td class="col-events">${stockCount}</td>
       <td class="col-actions">
         ${link ? `<a href="${escapeAttribute(link)}" target="_blank" rel="noreferrer">${entry.source === 'komodo' ? 'Komodo' : 'Steam'} →</a>` : ''}
-        ${isCurrentlyInStock(entry) && canRecheck(entry) ? `<button type="button" class="btn-utility recheck-btn">Recheck</button>` : ''}
       </td>
     `;
-    const recheckBtn = tr.querySelector('.recheck-btn');
-    if (recheckBtn) {
-      recheckBtn.addEventListener('click', () => recheckEntry(entry, recheckBtn));
-    }
     tbody.append(tr);
   }
   table.append(tbody);
