@@ -1,10 +1,12 @@
 // Cloudflare Worker: runs the stock check on a cron and stores the results in
 // KV. The Pages project serves dist/ and reads the same KV namespace through
-// functions/. Bindings are in cloudflare/wrangler.toml. The GH_DISPATCH_TOKEN secret is set
-// with `wrangler secret put`; see docs/cloudflare.md.
+// functions/. Bindings are in cloudflare/wrangler.toml. The GH_DISPATCH_TOKEN, DISCORD_WEBHOOK_URL
+// and NTFY_TOPIC secrets are set with `wrangler secret put`; see docs/cloudflare.md.
 import { checkAll } from '../lib/steam.mjs';
 import { buildStatusDoc } from '../lib/status-doc.mjs';
 import { mergeEvent } from '../lib/history-merge.mjs';
+import { notifyChanges } from '../lib/notify.mjs';
+import { regionByCode } from '../lib/products.mjs';
 
 export const STATUS_KEY = 'status.json';
 export const HISTORY_KEY = 'stock-history.json';
@@ -23,6 +25,7 @@ export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), n
   const raw = await kv.get(HISTORY_KEY);
   const history = raw ? JSON.parse(raw) : {};
   let transitions = 0;
+  const changes = [];
   for (const { product, region, available, status } of results) {
     const changed = mergeEvent(history, {
       key: `${product.id}:${region}`,
@@ -34,14 +37,33 @@ export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), n
       status,
       ts
     });
-    if (changed) transitions++;
+    if (changed) {
+      transitions++;
+      // The first event for a key only seeds history. Notify real changes.
+      const previous = history[`${product.id}:${region}`].events[1];
+      if (previous) {
+        changes.push({
+          productName: product.name,
+          regionName: regionByCode(region)?.name || region,
+          url: `https://steamhardwarestock.com/${product.id}/${region.toLowerCase()}`,
+          status,
+          previous: previous.status || (previous.available ? 'in_stock' : 'out_of_stock')
+        });
+      }
+    }
   }
   if (transitions > 0) {
     await kv.put(HISTORY_KEY, JSON.stringify(history));
     await maybeDispatch(env, fetchImpl, now);
   }
+  let notified = false;
+  try {
+    notified = await notifyChanges(env, changes, { fetchImpl });
+  } catch (error) {
+    console.error('notify failed:', error?.name || 'Error');
+  }
   console.log(`cron: ${fetchCount} Steam requests, ${results.length} results, ${errors.length} errors, ${transitions} transitions`);
-  return { checked: results.length, errors: errors.length, transitions };
+  return { checked: results.length, errors: errors.length, transitions, notified };
 }
 
 // The landing pages are static, so a status change asks GitHub to run the
