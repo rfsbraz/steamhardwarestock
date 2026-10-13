@@ -1,7 +1,6 @@
 'use strict';
 
 const STEAM_ORIGIN = 'https://store.steampowered.com';
-const STEAM_HARDWARE_API = 'https://api.steampowered.com/IStoreBrowseService/GetHardwareItems/v1/';
 const DEFAULT_PRODUCTS = ['steam-controller'];
 const STORAGE_KEY = 'steam-hardware-stock-tracker-v3';
 const CHANGELOG_KEY = 'steam-hardware-changelog-v1';
@@ -223,7 +222,7 @@ const state = {
   checking: false,
   changeLog: [],
   history: new Map(),
-  pendingRecord: new Map()
+  statusRequest: null
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -762,7 +761,8 @@ async function checkNow({ manual }) {
     return;
   }
 
-  flushPendingRecords();
+  // One status.json read per check cycle, shared by every product and region.
+  state.statusRequest = fetchStatusDoc();
   state.checking = true;
   setMessage('Checking...');
   renderControls();
@@ -842,7 +842,7 @@ async function checkProductRegion(product, region) {
   }
 
   const packageIds = product.packages.map((p) => p.id);
-  const { apiUrl, details } = await fetchHardwareItems(region, packageIds);
+  const { generatedAt, details } = await statusDetails(region, product.id, packageIds);
   const packages = product.packages.map(({ id: packageId, label, priceUsd }) => {
     const detail = details.find((item) => Number(item.packageid) === packageId) || null;
     return { packageId, label, priceUsd, status: classifyHardwareDetails(detail), details: detail };
@@ -852,8 +852,7 @@ async function checkProductRegion(product, region) {
     product: publicProduct(product, region),
     region,
     pageUrl: productPageUrl(product, region),
-    apiUrl,
-    checkedAt: new Date().toISOString(),
+    checkedAt: generatedAt,
     packageCount: packageIds.length,
     packages,
     status: classifyProductPackages(packages)
@@ -944,86 +943,33 @@ function parseKomodoSingle(html) {
   };
 }
 
-async function fetchHardwareItems(region, packageIds) {
-  const input = {
-    packageid: packageIds,
-    context: {
-      country_code: region,
-      language: 'english'
-    }
-  };
+// The cron writes status.json every 10 minutes, and the CDN caches it for a
+// minute, so tabs no longer call Steam or the proxy themselves.
+async function fetchStatusDoc() {
+  const response = await fetch('/status.json');
+  if (!response.ok) {
+    throw new Error(`Stock status is not available right now (HTTP ${response.status}).`);
+  }
+  return response.json();
+}
 
-  const apiUrl = new URL(STEAM_HARDWARE_API);
-  apiUrl.searchParams.set('input_json', JSON.stringify(input));
-  const payload = await fetchSteamJson(apiUrl.toString());
-  const details = payload && payload.response && Array.isArray(payload.response.details)
-    ? payload.response.details
-    : [];
-
+async function statusDetails(region, productId, packageIds) {
+  const doc = await (state.statusRequest || (state.statusRequest = fetchStatusDoc()));
+  if (!Array.isArray(doc.regions) || !doc.regions.includes(region)) {
+    // The cron only checks regions where Steam sells Valve hardware.
+    return {
+      generatedAt: doc.generatedAt,
+      details: packageIds.map((packageid) => ({ packageid, allow_purchase_in_country: false }))
+    };
+  }
+  const cell = doc.products && doc.products[productId] && doc.products[productId][region];
+  if (!cell) {
+    throw new Error('The last stock check did not cover this product here. It should appear after the next check.');
+  }
   return {
-    apiUrl: apiUrl.toString(),
-    details
+    generatedAt: doc.generatedAt,
+    details: cell.packages.map((p) => p.details).filter(Boolean)
   };
-}
-
-async function fetchSteamJson(url) {
-  return fetchReadableSteamData(url, 'json');
-}
-
-async function fetchReadableSteamData(url, responseType, options = {}) {
-  const attempts = buildFetchAttempts(url, options);
-  let lastError = null;
-
-  for (const attempt of attempts) {
-    try {
-      const response = await fetch(attempt.url, {
-        cache: 'no-store'
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      if (attempt.requiresTrackerProxyHeader && response.headers.get('x-steam-tracker-proxy') !== '1') {
-        throw new Error('same-origin proxy unavailable');
-      }
-      return responseType === 'json' ? response.json() : response.text();
-    } catch (error) {
-      lastError = error;
-    }
-  }
-
-  const reason = lastError ? lastError.message : 'request failed';
-  throw new Error(`Browser could not read Steam data (${reason}). Steam does not allow direct browser reads from arbitrary sites, so this deployment needs a small allowlisted proxy.`);
-}
-
-function buildFetchAttempts(url, { maxBytes } = {}) {
-  const attempts = [];
-  const config = window.STEAM_TRACKER_CONFIG || {};
-  const configuredTemplate = typeof config.proxyTemplate === 'string' ? config.proxyTemplate.trim() : '';
-
-  if (configuredTemplate) {
-    attempts.push({
-      url: applyProxyTemplate(configuredTemplate, url)
-    });
-  }
-
-  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
-    const proxyBase = `/proxy?url=${encodeURIComponent(url)}`;
-    attempts.push({
-      url: maxBytes ? `${proxyBase}&maxBytes=${maxBytes}` : proxyBase,
-      requiresTrackerProxyHeader: true
-    });
-  }
-
-  attempts.push({ url });
-
-  return [...new Map(attempts.map((attempt) => [attempt.url, attempt])).values()];
-}
-
-function applyProxyTemplate(template, url) {
-  if (template.includes('{url}')) {
-    return template.replace('{url}', encodeURIComponent(url));
-  }
-  return `${template}${encodeURIComponent(url)}`;
 }
 
 async function requestNotifications() {
@@ -1071,8 +1017,6 @@ function maybeNotify(result, manual) {
 
   if (hadPriorReading && isAvailable !== wasAvailable) {
     logChange(result, isAvailable);
-  } else if (!hadPriorReading && !state.history.has(key)) {
-    recordInitialState(result, isAvailable);
   }
 
   if (!isAvailable || wasAvailable) {
@@ -1093,15 +1037,6 @@ function maybeNotify(result, manual) {
   ).catch((error) => setMessage(error.message));
 }
 
-function recordInitialState(result, isAvailable) {
-  const key = getResultKey(result);
-  if (isAvailable) {
-    state.pendingRecord.set(key, { result, ts: new Date().toISOString() });
-  } else {
-    postHistoryRecord(result, false);
-  }
-}
-
 function logChange(result, isAvailable) {
   state.changeLog.unshift({
     ts: new Date().toISOString(),
@@ -1114,14 +1049,6 @@ function logChange(result, isAvailable) {
     state.changeLog.length = CHANGELOG_MAX;
   }
   localStorage.setItem(CHANGELOG_KEY, JSON.stringify(state.changeLog));
-
-  const key = getResultKey(result);
-  if (!isAvailable) {
-    state.pendingRecord.delete(key);
-    postHistoryRecord(result, false);
-  } else {
-    state.pendingRecord.set(key, { result, ts: new Date().toISOString() });
-  }
 }
 
 async function loadHistory() {
@@ -1183,44 +1110,6 @@ function seedChangelogFromHistory() {
   try {
     localStorage.setItem(CHANGELOG_KEY, JSON.stringify(state.changeLog));
   } catch {}
-}
-
-function flushPendingRecords() {
-  for (const [key, pending] of state.pendingRecord) {
-    if (state.availability.get(key) === true) {
-      postHistoryRecord(pending.result, true, pending.ts);
-    }
-    state.pendingRecord.delete(key);
-  }
-}
-
-function postHistoryRecord(result, isAvailable, ts) {
-  const recordTs = ts || new Date().toISOString();
-  fetch('/api/record', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      key: getResultKey(result),
-      productId: result.product.id,
-      productName: result.product.name,
-      region: result.region,
-      source: result.source || 'steam',
-      available: isAvailable,
-      ts: recordTs
-    })
-  }).then(res => {
-    if (res.ok) {
-      const key = getResultKey(result);
-      const entry = state.history.get(key) || {};
-      if (isAvailable) {
-        entry.lastInStock = recordTs;
-      } else {
-        entry.lastOutOfStock = recordTs;
-      }
-      state.history.set(key, entry);
-      renderResults();
-    }
-  }).catch(() => {});
 }
 
 function formatStockHistory(key, isAvailable) {

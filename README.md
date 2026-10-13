@@ -25,14 +25,14 @@ Each product and country gets one of these statuses:
 
 The rules live in `public/stock-status.js`, which the browser and the server cron share.
 
-Checks official Steam product pages directly so you can watch for real stock instead of relying on scalpers or resale listings.
+A server check reads Steam's official hardware API every 10 minutes, and every open tab reads that one result, so you can watch for real stock instead of relying on scalpers or resale listings.
 
 ## Features
 
 - Check availability across multiple countries at once
 - Browser notifications and audio alert when something comes in stock
 - Watching state persists across page reloads
-- No account, no server, no data collected
+- No account, no data collected
 
 ## Running locally
 
