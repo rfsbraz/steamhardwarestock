@@ -8,11 +8,21 @@ import { VALVE_SELLS } from '../lib/products.mjs';
 
 function fakeKV() {
   const store = new Map();
+  const reads = [];
+  const writes = [];
   return {
     store,
-    async get(key) { return store.has(key) ? store.get(key) : null; },
-    async put(key, value) { store.set(key, value); }
+    reads,
+    writes,
+    async get(key) { reads.push(key); return store.has(key) ? store.get(key) : null; },
+    async put(key, value) { writes.push(key); store.set(key, value); }
   };
+}
+
+async function served(kv) {
+  const res = await statusGet({ env: { STOCK_KV: kv } });
+  assert.equal(res.status, 200);
+  return JSON.parse(await res.text());
 }
 
 function steamFetch(inStock) {
@@ -32,13 +42,16 @@ function steamFetch(inStock) {
   return { impl, calls };
 }
 
-test('cron run writes status.json and history to KV with one request per region', async () => {
+test('cron run stores the status and history in KV with one request per region', async () => {
   const env = { STOCK_KV: fakeKV() };
   const steam = steamFetch(true);
   const out = await runCheck(env, { fetchImpl: steam.impl, now: new Date('2026-10-13T12:00:00Z') });
   assert.equal(steam.calls.length, VALVE_SELLS.length);
-  const doc = JSON.parse(env.STOCK_KV.store.get('status.json'));
+  const doc = await served(env.STOCK_KV);
   assert.equal(doc.generatedAt, '2026-10-13T12:00:00.000Z');
+  assert.equal(doc.version, 1);
+  assert.deepEqual(doc.regions, VALVE_SELLS);
+  assert.ok(doc.products['steam-deck'].US.packages.length > 0);
   const history = JSON.parse(env.STOCK_KV.store.get('stock-history.json'));
   assert.ok(Object.keys(history).length > 0);
   assert.equal(out.transitions, Object.keys(history).length);
@@ -147,18 +160,112 @@ test('scheduled handler runs the check inside waitUntil', async () => {
   } finally {
     globalThis.fetch = original;
   }
-  assert.ok(env.STOCK_KV.store.has('status.json'));
+  assert.equal((await served(env.STOCK_KV)).version, 1);
 });
 
 test('Pages functions serve status.json and history from KV', async () => {
   const kv = fakeKV();
-  kv.store.set('status.json', '{"generatedAt":"x"}');
+  kv.store.set('status-body', '{"version":1,"products":{}}');
+  kv.store.set('status-meta', '{"generatedAt":"x"}');
   const res = await statusGet({ env: { STOCK_KV: kv } });
   assert.equal(res.status, 200);
   assert.match(res.headers.get('cache-control'), /s-maxage=60/);
-  assert.equal(await res.text(), '{"generatedAt":"x"}');
+  assert.deepEqual(JSON.parse(await res.text()), { generatedAt: 'x', version: 1, products: {} });
   const empty = await historyGet({ env: { STOCK_KV: fakeKV() } });
   assert.equal(await empty.text(), '{}');
   const missing = await statusGet({ env: { STOCK_KV: fakeKV() } });
   assert.equal(missing.status, 503);
+});
+
+test('a run with no change writes only the small meta key and skips history', async () => {
+  const env = { STOCK_KV: fakeKV() };
+  await runCheck(env, { fetchImpl: steamFetch(true).impl, now: new Date('2026-10-13T12:00:00Z') });
+  const body = env.STOCK_KV.store.get('status-body');
+  env.STOCK_KV.reads.length = 0;
+  env.STOCK_KV.writes.length = 0;
+  const out = await runCheck(env, { fetchImpl: steamFetch(true).impl, now: new Date('2026-10-13T12:10:00Z') });
+  assert.equal(out.transitions, 0);
+  assert.deepEqual(env.STOCK_KV.reads.sort(), ['status-meta', 'steam-raw'], 'only the small keys and the raw answers are read');
+  assert.deepEqual(env.STOCK_KV.writes, ['status-meta']);
+  assert.equal(env.STOCK_KV.store.get('status-body'), body);
+  assert.equal((await served(env.STOCK_KV)).generatedAt, '2026-10-13T12:10:00.000Z');
+});
+
+test('a status change rewrites the body and history', async () => {
+  const env = { STOCK_KV: fakeKV() };
+  await runCheck(env, { fetchImpl: steamFetch(true).impl });
+  env.STOCK_KV.writes.length = 0;
+  const out = await runCheck(env, { fetchImpl: steamFetch(false).impl });
+  assert.ok(out.transitions > 0);
+  assert.deepEqual([...env.STOCK_KV.writes].sort(), ['status-body', 'status-meta', 'steam-raw', 'stock-history.json']);
+  assert.equal((await served(env.STOCK_KV)).products['steam-deck'].US.status, 'out_of_stock');
+});
+
+test('the first run after the migration does the full check with legacy keys present', async () => {
+  const env = { STOCK_KV: fakeKV() };
+  env.STOCK_KV.store.set('status.json', '{"generatedAt":"old","version":1,"products":{}}');
+  env.STOCK_KV.store.set('stock-history.json', '{}');
+  assert.equal((await served(env.STOCK_KV)).generatedAt, 'old', 'Pages falls back to the legacy key');
+  const out = await runCheck(env, { fetchImpl: steamFetch(true).impl, now: new Date('2026-10-13T12:00:00Z') });
+  assert.ok(out.transitions > 0);
+  assert.ok(env.STOCK_KV.reads.includes('stock-history.json'));
+  assert.equal((await served(env.STOCK_KV)).generatedAt, '2026-10-13T12:00:00.000Z');
+});
+
+test('served status.json matches the document the checker builds', async () => {
+  const { buildStatusDoc } = await import('../lib/status-doc.mjs');
+  const { checkAll } = await import('../lib/steam.mjs');
+  const env = { STOCK_KV: fakeKV() };
+  const now = new Date('2026-10-13T12:00:00Z');
+  await runCheck(env, { fetchImpl: steamFetch(true).impl, now });
+  const { results } = await checkAll({ fetchImpl: steamFetch(true).impl });
+  assert.deepEqual(await served(env.STOCK_KV), buildStatusDoc(results, { generatedAt: now.toISOString(), intervalSeconds: 600 }));
+});
+
+test('identical Steam answers skip parsing and building the document', async () => {
+  const steam = await import('../lib/steam.mjs');
+  const env = { STOCK_KV: fakeKV() };
+  await runCheck(env, { fetchImpl: steamFetch(true).impl });
+  let parsed = 0;
+  const original = JSON.parse;
+  JSON.parse = (text, ...rest) => { if (String(text).startsWith('{"response"')) parsed++; return original(text, ...rest); };
+  try {
+    await runCheck(env, { fetchImpl: steamFetch(true).impl });
+  } finally {
+    JSON.parse = original;
+  }
+  assert.equal(parsed, 0, 'no Steam answer is parsed');
+  assert.equal(typeof steam.classifyAnswers, 'function');
+});
+
+test('a changed detail that keeps the status rewrites the body but not history', async () => {
+  const env = { STOCK_KV: fakeKV() };
+  const fetchWith = (days) => async (url) => {
+    const input = JSON.parse(new URL(url).searchParams.get('input_json'));
+    const details = input.packageid.map((packageid) => ({ packageid, inventory_available: true, allow_purchase_in_country: true, estimated_delivery_soonest_business_days: days }));
+    return new Response(JSON.stringify({ response: { details } }), { status: 200 });
+  };
+  await runCheck(env, { fetchImpl: fetchWith(2) });
+  const history = env.STOCK_KV.store.get('stock-history.json');
+  env.STOCK_KV.writes.length = 0;
+  const out = await runCheck(env, { fetchImpl: fetchWith(3) });
+  assert.equal(out.transitions, 0);
+  assert.ok(env.STOCK_KV.writes.includes('status-body'));
+  assert.ok(!env.STOCK_KV.writes.includes('stock-history.json'));
+  assert.equal(env.STOCK_KV.store.get('stock-history.json'), history);
+  assert.equal((await served(env.STOCK_KV)).products['steam-deck'].US.packages[0].details.estimated_delivery_soonest_business_days, 3);
+});
+
+test('a failed region never counts as unchanged', async () => {
+  const env = { STOCK_KV: fakeKV() };
+  await runCheck(env, { fetchImpl: steamFetch(true).impl });
+  const ok = steamFetch(true).impl;
+  const flaky = async (url) => (url.includes('%22US%22') ? new Response('', { status: 500 }) : ok(url));
+  env.STOCK_KV.writes.length = 0;
+  const out = await runCheck(env, { fetchImpl: flaky });
+  assert.equal(out.errors > 0, true);
+  assert.ok(!('US' in (await served(env.STOCK_KV)).products['steam-deck']), 'the failed region is left out, as before');
+  env.STOCK_KV.writes.length = 0;
+  await runCheck(env, { fetchImpl: ok });
+  assert.ok(env.STOCK_KV.writes.includes('status-body'), 'recovers on the next good run');
 });
