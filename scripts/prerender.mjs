@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { PRODUCTS, REGIONS } from '../lib/products.mjs';
-import { renderProductPage, renderRegionPage, renderHowItWorks } from '../lib/landing.mjs';
+import { renderProductPage, renderRegionPage, renderInfoPage, INFO_PAGES } from '../lib/landing.mjs';
 import { isIndexable, latestEvent } from '../lib/seo.mjs';
 import { buildSitemap } from '../lib/sitemap.mjs';
 import StockStatus from '../public/stock-status.js';
@@ -102,10 +102,13 @@ export async function prerender(dist, { status, history = {}, affiliate, prices 
   const sitemap = [
     { path: '/', lastmod: latestEvent(history, allKeys) },
     { path: '/history', lastmod: latestEvent(history, allKeys) },
-    { path: '/how-it-works' }
+    ...INFO_PAGES.map((p) => ({ path: p.path }))
   ];
-  await fs.mkdir(path.join(dist, 'how-it-works'), { recursive: true });
-  await fs.writeFile(path.join(dist, 'how-it-works', 'index.html'), renderHowItWorks());
+  for (const page of INFO_PAGES) {
+    const dir = path.join(dist, page.path.slice(1));
+    await fs.mkdir(dir, { recursive: true });
+    await fs.writeFile(path.join(dir, 'index.html'), renderInfoPage(page));
+  }
   let pages = 0;
   for (const product of PRODUCTS) {
     const dir = path.join(dist, product.id);
