@@ -10,7 +10,8 @@ Live at [steamhardwarestock.com](https://steamhardwarestock.com/)
 ## What it tracks
 
 - Steam Controller
-- Steam Deck
+- Steam Deck (OLED, and the LCD where Valve still sells it new)
+- Steam Deck (Valve Certified Refurbished)
 - Steam Deck Dock
 - Steam Frame
 - Steam Machine

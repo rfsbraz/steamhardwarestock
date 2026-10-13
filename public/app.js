@@ -45,7 +45,8 @@ const PRODUCTS = [
     paths: ['/steamdeck/'],
     packages: [
       { id: 946113, label: '512GB OLED', priceUsd: 789 },
-      { id: 946114, label: '1TB OLED', priceUsd: 949 }
+      { id: 946114, label: '1TB OLED', priceUsd: 949 },
+      { id: 595604, label: '256GB LCD', priceUsd: null }
     ]
   },
   {
@@ -54,6 +55,19 @@ const PRODUCTS = [
     icon: 'https://clan.fastly.steamstatic.com/images/39049601/c871cb610cd4de7f2cd695c04613ec2f11a16f22.png',
     paths: ['/steamdeckdock'],
     packages: [{ id: 761892, label: null, priceUsd: 79 }]
+  },
+  {
+    id: 'steam-deck-refurbished',
+    name: 'Steam Deck (Refurbished)',
+    icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/6163a5d5ee139c8c07485f6e72fba875.avif',
+    paths: ['/sale/steamdeckrefurbished'],
+    packages: [
+      { id: 903905, label: '64GB LCD', priceUsd: 279 },
+      { id: 903906, label: '256GB LCD', priceUsd: 319 },
+      { id: 903907, label: '512GB LCD', priceUsd: 359 },
+      { id: 1202542, label: '512GB OLED', priceUsd: 629 },
+      { id: 1202547, label: '1TB OLED', priceUsd: 759 }
+    ]
   },
   {
     id: 'steam-frame',

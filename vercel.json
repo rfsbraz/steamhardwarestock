@@ -21,11 +21,11 @@
       "destination": "/api/proxy"
     },
     {
-      "source": "/:product(steam-controller|steam-deck|steam-dock|steam-frame|steam-machine)",
+      "source": "/:product(steam-controller|steam-deck|steam-deck-refurbished|steam-dock|steam-frame|steam-machine)",
       "destination": "/:product/index.html"
     },
     {
-      "source": "/:product(steam-controller|steam-deck|steam-dock|steam-frame|steam-machine)/:region([a-z]{2})",
+      "source": "/:product(steam-controller|steam-deck|steam-deck-refurbished|steam-dock|steam-frame|steam-machine)/:region([a-z]{2})",
       "destination": "/:product/:region/index.html"
     }
   ],

@@ -16,13 +16,19 @@ const PRODUCTS = {
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/6163a5d5ee139c8c07485f6e72fba875.avif',
     steamPath: '/steamdeck/',
     komodoPath: '/product/steam-deck_jpy/',
-    packageIds: [946113, 946114]
+    packageIds: [946113, 946114, 595604]
   },
   'steam-dock': {
     name: 'Steam Deck Dock',
     icon: 'https://clan.fastly.steamstatic.com/images/39049601/c871cb610cd4de7f2cd695c04613ec2f11a16f22.png',
     steamPath: '/steamdeckdock',
     packageIds: [761892]
+  },
+  'steam-deck-refurbished': {
+    name: 'Steam Deck (Refurbished)',
+    icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/6163a5d5ee139c8c07485f6e72fba875.avif',
+    steamPath: '/sale/steamdeckrefurbished',
+    packageIds: [903905, 903906, 903907, 1202542, 1202547]
   },
   'steam-frame': {
     name: 'Steam Frame',
