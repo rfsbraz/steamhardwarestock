@@ -1063,3 +1063,49 @@ h1 .history-link {
   opacity: 0.75;
   font-size: 0.78rem;
 }
+
+/* Consent banner: fixed, so showing it never moves the page. */
+.consent-banner {
+  position: fixed;
+  inset: auto 12px 12px 12px;
+  z-index: 1000;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 14px 16px;
+  border: 1px solid var(--line, rgba(127, 127, 127, 0.35));
+  border-radius: 10px;
+  background: var(--surface, #fff);
+  color: inherit;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+}
+.consent-banner[hidden] {
+  display: none;
+}
+.consent-title {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+.consent-text {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+}
+.consent-actions {
+  display: flex;
+  gap: 8px;
+}
+.consent-button {
+  flex: 1;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.consent-button:focus-visible {
+  outline: 3px solid #4c8bf5;
+  outline-offset: 2px;
+}

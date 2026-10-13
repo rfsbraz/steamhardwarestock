@@ -33,7 +33,7 @@ A server check reads Steam's official hardware API every 10 minutes, and every o
 - Check availability across multiple countries at once
 - Browser notifications and audio alert when something comes in stock
 - Watching state persists across page reloads
-- No account, no data collected
+- No account needed
 
 ## Running locally
 
@@ -65,7 +65,9 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CON
 
 ## Privacy
 
-Preferences are stored in browser `localStorage` only. No user accounts, no database, no tracking beyond standard hosting logs.
+GA uses Google Consent Mode v2, with a consent banner for the EEA, the UK and Switzerland. See [docs/privacy.md](docs/privacy.md).
+
+Preferences are stored in browser `localStorage` only. No user accounts. Analytics: Google Analytics (with consent where required), plus cookieless Vercel and Cloudflare Web Analytics.
 
 ## Disclaimer
 
