@@ -3,8 +3,8 @@ name: CI
 on:
   push:
     branches: [main]
+  # Every PR, so stacked PRs that target another PR branch also get checked.
   pull_request:
-    branches: [main]
 
 jobs:
   check:
@@ -21,6 +21,9 @@ jobs:
 
       - name: Check syntax
         run: npm run check
+
+      - name: Unit tests
+        run: npm test
 
       - name: Build static site
         run: npm run build
