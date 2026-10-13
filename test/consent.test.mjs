@@ -127,7 +127,7 @@ for (const cf of ['', '1']) {
     const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-consent-'));
     execFileSync(process.execPath, ['scripts/build.js'], {
       cwd: root,
-      env: { ...process.env, PRERENDER_OFFLINE: '1', BLOB_READ_WRITE_TOKEN: '', PRERENDER_SOURCE_URL: '', BUILD_DIST: dist, CF_PAGES: cf },
+      env: { ...process.env, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', BUILD_DIST: dist, CF_PAGES: cf },
       stdio: 'pipe'
     });
     const files = htmlFiles(dist);

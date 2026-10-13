@@ -4,7 +4,7 @@ Accessory links show under each product's stock status, in the live tracker and 
 
 ## Config
 
-`affiliate.config.json` is committed with empty placeholders. Set the real values as build env vars, so nothing has to be committed. On Vercel, use project env vars. On Cloudflare Pages, which deploys through `.github/workflows/pages-deploy.yml`, use GitHub repository variables with the same names:
+`affiliate.config.json` is committed with empty placeholders. Set the real values as build env vars, so nothing has to be committed. On Cloudflare Pages, which deploys through `.github/workflows/pages-deploy.yml`, use GitHub repository variables with the same names:
 
 | Env var | Meaning |
 | --- | --- |

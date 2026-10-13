@@ -12,7 +12,7 @@ This is Consent Mode's advanced setup: with consent denied, GA sets no cookies a
 
 Switzerland is included because its data protection law (revDSG) covers the same tracking, and Google asks for consent there for ads. Iceland, Liechtenstein and Norway are in the EEA, so GDPR applies.
 
-Vercel Analytics and Cloudflare Web Analytics set no cookies and collect no personal data, so they are not gated.
+Cloudflare Web Analytics sets no cookies and collects no personal data, so it is not gated.
 
 ## The banner
 
@@ -27,7 +27,7 @@ Accept and Reject are the same size and style. "Privacy choices" in every footer
 
 A static page cannot read the visitor's country:
 
-- **`CF-IPCountry`** is a request header. Static files never see it, so it would need a Pages Function on every page view, or a `/cdn-cgi/trace` fetch. Both only work while the domain is served through Cloudflare, and the domain is still on Vercel today. The fetch would also show the banner late.
+- **`CF-IPCountry`** is a request header. Static files never see it, so it would need a Pages Function on every page view, or a `/cdn-cgi/trace` fetch. The fetch would also show the banner late.
 - **`navigator.language`** describes the visitor's language, not where they are. English speakers in the EU would miss the banner.
 - **The time zone** is available at once, needs no request, works on any host, and matches the country for almost everyone.
 

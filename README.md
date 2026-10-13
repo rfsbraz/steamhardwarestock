@@ -47,7 +47,7 @@ Then open `http://127.0.0.1:5177`.
 
 ## Hosting
 
-Production runs on Vercel (`vercel.json`). A Cloudflare Pages and Worker setup is ready but not deployed; see [docs/cloudflare.md](docs/cloudflare.md).
+Production runs on Cloudflare Pages, with a Worker for the stock check. See [docs/cloudflare.md](docs/cloudflare.md).
 
 ## SEO
 
@@ -67,7 +67,7 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CON
 
 GA uses Google Consent Mode v2, with a consent banner for the EEA, the UK and Switzerland. See [docs/privacy.md](docs/privacy.md).
 
-Preferences are stored in browser `localStorage` only. No user accounts. Analytics: Google Analytics (with consent where required), plus cookieless Vercel and Cloudflare Web Analytics.
+Preferences are stored in browser `localStorage` only. No user accounts. Analytics: Google Analytics (with consent where required), plus cookieless Cloudflare Web Analytics.
 
 ## Disclaimer
 

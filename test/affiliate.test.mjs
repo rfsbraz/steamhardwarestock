@@ -119,7 +119,7 @@ function build(extraEnv) {
   const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-dist-'));
   execFileSync(process.execPath, ['scripts/build.js'], {
     cwd: root,
-    env: { ...process.env, PRERENDER_OFFLINE: '1', BLOB_READ_WRITE_TOKEN: '', PRERENDER_SOURCE_URL: '', CF_PAGES: '', AFFILIATE_JSAUX_REF: '', AFFILIATE_AMAZON_TAG: '', AFFILIATE_AMAZON_ENABLED: '', BUILD_DIST: dist, ...extraEnv },
+    env: { ...process.env, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: '', AFFILIATE_JSAUX_REF: '', AFFILIATE_AMAZON_TAG: '', AFFILIATE_AMAZON_ENABLED: '', BUILD_DIST: dist, ...extraEnv },
     stdio: 'pipe'
   });
   return { dist, read: (rel) => readFileSync(path.join(dist, rel), 'utf8'), files: htmlFiles(dist) };

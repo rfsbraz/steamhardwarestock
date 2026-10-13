@@ -55,7 +55,7 @@ function build(cf) {
   writeFileSync(fixturePath, JSON.stringify(fixture()));
   execFileSync(process.execPath, ['scripts/build.js'], {
     cwd: root,
-    env: { ...process.env, BUILD_DIST: dist, PRERENDER_FIXTURE: fixturePath, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', BLOB_READ_WRITE_TOKEN: '', CF_PAGES: cf },
+    env: { ...process.env, BUILD_DIST: dist, PRERENDER_FIXTURE: fixturePath, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: cf },
     stdio: 'pipe'
   });
   const pages = htmlFiles(dist).map((file) => {

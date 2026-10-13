@@ -17,11 +17,11 @@ function htmlFiles(dir) {
   });
 }
 
-test('every built HTML page carries the GA tag, Vercel Analytics and the Cloudflare beacon', () => {
+test('every built HTML page carries the GA tag and the Cloudflare beacon', () => {
   const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-dist-'));
   execFileSync(process.execPath, ['scripts/build.js'], {
     cwd: root,
-    env: { ...process.env, PRERENDER_OFFLINE: '1', BLOB_READ_WRITE_TOKEN: '', PRERENDER_SOURCE_URL: '', BUILD_DIST: dist },
+    env: { ...process.env, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', BUILD_DIST: dist },
     stdio: 'pipe'
   });
   const files = htmlFiles(dist);
@@ -31,7 +31,7 @@ test('every built HTML page carries the GA tag, Vercel Analytics and the Cloudfl
     const rel = path.relative(root, file);
     assert.ok(html.includes('googletagmanager.com/gtag/js?id=G-D4LRTXD5LR'), `${rel} is missing the GA loader`);
     assert.ok(html.includes("gtag('config', 'G-D4LRTXD5LR')"), `${rel} is missing the GA config`);
-    assert.ok(html.includes('/_vercel/insights/script.js'), `${rel} is missing Vercel Analytics`);
+    assert.ok(!html.includes('_vercel'), `${rel} loads a /_vercel script`);
     assert.ok(
       html.includes(`<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"9f338d544ab84bbc920053a6f6cf222e"}'></script>`),
       `${rel} is missing the Cloudflare Web Analytics beacon`

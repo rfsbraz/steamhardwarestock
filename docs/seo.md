@@ -8,13 +8,7 @@ The canonical origin is the apex, `https://steamhardwarestock.com` (`lib/site.mj
 
 Pages `_redirects` matches paths only, not hostnames, so it cannot send `www` to the apex. The redirect has to be set up on the platform that serves the domain.
 
-**Today the domain is still on Vercel DNS, and Vercel redirects the apex to `www` with a 307.** That is the opposite of the canonical tags, and it explains why Search Console lists www and apex URLs separately. Fix it in Vercel first:
-
-1. Vercel, project steamhardwarestock, Settings, Domains.
-2. Edit `steamhardwarestock.com` and remove its redirect, so it serves the project directly.
-3. Edit `www.steamhardwarestock.com` and set it to redirect to `steamhardwarestock.com` with **308 Permanent**.
-
-After DNS moves to Cloudflare, attach both hostnames to the Pages project, then add a Single Redirect rule on the zone:
+The domain is on Cloudflare. Attach both hostnames to the Pages project, then add a Single Redirect rule on the zone:
 
 - Dashboard: Rules, Redirect Rules, Create rule.
   - When: `(http.host eq "www.steamhardwarestock.com")`
