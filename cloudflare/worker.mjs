@@ -13,11 +13,11 @@ const INTERVAL_SECONDS = 600;
 const DISPATCH_MIN_MS = 10 * 60 * 1000;
 const DISPATCH_URL = 'https://api.github.com/repos/rfsbraz/steamhardwarestock/actions/workflows/pages-deploy.yml/dispatches';
 
-export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), now = new Date() } = {}) {
+export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), now = new Date(), regions } = {}) {
   const kv = env.STOCK_KV;
-  const { results, errors, fetchCount } = await checkAll({ fetchImpl });
+  const { results, errors, fetchCount } = await checkAll({ fetchImpl, ...(regions ? { regions } : {}) });
   const ts = now.toISOString();
-  await kv.put(STATUS_KEY, JSON.stringify(buildStatusDoc(results, { generatedAt: ts, intervalSeconds: INTERVAL_SECONDS })));
+  await kv.put(STATUS_KEY, JSON.stringify(buildStatusDoc(results, { generatedAt: ts, intervalSeconds: INTERVAL_SECONDS, ...(regions ? { regions } : {}) })));
 
   // KV has no compare-and-swap. Only this cron writes history, so last write wins.
   const raw = await kv.get(HISTORY_KEY);

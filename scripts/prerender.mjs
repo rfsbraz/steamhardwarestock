@@ -4,6 +4,7 @@ import { PRODUCTS, REGIONS } from '../lib/products.mjs';
 import { renderProductPage, renderRegionPage } from '../lib/landing.mjs';
 import { isIndexable, latestEvent } from '../lib/seo.mjs';
 import { buildSitemap } from '../lib/sitemap.mjs';
+import { renderStatusPage, STATUS_PAGE_PRODUCTS, latestUpdate } from '../lib/status-page.mjs';
 import StockStatus from '../public/stock-status.js';
 
 function escape(s) {
@@ -110,6 +111,15 @@ export async function prerender(dist, { status, history = {}, affiliate, prices 
     await fs.writeFile(path.join(dir, 'index.html'), renderProductPage(product, history, status, { affiliate, prices }));
     sitemap.push({ path: `/${product.id}`, lastmod: latestEvent(history, REGIONS.map((r) => `${product.id}:${r.code}`)) });
     pages++;
+    if (STATUS_PAGE_PRODUCTS.includes(product.id)) {
+      await fs.mkdir(path.join(dir, 'status'), { recursive: true });
+      await fs.writeFile(path.join(dir, 'status', 'index.html'), renderStatusPage(product, status));
+      const changed = latestEvent(history, REGIONS.map((r) => `${product.id}:${r.code}`));
+      const update = latestUpdate(product.id);
+      const updated = update ? `${update.date}T00:00:00.000Z` : null;
+      sitemap.push({ path: `/${product.id}/status`, lastmod: [changed, updated].filter(Boolean).sort().pop() || null });
+      pages++;
+    }
     for (const region of REGIONS) {
       const code = region.code.toLowerCase();
       const regionDir = path.join(dir, code);
