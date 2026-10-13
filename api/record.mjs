@@ -1,5 +1,9 @@
 import { head, put, BlobPreconditionFailedError, BlobNotFoundError, BlobServiceRateLimited } from '@vercel/blob';
 
+import StockStatus from '../public/stock-status.js';
+
+const { STATUSES } = StockStatus;
+
 process.env.VERCEL_BLOB_RETRIES = process.env.VERCEL_BLOB_RETRIES || '1';
 
 const CORS = { 'access-control-allow-origin': '*' };
@@ -34,7 +38,7 @@ export async function readHistoryFresh() {
 }
 
 export function mergeEvent(history, event) {
-  const { key, productId, productName, region, source, available, ts } = event;
+  const { key, productId, productName, region, source, available, status, ts } = event;
   const entry = history[key] || {
     productId,
     productName,
@@ -44,7 +48,10 @@ export function mergeEvent(history, event) {
   };
 
   const last = entry.events[0];
-  if (last && last.available === available) {
+  // Events written before statuses existed only carry `available`.
+  const lastStatus = last ? last.status || (last.available ? 'in_stock' : 'out_of_stock') : null;
+  const sameStatus = !status || lastStatus === status;
+  if (last && last.available === available && sameStatus) {
     return false;
   }
 
@@ -54,7 +61,8 @@ export function mergeEvent(history, event) {
     entry.lastOutOfStock = ts;
   }
 
-  entry.events.unshift({ ts, available });
+  entry.events.unshift(status ? { ts, available, status } : { ts, available });
+  if (status) entry.status = status;
   if (entry.events.length > MAX_EVENTS_PER_KEY) {
     entry.events.length = MAX_EVENTS_PER_KEY;
   }
@@ -103,7 +111,10 @@ export default {
       return new Response('invalid json', { status: 400, headers: CORS });
     }
 
-    const { key, productId, region, available, ts } = event;
+    const { key, productId, region, available, status, ts } = event;
+    if (status !== undefined && !STATUSES.includes(status)) {
+      return new Response('invalid status', { status: 400, headers: CORS });
+    }
     if (!key || !productId || !region || typeof available !== 'boolean' || !ts) {
       return new Response('missing fields', { status: 400, headers: CORS });
     }

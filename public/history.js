@@ -29,13 +29,13 @@ const PRODUCTS = {
     name: 'Steam Frame',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/82a194cce9b0912b2501236f4f4ef757.avif',
     steamPath: '/hardware/steamframe/',
-    packageIds: []
+    packageIds: [1629484, 1629486]
   },
   'steam-machine': {
     name: 'Steam Machine',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/d3888f2e560b3a837f6f0a25345b03b6.avif',
     steamPath: '/hardware/steammachine/',
-    packageIds: []
+    packageIds: [1629447, 1629446, 1629458, 1629460]
   }
 };
 
@@ -150,7 +150,8 @@ async function performRecheck(entry) {
     const res = await fetch(`/proxy?url=${encodeURIComponent(url)}&maxBytes=65536`);
     if (!res.ok) throw new Error(`proxy ${res.status}`);
     const html = await res.text();
-    return html.includes('在庫あり');
+    const inStock = html.includes('在庫あり');
+    return { available: inStock, status: inStock ? 'in_stock' : 'out_of_stock' };
   }
 
   if (!product.packageIds?.length) throw new Error('No package IDs');
@@ -163,14 +164,10 @@ async function performRecheck(entry) {
   if (!res.ok) throw new Error(`proxy ${res.status}`);
   const payload = await res.json();
   const details = payload?.response?.details || [];
-  return details.some((d) =>
-    d
-    && d.allow_purchase_in_country !== false
-    && !d.account_restricted_from_purchasing
-    && !d.requires_reservation
-    && !d.high_pending_orders
-    && d.inventory_available
-  );
+  const S = window.SteamStockStatus;
+  const best = S.combineStatuses(product.packageIds.map((id) =>
+    S.classifyDetails(details.find((d) => Number(d && d.packageid) === id))));
+  return { available: best.status === 'in_stock', status: best.status };
 }
 
 async function recheckEntry(entry, button) {
@@ -178,7 +175,7 @@ async function recheckEntry(entry, button) {
   button.disabled = true;
   button.textContent = 'Checking...';
   try {
-    const isAvailable = await performRecheck(entry);
+    const { available: isAvailable, status } = await performRecheck(entry);
     const ts = new Date().toISOString();
     const recordRes = await fetch('/api/record', {
       method: 'POST',
@@ -190,6 +187,7 @@ async function recheckEntry(entry, button) {
         region: entry.region,
         source: entry.source || 'steam',
         available: isAvailable,
+        status,
         ts
       })
     });
@@ -200,7 +198,8 @@ async function recheckEntry(entry, button) {
       entry.lastOutOfStock = ts;
     }
     if (!Array.isArray(entry.events)) entry.events = [];
-    entry.events.unshift({ ts, available: isAvailable });
+    entry.events.unshift({ ts, available: isAvailable, status });
+    entry.status = status;
     renderCards();
   } catch (error) {
     button.disabled = false;
@@ -234,6 +233,14 @@ function statusInfo(entry) {
       label: 'In stock',
       timelineLabel: 'In stock since',
       timelineTs: entry.lastInStock
+    };
+  }
+  if (entry.status && entry.status !== 'in_stock' && entry.status !== 'out_of_stock') {
+    return {
+      cssClass: entry.status,
+      label: window.SteamStockStatus.copyFor(entry.status).label,
+      timelineLabel: entry.lastInStock ? 'Last in stock' : 'Out of stock since',
+      timelineTs: entry.lastInStock || entry.lastOutOfStock
     };
   }
   if (entry.lastInStock) {

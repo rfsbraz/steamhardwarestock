@@ -8,7 +8,7 @@ const root = path.resolve(__dirname, '..');
 const source = path.join(root, 'public');
 const destination = path.join(root, 'dist');
 
-const HASHED_ASSETS = ['app.js', 'styles.css', 'history.js'];
+const HASHED_ASSETS = ['app.js', 'styles.css', 'history.js', 'stock-status.js'];
 // styles.css is also emitted unhashed so server-rendered landing pages can link it.
 const ALSO_EMIT_UNHASHED = new Set(['styles.css']);
 

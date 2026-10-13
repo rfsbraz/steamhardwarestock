@@ -1,5 +1,6 @@
 import { head, BlobNotFoundError } from '@vercel/blob';
 import { PRODUCTS, REGIONS, productById, regionByCode, isCheckable } from '../lib/products.mjs';
+import StockStatus from '../public/stock-status.js';
 
 const SITE = 'https://steamhardwarestock.com';
 const HISTORY_BLOB = 'stock-history.json';
@@ -46,6 +47,12 @@ function isInStock(entry) {
   const inTs = entry.lastInStock ? Date.parse(entry.lastInStock) || 0 : 0;
   const outTs = entry.lastOutOfStock ? Date.parse(entry.lastOutOfStock) || 0 : 0;
   return inTs > outTs;
+}
+
+// Status from the cron, with older entries falling back to in or out of stock.
+function entryStatus(entry) {
+  if (isInStock(entry)) return 'in_stock';
+  return entry?.status && entry.status !== 'in_stock' ? entry.status : 'out_of_stock';
 }
 
 function relativeTime(iso) {
@@ -133,7 +140,7 @@ function renderProductPage(product, history) {
     const entry = history[key];
     const inStock = checkable && isInStock(entry);
     const lastIn = entry?.lastInStock ? relativeTime(entry.lastInStock) : null;
-    return { region, entry, inStock, lastIn };
+    return { region, entry, inStock, lastIn, status: entryStatus(entry) };
   });
   const inStockCount = rows.filter((r) => r.inStock).length;
 
@@ -146,8 +153,8 @@ function renderProductPage(product, history) {
 
   const tableRows = rows.map((r) => {
     const url = `${SITE}/${product.id}/${r.region.code.toLowerCase()}`;
-    const statusLabel = !checkable ? 'Coming soon' : (r.inStock ? 'In stock' : 'Out of stock');
-    const statusClass = !checkable ? 'pending' : (r.inStock ? 'available' : 'out');
+    const statusLabel = !checkable ? 'Coming soon' : StockStatus.copyFor(r.status).label;
+    const statusClass = !checkable ? 'pending' : r.status;
     return `<tr>
       <td><a href="/${product.id}/${r.region.code.toLowerCase()}">${escape(r.region.code)} — ${escape(r.region.name)}</a></td>
       <td><span class="badge ${statusClass}">${statusLabel}</span></td>
@@ -218,8 +225,8 @@ function renderRegionPage(product, region, history) {
   const inStock = checkable && isInStock(entry);
   const lastIn = entry?.lastInStock || null;
 
-  const status = !checkable ? 'Coming soon' : (inStock ? 'In stock' : 'Out of stock');
-  const statusClass = !checkable ? 'pending' : (inStock ? 'available' : 'out');
+  const status = !checkable ? 'Coming soon' : StockStatus.copyFor(entryStatus(entry)).label;
+  const statusClass = !checkable ? 'pending' : entryStatus(entry);
 
   const title = !checkable
     ? `${product.name} availability in ${region.name} — Steam Hardware Stock Tracker`

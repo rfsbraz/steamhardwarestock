@@ -510,26 +510,31 @@ select {
   white-space: nowrap;
 }
 
-.badge.available {
+.badge.available,
+.badge.in_stock {
   background: var(--green-bg);
   color: var(--green);
 }
 
 .badge.pending,
-.badge.reservation {
+.badge.reservation,
+.badge.reservation_open,
+.badge.waitlist {
   background: var(--amber-bg);
   color: var(--amber);
 }
 
 .badge.error,
 .badge.restricted,
-.badge.unsupported {
+.badge.unsupported,
+.badge.unavailable_in_region {
   background: var(--red-bg);
   color: var(--red);
 }
 
 .badge.unpublished,
 .badge.out,
+.badge.out_of_stock,
 .badge.unknown {
   background: var(--gray-bg);
   color: var(--muted);
