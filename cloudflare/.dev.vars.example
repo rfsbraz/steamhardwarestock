@@ -1,0 +1,2 @@
+# Copy to cloudflare/.dev.vars for `wrangler dev`. Do not commit the real file.
+PAGES_DEPLOY_HOOK=https://api.cloudflare.com/client/v4/pages/webhooks/deploy_hooks/REPLACE_ME

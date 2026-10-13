@@ -63,3 +63,16 @@ test('without data the pages still build and say so', async () => {
   const html = readFileSync(path.join(dist, 'steam-deck', 'us', 'index.html'), 'utf8');
   assert.match(html, /Not checked yet/);
 });
+
+test('loadData reads status and history from PRERENDER_SOURCE_URL', async () => {
+  const { loadData } = await import('../scripts/prerender.mjs');
+  const seen = [];
+  const fetchImpl = async (url) => {
+    seen.push(url.pathname);
+    return new Response(url.pathname === '/status.json' ? '{"generatedAt":"g"}' : '{"k":{}}');
+  };
+  const out = await loadData({ env: { PRERENDER_SOURCE_URL: 'https://example.test', PRERENDER_OFFLINE: '1' }, fetchImpl });
+  assert.deepEqual(seen, ['/status.json', '/api/history']);
+  assert.equal(out.status.generatedAt, 'g');
+  assert.deepEqual(out.history, { k: {} });
+});

@@ -1,0 +1,15 @@
+# Cloudflare Worker: the 10 minute stock check. Deploy with
+#   npx wrangler deploy --config cloudflare/wrangler.toml
+# Secrets (never commit them):
+#   npx wrangler secret put PAGES_DEPLOY_HOOK --config cloudflare/wrangler.toml
+name = "steamhardwarestock-cron"
+main = "worker.mjs"
+compatibility_date = "2026-10-01"
+workers_dev = false
+
+[triggers]
+crons = ["*/10 * * * *"]
+
+[[kv_namespaces]]
+binding = "STOCK_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"

@@ -1,0 +1,9 @@
+# Cloudflare Pages project: serves dist/ and functions/.
+# Fill in the KV namespace id before the first deploy. See docs/cloudflare.md.
+name = "steamhardwarestock"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"
+
+[[kv_namespaces]]
+binding = "STOCK_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
