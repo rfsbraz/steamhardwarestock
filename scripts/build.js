@@ -9,7 +9,7 @@ const source = path.join(root, 'public');
 const destination = path.join(root, 'dist');
 
 const HASHED_ASSETS = ['app.js', 'styles.css', 'history.js', 'stock-status.js'];
-// styles.css is also emitted unhashed so server-rendered landing pages can link it.
+// styles.css is also emitted unhashed so the prerendered landing pages can link it.
 const ALSO_EMIT_UNHASHED = new Set(['styles.css']);
 
 const SITE = 'https://steamhardwarestock.com';
@@ -38,9 +38,10 @@ async function build() {
     }
   }
 
+  const { injectAnalytics } = await import('../lib/analytics.mjs');
   const HTML_FILES = ['index.html', 'history.html'];
   for (const htmlFile of HTML_FILES) {
-    let html = await fs.readFile(path.join(source, htmlFile), 'utf8');
+    let html = injectAnalytics(await fs.readFile(path.join(source, htmlFile), 'utf8'));
     for (const name of HASHED_ASSETS) {
       const ext = path.extname(name);
       const base = path.basename(name, ext);
@@ -61,6 +62,10 @@ async function build() {
       await fs.copyFile(src, dest);
     }
   }
+
+  const { loadData, prerender } = await import('./prerender.mjs');
+  const pages = await prerender(destination, await loadData());
+  console.log(`Prerendered ${pages} landing pages`);
 
   await writeSitemap();
 
