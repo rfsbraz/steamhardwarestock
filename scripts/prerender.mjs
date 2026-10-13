@@ -107,7 +107,7 @@ export async function prerender(dist, { status, history = {}, affiliate, prices 
   for (const page of INFO_PAGES) {
     const dir = path.join(dist, page.path.slice(1));
     await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(path.join(dir, 'index.html'), renderInfoPage(page));
+    await fs.writeFile(path.join(dir, 'index.html'), renderInfoPage(page, { affiliate }));
   }
   let pages = 0;
   for (const product of PRODUCTS) {

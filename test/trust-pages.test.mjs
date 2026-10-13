@@ -5,7 +5,7 @@ import { mkdtempSync, readFileSync, readdirSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { INFO_PAGES } from '../lib/landing.mjs';
+import { INFO_PAGES, renderInfoPage } from '../lib/landing.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PATHS = ['/how-it-works', '/about', '/methodology', '/disclosures'];
@@ -30,9 +30,8 @@ for (const cf of ['', '1']) {
       assert.match(sitemap, new RegExp(`<loc>https://steamhardwarestock.com${p}</loc>`));
     }
     const disc = readFileSync(path.join(dist, 'disclosures', 'index.html'), 'utf8');
-    assert.match(disc, /JSAUX/);
-    assert.match(disc, /commission/);
-    assert.match(disc, /Amazon/);
+    assert.match(disc, /no affiliate links at the moment/, 'default build has no affiliate IDs');
+    assert.ok(!disc.includes('Amazon Associate'));
     assert.match(disc, /Consent Mode/);
     assert.match(disc, /data-consent-settings/, 'links the consent controls');
     assert.match(disc, /not affiliated with Valve/i);
@@ -45,3 +44,13 @@ for (const cf of ['', '1']) {
     }
   });
 }
+
+test('with affiliate IDs set, Disclosures names the partners and the commission', () => {
+  const page = INFO_PAGES.find((p) => p.path === '/disclosures');
+  const on = renderInfoPage(page, { affiliate: { jsaux: { refId: 'x' }, amazon: { enabled: true, tag: 't-20' } } });
+  assert.match(on, /JSAUX/);
+  assert.match(on, /commission at no extra cost/);
+  assert.match(on, /As an Amazon Associate I earn from qualifying purchases/);
+  const jsauxOnly = renderInfoPage(page, { affiliate: { jsaux: { refId: 'x' }, amazon: { enabled: false, tag: '' } } });
+  assert.ok(!jsauxOnly.includes('Amazon'));
+});
