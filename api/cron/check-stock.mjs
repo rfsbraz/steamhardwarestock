@@ -6,7 +6,7 @@ const CORS = { 'access-control-allow-origin': '*' };
 
 function applyAll(history, results, ts) {
   let transitions = 0;
-  for (const { product, region, available } of results) {
+  for (const { product, region, available, status } of results) {
     const key = `${product.id}:${region}`;
     const changed = mergeEvent(history, {
       key,
@@ -15,6 +15,7 @@ function applyAll(history, results, ts) {
       region,
       source: 'steam',
       available,
+      status,
       ts
     });
     if (changed) transitions++;

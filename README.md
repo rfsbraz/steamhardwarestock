@@ -11,8 +11,19 @@ Live at [steamhardwarestock.com](https://steamhardwarestock.com/)
 
 - Steam Controller
 - Steam Deck
+- Steam Deck Dock
 - Steam Frame
 - Steam Machine
+
+Each product and country gets one of these statuses:
+
+- **In stock**: you can buy it now.
+- **Reservations open**: Steam takes a reservation and emails you when your order can be placed.
+- **Waitlist**: Steam has a queue. You join the waitlist on the Steam page.
+- **Out of stock**: no inventory right now.
+- **Not sold here**: Steam does not sell it in that country.
+
+The rules live in `public/stock-status.js`, which the browser and the server cron share.
 
 Checks official Steam product pages directly so you can watch for real stock instead of relying on scalpers or resale listings.
 
