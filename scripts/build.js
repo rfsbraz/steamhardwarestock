@@ -38,9 +38,10 @@ async function build() {
     }
   }
 
+  const { injectAnalytics } = await import('../lib/analytics.mjs');
   const HTML_FILES = ['index.html', 'history.html'];
   for (const htmlFile of HTML_FILES) {
-    let html = await fs.readFile(path.join(source, htmlFile), 'utf8');
+    let html = injectAnalytics(await fs.readFile(path.join(source, htmlFile), 'utf8'));
     for (const name of HASHED_ASSETS) {
       const ext = path.extname(name);
       const base = path.basename(name, ext);
