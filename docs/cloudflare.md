@@ -32,7 +32,13 @@ In the Pages project settings:
 
 - Build command `npm run build`, output `dist`.
 - Set `PRERENDER_SOURCE_URL` to the Pages URL (`https://steamhardwarestock.pages.dev`) so builds prerender from KV. The first build, before KV has data, falls back to one live check.
-- Create the deploy hook and turn on Web Analytics. The landing pages load the Vercel Analytics script, which only works on Vercel.
+- Create the deploy hook.
+
+## Analytics on Cloudflare
+
+- **GA** (`G-D4LRTXD5LR`) is added by the build from `lib/analytics.mjs`, so it is in every page on both hosts.
+- **Cloudflare Web Analytics** needs no script tag or token in the repo. Turn it on under the Pages project's Metrics tab, and Cloudflare adds its beacon on the next deploy.
+- **Vercel Analytics** only works on Vercel. On Pages, `/_vercel/insights/script.js` returns 404, which is harmless.
 
 ## Parallel run and cutover
 
