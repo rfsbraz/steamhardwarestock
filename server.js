@@ -56,22 +56,25 @@ async function fetchWithTimeout(url) {
 }
 
 function isAllowedProxyUrl(targetUrl) {
-  if (targetUrl.protocol !== 'https:') {
-    return false;
-  }
+  // Same rule as api/proxy.mjs: only Komodo Station goes through the proxy.
+  return targetUrl.protocol === 'https:'
+    && targetUrl.hostname === 'komodostation.com'
+    && targetUrl.pathname.startsWith('/product/');
+}
 
-  if (targetUrl.hostname === 'api.steampowered.com') {
-    return targetUrl.pathname === '/IStoreBrowseService/GetHardwareItems/v1/';
+// Local stand-in for the cron's status.json: runs one live check per request.
+// STATUS_FIXTURE=path serves a file instead, for testing alerts.
+async function handleStatus(res) {
+  if (process.env.STATUS_FIXTURE) {
+    const text = await fs.promises.readFile(process.env.STATUS_FIXTURE, 'utf8');
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    res.end(text);
+    return;
   }
-
-  if (targetUrl.hostname === 'store.steampowered.com') {
-    return targetUrl.pathname === '/steamdeck'
-      || targetUrl.pathname === '/steamdeck/'
-      || targetUrl.pathname.startsWith('/hardware/')
-      || targetUrl.pathname.startsWith('/sale/');
-  }
-
-  return false;
+  const { checkAll } = await import('./lib/steam.mjs');
+  const { buildStatusDoc } = await import('./lib/status-doc.mjs');
+  const { results } = await checkAll();
+  sendJson(res, 200, buildStatusDoc(results, { generatedAt: new Date().toISOString(), intervalSeconds: 600 }));
 }
 
 async function handleProxy(res, url) {
@@ -153,6 +156,16 @@ function createServer() {
     try {
       if (url.pathname === '/proxy') {
         await handleProxy(res, url);
+        return;
+      }
+
+      if (url.pathname === '/status.json') {
+        await handleStatus(res);
+        return;
+      }
+
+      if (url.pathname === '/api/history') {
+        sendJson(res, 200, {});
         return;
       }
 

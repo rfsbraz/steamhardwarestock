@@ -1,7 +1,6 @@
 'use strict';
 
 const STEAM_ORIGIN = 'https://store.steampowered.com';
-const STEAM_HARDWARE_API = 'https://api.steampowered.com/IStoreBrowseService/GetHardwareItems/v1/';
 const KOMODO_ORIGIN = 'https://komodostation.com';
 
 const PRODUCTS = {
@@ -125,91 +124,6 @@ function isCurrentlyInStock(entry) {
   const inTs = entry.lastInStock ? Date.parse(entry.lastInStock) || 0 : 0;
   const outTs = entry.lastOutOfStock ? Date.parse(entry.lastOutOfStock) || 0 : 0;
   return inTs > outTs;
-}
-
-function canRecheck(entry) {
-  const product = PRODUCTS[entry.productId];
-  if (!product) return false;
-  if (entry.source === 'komodo') return Boolean(product.komodoPath);
-  return Array.isArray(product.packageIds) && product.packageIds.length > 0;
-}
-
-function entryKey(entry) {
-  return entry.source === 'komodo'
-    ? `komodo:${entry.productId}:${entry.region}`
-    : `${entry.productId}:${entry.region}`;
-}
-
-async function performRecheck(entry) {
-  const product = PRODUCTS[entry.productId];
-  if (!product) throw new Error('Unknown product');
-
-  if (entry.source === 'komodo') {
-    if (!product.komodoPath) throw new Error('No Komodo path');
-    const url = `${KOMODO_ORIGIN}${product.komodoPath}?cb=${Date.now()}`;
-    const res = await fetch(`/proxy?url=${encodeURIComponent(url)}&maxBytes=65536`);
-    if (!res.ok) throw new Error(`proxy ${res.status}`);
-    const html = await res.text();
-    const inStock = html.includes('在庫あり');
-    return { available: inStock, status: inStock ? 'in_stock' : 'out_of_stock' };
-  }
-
-  if (!product.packageIds?.length) throw new Error('No package IDs');
-  const input = {
-    packageid: product.packageIds,
-    context: { country_code: entry.region, language: 'english' }
-  };
-  const apiUrl = `${STEAM_HARDWARE_API}?input_json=${encodeURIComponent(JSON.stringify(input))}`;
-  const res = await fetch(`/proxy?url=${encodeURIComponent(apiUrl)}`);
-  if (!res.ok) throw new Error(`proxy ${res.status}`);
-  const payload = await res.json();
-  const details = payload?.response?.details || [];
-  const S = window.SteamStockStatus;
-  const best = S.combineStatuses(product.packageIds.map((id) =>
-    S.classifyDetails(details.find((d) => Number(d && d.packageid) === id))));
-  return { available: best.status === 'in_stock', status: best.status };
-}
-
-async function recheckEntry(entry, button) {
-  const originalLabel = button.textContent;
-  button.disabled = true;
-  button.textContent = 'Checking...';
-  try {
-    const { available: isAvailable, status } = await performRecheck(entry);
-    const ts = new Date().toISOString();
-    const recordRes = await fetch('/api/record', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        key: entryKey(entry),
-        productId: entry.productId,
-        productName: entry.productName || PRODUCTS[entry.productId]?.name || entry.productId,
-        region: entry.region,
-        source: entry.source || 'steam',
-        available: isAvailable,
-        status,
-        ts
-      })
-    });
-    if (!recordRes.ok) throw new Error(`record ${recordRes.status}`);
-    if (isAvailable) {
-      entry.lastInStock = ts;
-    } else {
-      entry.lastOutOfStock = ts;
-    }
-    if (!Array.isArray(entry.events)) entry.events = [];
-    entry.events.unshift({ ts, available: isAvailable, status });
-    entry.status = status;
-    renderCards();
-  } catch (error) {
-    button.disabled = false;
-    button.textContent = 'Retry';
-    button.title = `Recheck failed: ${error.message}`;
-    setTimeout(() => {
-      button.textContent = originalLabel;
-      button.removeAttribute('title');
-    }, 4000);
-  }
 }
 
 function storeUrl(entry) {
@@ -410,13 +324,8 @@ function renderCards() {
       <td class="col-events">${stockCount}</td>
       <td class="col-actions">
         ${link ? `<a href="${escapeAttribute(link)}" target="_blank" rel="noreferrer">${entry.source === 'komodo' ? 'Komodo' : 'Steam'} →</a>` : ''}
-        ${isCurrentlyInStock(entry) && canRecheck(entry) ? `<button type="button" class="btn-utility recheck-btn">Recheck</button>` : ''}
       </td>
     `;
-    const recheckBtn = tr.querySelector('.recheck-btn');
-    if (recheckBtn) {
-      recheckBtn.addEventListener('click', () => recheckEntry(entry, recheckBtn));
-    }
     tbody.append(tr);
   }
   table.append(tbody);

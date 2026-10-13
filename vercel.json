@@ -13,12 +13,12 @@
       "destination": "/history.html"
     },
     {
-      "source": "/proxy",
-      "destination": "/api/proxy"
+      "source": "/status.json",
+      "destination": "/api/status"
     },
     {
-      "source": "/record",
-      "destination": "/api/record"
+      "source": "/proxy",
+      "destination": "/api/proxy"
     },
     {
       "source": "/:product(steam-controller|steam-deck|steam-dock|steam-frame|steam-machine)",

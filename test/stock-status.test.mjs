@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import StockStatus from '../public/stock-status.js';
-import { mergeEvent } from '../api/record.mjs';
+import { mergeEvent } from '../lib/history-store.mjs';
 
 const fx = JSON.parse(readFileSync(new URL('./fixtures/hardware-items.json', import.meta.url)));
 const { classifyDetails, combineStatuses, STATUSES } = StockStatus;

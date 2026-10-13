@@ -945,12 +945,6 @@ h1 .history-link {
   margin-right: 8px;
 }
 
-.recheck-btn {
-  min-height: 28px;
-  padding: 0 10px;
-  font-size: 0.78rem;
-}
-
 @media (max-width: 760px) {
   .history-table th,
   .history-table td {

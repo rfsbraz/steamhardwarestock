@@ -1,5 +1,8 @@
 import { BlobPreconditionFailedError } from '@vercel/blob';
-import { readHistoryFresh, mergeEvent, writeHistory } from '../record.mjs';
+import { readHistoryFresh, mergeEvent, writeHistory, writeStatus } from '../../lib/history-store.mjs';
+import { buildStatusDoc } from '../../lib/status-doc.mjs';
+
+const INTERVAL_SECONDS = 600;
 import { checkAll } from '../../lib/steam.mjs';
 
 const CORS = { 'access-control-allow-origin': '*' };
@@ -40,6 +43,14 @@ export default {
     const { results, errors, total, fetchCount } = await checkAll();
     console.log(`cron: ${fetchCount} Steam requests, ${results.length} results, ${errors.length} errors`);
     const ts = new Date().toISOString();
+
+    // Every run refreshes status.json, even when nothing changed, so the
+    // timestamp shows the check is alive. A failed region keeps no cell.
+    try {
+      await writeStatus(buildStatusDoc(results, { generatedAt: ts, intervalSeconds: INTERVAL_SECONDS }));
+    } catch (error) {
+      console.error('cron status write error:', error?.name, error?.message);
+    }
 
     let read;
     try {
