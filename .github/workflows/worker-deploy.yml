@@ -1,0 +1,41 @@
+name: Deploy Worker
+
+# Redeploys the stock check Worker when its code or shared modules change.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - cloudflare/**
+      - lib/**
+      - public/stock-status.js
+      - package-lock.json
+      - .github/workflows/worker-deploy.yml
+
+concurrency:
+  group: worker-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install
+        run: npm ci
+
+      - name: Deploy Worker
+        run: npx --yes wrangler@4 deploy --config cloudflare/wrangler.toml
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
