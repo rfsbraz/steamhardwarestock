@@ -1,0 +1,23 @@
+[
+  {
+    "product": "steam-frame",
+    "date": "2026-10-09",
+    "title": "Steam Frame updates: Reservation timing, software updates, and more",
+    "summary": "Reservation holders can now see their expected order window on the Steam Frame page while signed in: either by December 2026 or in 2027. The 2027 group gets more detailed timing by January. Purchase emails still have to be used within 72 hours. Each region has its own queue, and a region only moves to its waitlist once its reservation queue is done. New signups join the end of the waitlist.",
+    "source": "https://store.steampowered.com/news/group/45479024/view/675134162359812783"
+  },
+  {
+    "product": "steam-machine",
+    "date": "2026-07-28",
+    "title": "Steam Machine updates: Reservations, waitlists, and more",
+    "summary": "Purchase emails go out daily, in the order set by the randomization. Valve expects everyone in the reservation queue to get the option to buy by the end of 2026. Queues and waitlists are per product and per region, so some regions have already started inviting people from the waitlist. People coming off the waitlist first get a message saying they are in the reservation queue, then a purchase email later.",
+    "source": "https://store.steampowered.com/news/group/45479024/view/698770449667981836"
+  },
+  {
+    "product": "steam-controller",
+    "date": "2026-06-18",
+    "title": "Steam Controller: Reservations update",
+    "summary": "Demand was higher than expected, so the Steam Controller moved to a reservation queue. The Steam Controller page now shows an estimated order window: by September 2026, by December 2026, or in 2027. New reservations are still accepted and currently point to 2027. When your turn comes you get a purchase email and have 72 hours to order.",
+    "source": "https://store.steampowered.com/news/group/45479024/view/697641379212297809"
+  }
+]

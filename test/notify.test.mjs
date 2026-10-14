@@ -98,3 +98,20 @@ test('long bursts are cut with a count of the rest', () => {
   assert.match(msg, /and \d+ more/);
   assert.match(formatMessage(changes(1)), /Steam Deck in Country 0: Out of stock → In stock/);
 });
+
+test('unchanged runs post nothing and a later change still posts once', async () => {
+  const env = { STOCK_KV: fakeKV(), DISCORD_WEBHOOK_URL: HOOK, NTFY_TOPIC: TOPIC };
+  await runCheck(env, { fetchImpl: router(false).impl });
+  const same = router(false);
+  const skipped = await runCheck(env, { fetchImpl: same.impl });
+  assert.equal(skipped.unchanged, true, 'identical Steam answers take the skip path');
+  assert.equal(same.posts.length, 0);
+  const change = router(true);
+  const out = await runCheck(env, { fetchImpl: change.impl });
+  assert.ok(out.transitions > 0);
+  assert.equal(out.notified, true);
+  assert.equal(change.posts.filter((p) => p.url === HOOK).length, 1);
+  const again = router(true);
+  await runCheck(env, { fetchImpl: again.impl });
+  assert.equal(again.posts.length, 0, 'the same change is not posted twice');
+});

@@ -203,8 +203,12 @@ for (const cf of ['', '1']) {
         }
       }
     }
-    assert.ok(isIndexable(PRODUCTS.find((p) => p.id === 'steam-deck'), 'JP'), 'Komodo sells the Deck in Japan');
-    assert.ok(!isIndexable(PRODUCTS.find((p) => p.id === 'steam-frame'), 'JP'));
+    const byId = (id) => PRODUCTS.find((p) => p.id === id);
+    assert.ok(isIndexable(byId('steam-deck'), 'JP'), 'Komodo sells the Deck in Japan');
+    assert.ok(isIndexable(byId('steam-frame'), 'JP'), 'Valve lists Komodo for the Frame in Japan');
+    assert.ok(isIndexable(byId('steam-frame'), 'KR'), 'Frame in Korea has its own Valve note');
+    assert.ok(isIndexable(byId('steam-machine'), 'KR'), 'Machine in Korea has its own Valve note');
+    assert.ok(!isIndexable(byId('steam-frame'), 'BR'), 'generic not-sold pages stay noindex');
   });
 
   test(`sitemap is valid, apex only, and lastmod comes from the data${label}`, () => {
