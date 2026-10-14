@@ -54,27 +54,47 @@ With `--apply` it reads KV again right before the write and stops if the Worker 
 
 ## Worker CPU and KV keys
 
-The free plan allows 10 ms of CPU per cron run. Most runs find that Steam answers exactly as it did 10 minutes ago, so the Worker keeps that path short:
+The free plan allows 10 ms of CPU per cron run. Measured in workerd, most of a run's CPU is the Steam subrequests themselves, about 0.4 ms each. Parsing answers, building the document and the KV calls add little on a run where nothing changed. So the Worker keeps quiet runs to a few requests and never reads a large KV value on them.
 
 | Key | Written | Holds |
 |---|---|---|
-| `status-meta` | every run | `{"generatedAt": ...}`, a few bytes |
-| `steam-raw` | when an answer changes | the raw Steam answers from the last run, one line per region |
+| `status-meta` | every run | `generatedAt` plus the fingerprints below, under 1 KB |
 | `status-body` | when the document changes | the status document without `generatedAt` |
 | `stock-history.json` | when a status changes | the history, as before |
-| `status.json` | no longer written | the old single document, served only until the first new run |
+| `steam-raw`, `status.json` | no longer written | old keys, safe to delete by hand |
 
-Each run fetches every region as text and compares it with `steam-raw`. If every region answered with the same text, it only writes `status-meta` and stops. It does not parse the answers, build the document or read the history. When something changed it parses and builds the document. It then reads the history only if the document changed. `steam-raw` is saved last, so a run that fails halfway is redone in full. A failed region never counts as unchanged.
+`status-meta` holds:
 
-`functions/status.json.js` joins `status-meta` and `status-body` as text, without parsing the large body. The response has the same fields as before. Until the Worker has written the new keys once it serves the old `status.json` key.
+- `groups`: the regions whose Steam answers were byte-identical at the last full check, with the SHA-256 of that answer. Today that is about five groups (the US and Canada, the UK and Ireland, Australia, Spain, the other EU countries).
+- `cursor`: where the next quiet run continues its rotation.
+- `body`: the SHA-256 of `status-body`, which keeps only the fields the site uses.
+- `states`: the SHA-256 of every product and region status, which is all the history records.
+- `rules`: `STATUS_RULES_VERSION` from `lib/status-doc.mjs`. Bump it when the status, button or estimate rules change, so the first run after the deploy rebuilds the document even if Steam answers the same.
 
-To measure CPU locally, save real-sized data once and run the benchmark. `--capture` only reads: the Steam API and the public `/status.json` and `/api/history`.
+A quiet run fetches the first region of each group plus `ROTATE_PER_RUN` (3) other regions in turn, about 8 requests instead of 31. If every answer matches its group, it writes `status-meta` and stops. Nothing is decoded, parsed or built, and no large key is read.
+
+Anything else is a full check of all 31 regions: an answer that differs from its group, a failed request, missing or old fingerprints, or new rules. A full check builds the document and writes `status-body` only if its fingerprint changed. It reads and parses the history only if a status changed. `status-meta` is written last, so a run that fails halfway is redone in full.
+
+The trade-off: a change that shows up in only one region, and not in the first region of its group, is seen when the rotation reaches that region. With 31 regions and about 5 groups that is at most 9 runs, 90 minutes. A change in a group's first region, or one that hits a whole group, is seen on the next run. Raise `ROTATE_PER_RUN` in `cloudflare/worker.mjs` to shorten that, at about 0.4 ms per extra request.
+
+`functions/status.json.js` joins `status-meta` and `status-body` as text, without parsing the large body.
+
+### Measuring
+
+`--capture` only reads: the Steam API and the public `/status.json` and `/api/history`.
 
 ```bash
 node scripts/bench-worker.mjs --capture
-node scripts/bench-worker.mjs                  # cold run plus warm medians
-node scripts/bench-worker.mjs --cold-change    # cold run where a status changes
+node scripts/bench-worker.mjs                  # cold and warm, no change and with a change
 node scripts/bench-worker.mjs --worker /path/to/other/worker.mjs   # compare
 ```
 
-Node is not workerd, so the numbers are a guide. Production CPU time is in the Workers analytics (`workersInvocationsAdaptive`, `cpuTime`).
+`bench-worker.mjs` replays Steam from the capture in Node, so it shows our own JavaScript work but not the cost of the subrequests. `bench-workerd.mjs` runs the Worker in workerd with live Steam requests and a local KV. It never deploys and never touches production KV.
+
+```bash
+npm i --no-save miniflare@3
+node scripts/bench-workerd.mjs                 # quiet runs
+node scripts/bench-workerd.mjs --full          # full checks
+```
+
+Production CPU time is in the Workers analytics (`workersInvocationsAdaptive`, `cpuTime`). KV writes per hour are in `kvOperationsAdaptiveGroups`.
