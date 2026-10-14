@@ -1,10 +1,12 @@
 // Cloudflare Worker: runs the stock check on a cron and stores the results in
 // KV. The Pages project serves dist/ and reads the same KV namespace through
-// functions/. Bindings are in cloudflare/wrangler.toml. The GH_DISPATCH_TOKEN secret is set
-// with `wrangler secret put`; see docs/cloudflare.md.
+// functions/. Bindings are in cloudflare/wrangler.toml. The GH_DISPATCH_TOKEN, DISCORD_WEBHOOK_URL
+// and NTFY_TOPIC secrets are set with `wrangler secret put`; see docs/cloudflare.md.
 import { fetchAnswers, classifyAnswers, CHECKED_REGIONS } from '../lib/steam.mjs';
 import { buildStatusDoc, STATUS_RULES_VERSION } from '../lib/status-doc.mjs';
 import { mergeEvent } from '../lib/history-merge.mjs';
+import { notifyChanges } from '../lib/notify.mjs';
+import { regionByCode } from '../lib/products.mjs';
 
 function readMeta(raw) {
   try {
@@ -104,7 +106,7 @@ export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), n
       const { generatedAt: _old, ...kept } = prev;
       await writeMeta({ ...kept, cursor: plan.next });
       console.log(`cron: ${fetchCount} Steam requests, same answers as last run`);
-      return { checked: plan.regions.length, errors: 0, transitions: 0, unchanged: true, fetchCount };
+      return { checked: plan.regions.length, errors: 0, transitions: 0, notified: false, unchanged: true, fetchCount };
     }
   }
 
@@ -126,6 +128,9 @@ export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), n
   // KV has no compare-and-swap. Only this cron writes history, so last write
   // wins.
   let transitions = 0;
+  // Status changes for lib/notify.mjs. Runs where no status moved have
+  // nothing to post.
+  const changes = [];
   if (statesFp !== prev.states) {
     const historyText = await kv.get(HISTORY_KEY);
     const history = historyText ? JSON.parse(historyText) : {};
@@ -140,11 +145,32 @@ export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), n
         status,
         ts
       });
-      if (changed) transitions++;
+      if (changed) {
+        transitions++;
+        // The first event for a key only seeds history. Notify real changes.
+        const previous = history[`${product.id}:${region}`].events[1];
+        if (previous) {
+          changes.push({
+            productName: product.name,
+            regionName: regionByCode(region)?.name || region,
+            url: `https://steamhardwarestock.com/${product.id}/${region.toLowerCase()}`,
+            status,
+            previous: previous.status || (previous.available ? 'in_stock' : 'out_of_stock')
+          });
+        }
+      }
     }
     if (transitions > 0) {
       await kv.put(HISTORY_KEY, JSON.stringify(history));
       await maybeDispatch(env, fetchImpl, now);
+    }
+  }
+  let notified = false;
+  if (changes.length) {
+    try {
+      notified = await notifyChanges(env, changes, { fetchImpl });
+    } catch (error) {
+      console.error('notify failed:', error?.name || 'Error');
     }
   }
   // A run with a failed region stores no groups, so the next run is full too.
@@ -153,7 +179,7 @@ export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), n
   // The meta goes last, so a run that fails halfway is done in full again.
   await writeMeta({ body: bodyFp, states: statesFp, rules: STATUS_RULES_VERSION, groups, cursor: 0 });
   console.log(`cron: ${fetchCount} Steam requests, ${results.length} results, ${errors.length} errors, ${bodyChanged ? 'body rewritten' : 'same body'}, ${transitions} transitions`);
-  return { checked: results.length, errors: errors.length, transitions, fetchCount };
+  return { checked: results.length, errors: errors.length, transitions, notified, fetchCount };
 }
 
 // The landing pages are static, so a status change asks GitHub to run the
