@@ -57,11 +57,38 @@
     return best || make('out_of_stock', null, 'No package to check.');
   }
 
+  // The button Steam shows for a status. Derived from the same fields as the
+  // status, so the two can never disagree. See docs/sales-mode.md.
+  const BUTTONS = {
+    buy: { label: 'Buy' },
+    reserve: { label: 'Reserve' },
+    waitlist: { label: 'Join waitlist' },
+    unavailable: { label: 'Unavailable' }
+  };
+  const BUTTON_FOR_STATUS = {
+    in_stock: 'buy',
+    reservation_open: 'reserve',
+    waitlist: 'waitlist',
+    out_of_stock: 'unavailable',
+    unavailable_in_region: 'unavailable'
+  };
+  const BUTTON_ORDER = Object.keys(BUTTONS);
+
+  function buttonFor(details) {
+    return BUTTON_FOR_STATUS[classifyDetails(details).status];
+  }
+
+  function combineButtons(buttons) {
+    let best = 'unavailable';
+    for (const b of buttons) if (BUTTON_ORDER.indexOf(b) >= 0 && BUTTON_ORDER.indexOf(b) < BUTTON_ORDER.indexOf(best)) best = b;
+    return best;
+  }
+
   function copyFor(status) {
     return COPY[status] || COPY.out_of_stock;
   }
 
-  const api = { STATUSES, classifyDetails, combineStatuses, copyFor };
+  const api = { STATUSES, BUTTONS, classifyDetails, combineStatuses, copyFor, buttonFor, combineButtons };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.SteamStockStatus = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

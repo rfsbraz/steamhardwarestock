@@ -2,27 +2,71 @@
 // KV. The Pages project serves dist/ and reads the same KV namespace through
 // functions/. Bindings are in cloudflare/wrangler.toml. The GH_DISPATCH_TOKEN secret is set
 // with `wrangler secret put`; see docs/cloudflare.md.
-import { checkAll } from '../lib/steam.mjs';
+import { fetchAnswers, classifyAnswers } from '../lib/steam.mjs';
 import { buildStatusDoc } from '../lib/status-doc.mjs';
 import { mergeEvent } from '../lib/history-merge.mjs';
 
-export const STATUS_KEY = 'status.json';
+function readMeta(raw) {
+  try {
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+// The status document is split so a run with no change stays cheap.
+// STATUS_BODY_KEY holds the document without generatedAt and is only
+// rewritten when it changes. STATUS_META_KEY is small and written every run:
+// just the check time. functions/status.json.js joins them.
+// LEGACY_STATUS_KEY is the old single key, still read by Pages until the
+// Worker has written the new keys once.
+export const STATUS_BODY_KEY = 'status-body';
+export const STATUS_META_KEY = 'status-meta';
+export const LEGACY_STATUS_KEY = 'status.json';
 export const HISTORY_KEY = 'stock-history.json';
+// The raw Steam answers from the last run that changed anything. When every
+// region answers with the same text, nothing is parsed or rebuilt.
+export const STEAM_RAW_KEY = 'steam-raw';
 const DISPATCH_KEY = 'dispatch-last';
 const INTERVAL_SECONDS = 600;
 const DISPATCH_MIN_MS = 10 * 60 * 1000;
 const DISPATCH_URL = 'https://api.github.com/repos/rfsbraz/steamhardwarestock/actions/workflows/pages-deploy.yml/dispatches';
 
-export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), now = new Date() } = {}) {
+export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), now = new Date(), regions } = {}) {
   const kv = env.STOCK_KV;
-  const { results, errors, fetchCount } = await checkAll({ fetchImpl });
+  const fetched = await fetchAnswers({ fetchImpl, ...(regions ? { regions } : {}) });
+  const { fetchCount } = fetched;
   const ts = now.toISOString();
-  await kv.put(STATUS_KEY, JSON.stringify(buildStatusDoc(results, { generatedAt: ts, intervalSeconds: INTERVAL_SECONDS })));
+  const meta = JSON.stringify({ generatedAt: ts });
+  const raw = fetched.failures.length ? null : fetched.regions.map((r, i) => `${r}\t${fetched.answers[i]}`).join('\n');
+  const [previousRaw, previousMeta] = await Promise.all([kv.get(STEAM_RAW_KEY), kv.get(STATUS_META_KEY)]);
+  if (raw !== null && raw === previousRaw && readMeta(previousMeta)) {
+    await kv.put(STATUS_META_KEY, meta);
+    console.log(`cron: ${fetchCount} Steam requests, same answers as last run`);
+    return { checked: fetched.regions.length, errors: 0, transitions: 0, unchanged: true };
+  }
 
-  // KV has no compare-and-swap. Only this cron writes history, so last write wins.
-  const raw = await kv.get(HISTORY_KEY);
-  const history = raw ? JSON.parse(raw) : {};
+  const { results, errors } = classifyAnswers(fetched);
+  const { generatedAt: _, ...doc } = buildStatusDoc(results, { generatedAt: ts, intervalSeconds: INTERVAL_SECONDS, ...(regions ? { regions } : {}) });
+  const body = JSON.stringify(doc);
+  const previousBody = await kv.get(STATUS_BODY_KEY);
+  const bodyChanged = previousBody !== body;
+  if (bodyChanged) await kv.put(STATUS_BODY_KEY, body);
+  await kv.put(STATUS_META_KEY, meta);
+  // Same body means every status is the same as last run, so history cannot
+  // change. Skip reading and parsing it. KV has no compare-and-swap. Only this
+  // cron writes history, so last write wins.
   let transitions = 0;
+  // The raw answers are saved after everything else, so a run that fails
+  // halfway is done in full again next time.
+  const saveRaw = () => (raw !== previousRaw ? kv.put(STEAM_RAW_KEY, raw ?? '') : null);
+  if (!bodyChanged) {
+    await saveRaw();
+    console.log(`cron: ${fetchCount} Steam requests, ${results.length} results, ${errors.length} errors, no change`);
+    return { checked: results.length, errors: errors.length, transitions };
+  }
+  const historyText = await kv.get(HISTORY_KEY);
+  const history = historyText ? JSON.parse(historyText) : {};
   for (const { product, region, available, status } of results) {
     const changed = mergeEvent(history, {
       key: `${product.id}:${region}`,
@@ -40,6 +84,7 @@ export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), n
     await kv.put(HISTORY_KEY, JSON.stringify(history));
     await maybeDispatch(env, fetchImpl, now);
   }
+  await saveRaw();
   console.log(`cron: ${fetchCount} Steam requests, ${results.length} results, ${errors.length} errors, ${transitions} transitions`);
   return { checked: results.length, errors: errors.length, transitions };
 }
