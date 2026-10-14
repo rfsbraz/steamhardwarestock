@@ -7,6 +7,7 @@ The site runs on Cloudflare. Vercel hosting was removed in October 2026.
 - **Worker** (`cloudflare/worker.mjs`, `cloudflare/wrangler.toml`) runs the stock check every 10 minutes. It writes the status and `stock-history.json` to KV. See [Worker CPU and KV keys](#worker-cpu-and-kv-keys).
 - Both bind the KV namespace `STOCK_KV` (id `ef31e7789d0949b987f9814a86ed0fce`, set in both `wrangler.toml` files).
 - **Rebuilds:** the landing pages are static. When a status changes, the Worker sends a GitHub `workflow_dispatch` for `pages-deploy.yml` on `main`, at most once per 10 minutes (the last dispatch time is kept in KV). Without `GH_DISPATCH_TOKEN` it skips this quietly. A failed dispatch is logged and retried on the next change.
+- **Notifications** (`lib/notify.mjs`): when a status changes, the Worker posts one Discord message and one ntfy.sh message per run, listing every change from that run (cut at 2000 characters with a count of the rest). The first event for a product and country only seeds history and is not posted. Posts go out only from runs that write the history, after it is saved, so runs that skip on unchanged Steam answers or an unchanged document never post. Each channel is skipped quietly when its secret is missing. A failed post logs only the channel and HTTP status, never the URL or topic, and does not stop the run. To turn a channel off, `npx wrangler secret delete <NAME> --config cloudflare/wrangler.toml`.
 
 ## Deploys
 
@@ -24,6 +25,8 @@ The site runs on Cloudflare. Vercel hosting was removed in October 2026.
 | `CLOUDFLARE_API_TOKEN` | GitHub Actions secret | Workers Scripts:Edit, Workers KV Storage:Edit, Cloudflare Pages:Edit |
 | `CLOUDFLARE_ACCOUNT_ID` | GitHub Actions secret | |
 | `GH_DISPATCH_TOKEN` | Worker secret: `npx wrangler secret put GH_DISPATCH_TOKEN --config cloudflare/wrangler.toml` | Fine-grained GitHub token, this repo only, Actions: write |
+| `DISCORD_WEBHOOK_URL` | Worker secret: `npx wrangler secret put DISCORD_WEBHOOK_URL --config cloudflare/wrangler.toml` | Optional. Channel settings, Integrations, Webhooks, New Webhook, Copy Webhook URL |
+| `NTFY_TOPIC` | Worker secret: `npx wrangler secret put NTFY_TOPIC --config cloudflare/wrangler.toml` | Optional. A topic name on ntfy.sh. Anyone who knows it can subscribe, so pick one that is hard to guess, or a public name if the feed is meant to be public |
 
 Never commit them. For `wrangler dev`, copy `cloudflare/.dev.vars.example` to `cloudflare/.dev.vars`.
 
