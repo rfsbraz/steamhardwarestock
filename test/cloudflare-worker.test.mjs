@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import worker, { runCheck } from '../cloudflare/worker.mjs';
+import worker, { runCheck, quietPlan, ROTATE_PER_RUN } from '../cloudflare/worker.mjs';
 import { onRequestGet as statusGet } from '../functions/status.json.js';
 import { onRequestGet as historyGet } from '../functions/api/history.js';
 import { VALVE_SELLS } from '../lib/products.mjs';
@@ -185,7 +185,7 @@ test('a run with no change writes only the small meta key and skips history', as
   env.STOCK_KV.writes.length = 0;
   const out = await runCheck(env, { fetchImpl: steamFetch(true).impl, now: new Date('2026-10-13T12:10:00Z') });
   assert.equal(out.transitions, 0);
-  assert.deepEqual(env.STOCK_KV.reads.sort(), ['status-meta', 'steam-raw'], 'only the small keys and the raw answers are read');
+  assert.deepEqual(env.STOCK_KV.reads, ['status-meta'], 'only the small meta key is read');
   assert.deepEqual(env.STOCK_KV.writes, ['status-meta']);
   assert.equal(env.STOCK_KV.store.get('status-body'), body);
   assert.equal((await served(env.STOCK_KV)).generatedAt, '2026-10-13T12:10:00.000Z');
@@ -197,7 +197,7 @@ test('a status change rewrites the body and history', async () => {
   env.STOCK_KV.writes.length = 0;
   const out = await runCheck(env, { fetchImpl: steamFetch(false).impl });
   assert.ok(out.transitions > 0);
-  assert.deepEqual([...env.STOCK_KV.writes].sort(), ['status-body', 'status-meta', 'steam-raw', 'stock-history.json']);
+  assert.deepEqual([...env.STOCK_KV.writes].sort(), ['status-body', 'status-meta', 'stock-history.json']);
   assert.equal((await served(env.STOCK_KV)).products['steam-deck'].US.status, 'out_of_stock');
 });
 
@@ -268,4 +268,152 @@ test('a failed region never counts as unchanged', async () => {
   env.STOCK_KV.writes.length = 0;
   await runCheck(env, { fetchImpl: ok });
   assert.ok(env.STOCK_KV.writes.includes('status-body'), 'recovers on the next good run');
+});
+
+// Steam answers that differ in bytes but not in anything the site uses:
+// an extra field Steam adds per request and a different key order.
+function noisyFetch({ inStock = true, nonce = 0 } = {}) {
+  return async (url) => {
+    const input = JSON.parse(new URL(url).searchParams.get('input_json'));
+    const details = input.packageid.map((packageid) => (nonce % 2
+      ? { notificaton_token: `#t${nonce}`, high_pending_orders: false, requires_reservation: false, allow_purchase_in_country: true, inventory_available: inStock, packageid }
+      : { packageid, inventory_available: inStock, allow_purchase_in_country: true, requires_reservation: false, high_pending_orders: false, notificaton_token: `#t${nonce}` }));
+    return new Response(JSON.stringify({ response: { details } }), { status: 200 });
+  };
+}
+
+function countHistoryParses(fn) {
+  return async () => {
+    let n = 0;
+    const original = JSON.parse;
+    JSON.parse = (text, ...rest) => { if (typeof text === 'string' && text.startsWith('{"steam-')) n++; return original(text, ...rest); };
+    try { await fn(); } finally { JSON.parse = original; }
+    return n;
+  };
+}
+
+test('different bytes with the same fingerprint write no body and parse no history', async () => {
+  const env = { STOCK_KV: fakeKV() };
+  await runCheck(env, { fetchImpl: noisyFetch({ nonce: 0 }) });
+  const body = env.STOCK_KV.store.get('status-body');
+  for (let nonce = 1; nonce <= 3; nonce++) {
+    env.STOCK_KV.reads.length = 0;
+    env.STOCK_KV.writes.length = 0;
+    const parses = await countHistoryParses(() => runCheck(env, { fetchImpl: noisyFetch({ nonce }) }))();
+    assert.equal(parses, 0, 'history is not parsed');
+    assert.deepEqual(env.STOCK_KV.writes, ['status-meta'], 'only the meta key is written');
+    assert.deepEqual(env.STOCK_KV.reads, ['status-meta'], 'neither the body nor the history is read');
+  }
+  assert.equal(env.STOCK_KV.store.get('status-body'), body);
+});
+
+test('identical answers parse no history and read no large key', async () => {
+  const env = { STOCK_KV: fakeKV() };
+  await runCheck(env, { fetchImpl: steamFetch(true).impl });
+  env.STOCK_KV.reads.length = 0;
+  const parses = await countHistoryParses(() => runCheck(env, { fetchImpl: steamFetch(true).impl }))();
+  assert.equal(parses, 0);
+  assert.deepEqual(env.STOCK_KV.reads, ['status-meta']);
+});
+
+test('the meta key stays small and still serves generatedAt', async () => {
+  const env = { STOCK_KV: fakeKV() };
+  await runCheck(env, { fetchImpl: steamFetch(true).impl, now: new Date('2026-10-13T12:00:00Z') });
+  const meta = env.STOCK_KV.store.get('status-meta');
+  assert.ok(meta.length < 1024, `meta is ${meta.length} bytes`);
+  assert.equal(JSON.parse(meta).generatedAt, '2026-10-13T12:00:00.000Z');
+});
+
+test('new status rules rebuild the body even when Steam answers the same', async () => {
+  const env = { STOCK_KV: fakeKV() };
+  await runCheck(env, { fetchImpl: steamFetch(true).impl });
+  const meta = JSON.parse(env.STOCK_KV.store.get('status-meta'));
+  env.STOCK_KV.store.set('status-meta', JSON.stringify({ ...meta, rules: meta.rules - 1 }));
+  env.STOCK_KV.store.set('status-body', '{"version":1,"products":{}}');
+  env.STOCK_KV.writes.length = 0;
+  await runCheck(env, { fetchImpl: steamFetch(true).impl });
+  assert.ok(env.STOCK_KV.writes.includes('status-body'));
+  assert.ok((await served(env.STOCK_KV)).products['steam-deck'].US);
+});
+
+test('meta written by the previous Worker version leads to one full run', async () => {
+  const env = { STOCK_KV: fakeKV() };
+  env.STOCK_KV.store.set('status-meta', '{"generatedAt":"2026-10-14T08:30:16.189Z"}');
+  env.STOCK_KV.store.set('steam-raw', 'old');
+  env.STOCK_KV.store.set('stock-history.json', '{}');
+  await runCheck(env, { fetchImpl: steamFetch(true).impl });
+  assert.ok(env.STOCK_KV.writes.includes('status-body'));
+  env.STOCK_KV.writes.length = 0;
+  await runCheck(env, { fetchImpl: steamFetch(true).impl });
+  assert.deepEqual(env.STOCK_KV.writes, ['status-meta']);
+});
+
+// Answers that differ by region group, like production: one answer for the
+// US, one for the EU and so on.
+function groupedFetch(overrides = {}) {
+  const calls = [];
+  const impl = async (url) => {
+    const input = JSON.parse(new URL(url).searchParams.get('input_json'));
+    const cc = input.context.country_code;
+    calls.push(cc);
+    const group = ['US', 'CA'].includes(cc) ? 'na' : ['GB', 'IE'].includes(cc) ? 'uk' : cc === 'AU' ? 'au' : 'eu';
+    const inStock = overrides[cc] ?? true;
+    const details = input.packageid.map((packageid) => ({ packageid, inventory_available: inStock, allow_purchase_in_country: true, estimated_delivery_soonest_business_days: group.length }));
+    return new Response(JSON.stringify({ response: { details }, group }), { status: 200 });
+  };
+  return { impl, calls };
+}
+
+test('a quiet run fetches one region per answer group plus a few in rotation', async () => {
+  const env = { STOCK_KV: fakeKV() };
+  await runCheck(env, { fetchImpl: groupedFetch().impl });
+  const steam = groupedFetch();
+  env.STOCK_KV.writes.length = 0;
+  const out = await runCheck(env, { fetchImpl: steam.impl });
+  assert.equal(out.unchanged, true);
+  assert.equal(steam.calls.length, 4 + ROTATE_PER_RUN, 'four groups, plus the rotation');
+  assert.deepEqual(env.STOCK_KV.writes, ['status-meta']);
+});
+
+test('every region is still fetched within a bounded number of quiet runs', async () => {
+  const env = { STOCK_KV: fakeKV() };
+  await runCheck(env, { fetchImpl: groupedFetch().impl });
+  const seen = new Set();
+  const runs = Math.ceil(VALVE_SELLS.length / ROTATE_PER_RUN);
+  for (let i = 0; i < runs; i++) {
+    const steam = groupedFetch();
+    await runCheck(env, { fetchImpl: steam.impl });
+    steam.calls.forEach((c) => seen.add(c));
+  }
+  assert.deepEqual([...seen].sort(), [...VALVE_SELLS].sort());
+});
+
+test('a change in a region that is not a group leader is caught by the rotation', async () => {
+  const env = { STOCK_KV: fakeKV() };
+  await runCheck(env, { fetchImpl: groupedFetch().impl });
+  let caught = false;
+  for (let i = 0; i < Math.ceil(VALVE_SELLS.length / ROTATE_PER_RUN) && !caught; i++) {
+    const out = await runCheck(env, { fetchImpl: groupedFetch({ PT: false }).impl });
+    caught = out.transitions > 0;
+  }
+  assert.ok(caught, 'PT going out of stock was recorded');
+  assert.equal((await served(env.STOCK_KV)).products['steam-deck'].PT.status, 'out_of_stock');
+});
+
+test('a change in a group leader triggers a full check at once', async () => {
+  const env = { STOCK_KV: fakeKV() };
+  await runCheck(env, { fetchImpl: groupedFetch().impl });
+  const steam = groupedFetch({ US: false });
+  const out = await runCheck(env, { fetchImpl: steam.impl });
+  assert.ok(out.transitions > 0);
+  assert.equal(new Set(steam.calls).size, VALVE_SELLS.length, 'every region was fetched');
+});
+
+test('quietPlan rotates through the regions that are not leaders', () => {
+  const groups = [{ h: 'a', regions: ['US', 'CA'] }, { h: 'b', regions: ['DE', 'FR', 'IT', 'ES'] }];
+  const all = ['US', 'CA', 'DE', 'FR', 'IT', 'ES'];
+  const first = quietPlan(groups, 0, all);
+  assert.deepEqual(first.regions.slice(0, 2), ['US', 'DE']);
+  const second = quietPlan(groups, first.next, all);
+  assert.equal(new Set([...first.regions, ...second.regions]).size, all.length);
 });
