@@ -7,7 +7,7 @@
 //   node scripts/measure-worker.mjs --capture            # record live Steam answers to /tmp
 //   node scripts/measure-worker.mjs [--regions all] [--runs 50]
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { runCheck } from '../cloudflare/worker.mjs';
+import { runCheck, STATUS_BODY_KEY, HISTORY_KEY } from '../cloudflare/worker.mjs';
 import { REGIONS, VALVE_SELLS } from '../lib/products.mjs';
 
 const args = process.argv.slice(2);
@@ -65,4 +65,4 @@ times.sort((a, b) => a - b);
 const p = (q) => times[Math.min(times.length - 1, Math.floor(q * times.length))].toFixed(2);
 print(`regions: ${regions.length}, subrequests per run: ${fetches}`);
 print(`CPU per run (ms): median ${p(0.5)}, p90 ${p(0.9)}, max ${times[times.length - 1].toFixed(2)} over ${runs} runs`);
-print(`status.json ${env.STOCK_KV.store.get('status.json').length} bytes, history ${env.STOCK_KV.store.get('stock-history.json')?.length || 0} bytes`);
+print(`status body ${env.STOCK_KV.store.get(STATUS_BODY_KEY)?.length || 0} bytes, history ${env.STOCK_KV.store.get(HISTORY_KEY)?.length || 0} bytes`);
