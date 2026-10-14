@@ -45,6 +45,10 @@ npm start
 
 Then open `http://127.0.0.1:5177`.
 
+## Feeds
+
+Stock changes are published as an Atom feed at https://steamhardwarestock.com/feed.xml and as RSS at https://steamhardwarestock.com/rss.xml. Every page links them, so feed readers find them automatically.
+
 ## Hosting
 
 Production runs on Cloudflare Pages, with a Worker for the stock check. See [docs/cloudflare.md](docs/cloudflare.md).

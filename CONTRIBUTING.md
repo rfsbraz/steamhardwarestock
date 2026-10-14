@@ -15,7 +15,7 @@ This project intentionally avoids a frontend build chain. Most application logic
 
 How stock data flows:
 
-- The Worker (`cloudflare/worker.mjs`, every 10 minutes) checks Steam and writes `status.json` and the history to Cloudflare KV. It is the only writer.
+- The Worker (`cloudflare/worker.mjs`, every 10 minutes) checks Steam and writes the status and the history to Cloudflare KV. It is the only writer. A run where Steam answers the same as last time writes one small key and does nothing else (see `docs/cloudflare.md`).
 - Browsers read `/status.json` (served by `functions/status.json.js` and cached by the CDN for a minute) and the history from `/api/history`. They never call Steam.
 - `npm run build` prerenders `/`, `/<product>` and `/<product>/<region>` into `dist/` with the current status (`scripts/prerender.mjs`, templates in `lib/landing.mjs`). It reads `status.json` and the history from `PRERENDER_SOURCE_URL` when set, and otherwise runs one live check. Set `PRERENDER_OFFLINE=1` to skip the live check. The static pages are as fresh as the last deploy, and the Worker triggers a deploy when a status changes.
 - Analytics tags (GA `G-D4LRTXD5LR` and the Cloudflare Web Analytics beacon) live only in `lib/analytics.mjs`. `public/index.html` and `public/history.html` carry `<!-- analytics:head -->` and `<!-- analytics:body -->` markers that the build replaces, so `npm start` serves pages without tracking. `test/analytics.test.mjs` checks every built page.
