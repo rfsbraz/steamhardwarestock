@@ -1,8 +1,9 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { PRODUCTS, REGIONS } from '../lib/products.mjs';
+import { PRODUCTS, REGIONS, VALVE_SELLS } from '../lib/products.mjs';
 import { renderProductPage, renderRegionPage } from '../lib/landing.mjs';
-import { isIndexable, latestEvent } from '../lib/seo.mjs';
+import { CHECKED_REGIONS } from '../lib/steam.mjs';
+import { isIndexable, latestEvent, KOMODO_REGIONS } from '../lib/seo.mjs';
 import { buildSitemap } from '../lib/sitemap.mjs';
 import StockStatus from '../public/stock-status.js';
 
@@ -78,7 +79,37 @@ function summary(status) {
 
 // Static homepage status so crawlers and link previews see real numbers.
 // app.js replaces all of it as soon as it runs.
-export function prerenderHome(html, status) {
+function homeIntro(status, regions) {
+  const sold = regions.length;
+  const komodo = KOMODO_REGIONS.length;
+  const names = PRODUCTS.map((p) => p.name);
+  const list = `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+  const counts = {};
+  for (const product of PRODUCTS) {
+    for (const cell of Object.values(status?.products?.[product.id] || {})) counts[cell.status] = (counts[cell.status] || 0) + 1;
+  }
+  const queue = (counts.reservation_open || 0) + (counts.waitlist || 0);
+  const snapshot = status?.generatedAt
+    ? `<p>At the last check, Steam showed ${counts.in_stock || 0} product and country pairs in stock and ${queue} taking reservations or running a waitlist.</p>`
+    : '';
+  return `<section class="home-intro" aria-label="About this tracker">
+        <p>This free tracker follows the official Steam store for ${list}. It checks ${sold} countries, the ones where Valve sells its hardware on the Steam store. In ${komodo} more, Valve sells some of it through Komodo, its official distributor. The tracker does not check Komodo stock, so those pages say so and link to Komodo instead.</p>
+        <p>Every 10 minutes the tracker asks Steam for the state of each product in each of those ${sold} countries. A product can be in stock, out of stock, open for reservations, or on a waitlist, and the answer often differs from one country to the next. Each product has its own page with a table of every country, and each country has its own page with the current state, the local price when Steam lists one, and the last time it was in stock.</p>
+        ${snapshot}
+        <p>To get an alert, pick the products and countries you care about below and press Start watching. Your browser tells you when one of them changes. Your watch list stays in your browser, and you do not need an account. Past changes are kept on the stock history page, which shows when each product last came back in every country.</p>
+      </section>`;
+}
+
+function withDateModified(html, when) {
+  if (!when) return html;
+  return html.replace(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/, (m, json) => {
+    const ld = JSON.parse(json);
+    ld.dateModified = when;
+    return `<script type="application/ld+json">${JSON.stringify(ld, null, 2).replace(/</g, '\\u003c')}</script>`;
+  });
+}
+
+export function prerenderHome(html, status, history = {}, { regions = CHECKED_REGIONS } = {}) {
   const { inStock, rows } = summary(status);
   const regionCount = status?.regions?.length || 0;
   const when = status?.generatedAt;
@@ -87,6 +118,9 @@ export function prerenderHome(html, status) {
     ? `id="lastChecked"><time datetime="${escape(when)}">${escape(new Date(when).toUTCString().slice(17, 22))} UTC</time><`
     : 'id="lastChecked">Never<');
   out = out.replace('<div class="results-grid" id="resultsGrid"></div>', `<div class="results-grid" id="resultsGrid"><div class="empty-state"><p>Stock across the ${regionCount} countries where Steam sells Valve hardware${when ? `, as of <time datetime="${escape(when)}">${escape(new Date(when).toUTCString())}</time>` : ''}:</p><ul>${rows.join('')}</ul></div></div>`);
+  out = out.replace('<h1>Steam Hardware Tracker: Stock and Reservation Status</h1>', `<h1>Steam Hardware Tracker: Stock and Reservation Status in ${regions.length} Countries</h1>`);
+  out = out.replace('<!-- home:intro -->', homeIntro(status, regions));
+  out = withDateModified(out, latestEvent(history, Object.keys(history || {})) || status?.generatedAt || null);
   return out;
 }
 
@@ -96,7 +130,7 @@ export function prerenderHome(html, status) {
 export async function prerender(dist, { status, history = {}, affiliate, prices = {} }) {
   const indexPath = path.join(dist, 'index.html');
   const index = await fs.readFile(indexPath, 'utf8');
-  await fs.writeFile(indexPath, prerenderHome(index, status));
+  await fs.writeFile(indexPath, prerenderHome(index, status, history));
 
   const allKeys = Object.keys(history || {});
   const sitemap = [
