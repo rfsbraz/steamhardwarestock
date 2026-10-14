@@ -2,7 +2,8 @@
 
 The site runs on Cloudflare. Vercel hosting was removed in October 2026.
 
-- **Pages** (`wrangler.toml`, project `steamhardwarestock`, direct upload, https://steamhardwarestock.pages.dev) serves `dist/` and three functions: `/status.json`, `/api/history` and `/proxy` (Komodo only).
+- **Pages** (`wrangler.toml`, project `steamhardwarestock`, direct upload, https://steamhardwarestock.pages.dev) serves `dist/` and these functions: `/status.json`, `/api/history`, `/feed.xml` (Atom), `/rss.xml` and `/proxy` (Komodo only).
+- **Feeds** (`lib/feed.mjs`, `functions/_feed.js`) list the latest 50 stock changes from `stock-history.json`. They only read KV, once per 10 minutes at most per edge location, because the XML is kept in `caches.default` with `s-maxage=600`.
 - **Worker** (`cloudflare/worker.mjs`, `cloudflare/wrangler.toml`) runs the stock check every 10 minutes. It writes the status and `stock-history.json` to KV. See [Worker CPU and KV keys](#worker-cpu-and-kv-keys).
 - Both bind the KV namespace `STOCK_KV` (id `ef31e7789d0949b987f9814a86ed0fce`, set in both `wrangler.toml` files).
 - **Rebuilds:** the landing pages are static. When a status changes, the Worker sends a GitHub `workflow_dispatch` for `pages-deploy.yml` on `main`, at most once per 10 minutes (the last dispatch time is kept in KV). Without `GH_DISPATCH_TOKEN` it skips this quietly. A failed dispatch is logged and retried on the next change.
