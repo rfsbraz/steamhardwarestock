@@ -2,8 +2,9 @@
 
 The site runs on Cloudflare. Vercel hosting was removed in October 2026.
 
-- **Pages** (`wrangler.toml`, project `steamhardwarestock`, direct upload, https://steamhardwarestock.pages.dev) serves `dist/` and three functions: `/status.json`, `/api/history` and `/proxy` (Komodo only).
-- **Worker** (`cloudflare/worker.mjs`, `cloudflare/wrangler.toml`) runs the stock check every 10 minutes. It writes `status.json` and `stock-history.json` to KV.
+- **Pages** (`wrangler.toml`, project `steamhardwarestock`, direct upload, https://steamhardwarestock.pages.dev) serves `dist/` and these functions: `/status.json`, `/api/history`, `/feed.xml` (Atom), `/rss.xml` and `/proxy` (Komodo only).
+- **Feeds** (`lib/feed.mjs`, `functions/_feed.js`) list the latest 50 stock changes from `stock-history.json`. They only read KV, once per 10 minutes at most per edge location, because the XML is kept in `caches.default` with `s-maxage=600`.
+- **Worker** (`cloudflare/worker.mjs`, `cloudflare/wrangler.toml`) runs the stock check every 10 minutes. It writes the status and `stock-history.json` to KV. See [Worker CPU and KV keys](#worker-cpu-and-kv-keys).
 - Both bind the KV namespace `STOCK_KV` (id `ef31e7789d0949b987f9814a86ed0fce`, set in both `wrangler.toml` files).
 - **Rebuilds:** the landing pages are static. When a status changes, the Worker sends a GitHub `workflow_dispatch` for `pages-deploy.yml` on `main`, at most once per 10 minutes (the last dispatch time is kept in KV). Without `GH_DISPATCH_TOKEN` it skips this quietly. A failed dispatch is logged and retried on the next change.
 
@@ -50,3 +51,30 @@ node scripts/import-blob-history.mjs ~/stock-history.blob.json --apply
 ```
 
 With `--apply` it reads KV again right before the write and stops if the Worker changed it in the meantime. Run it again in that case. `backups/` is ignored by git. To roll back, put the backup file with `wrangler kv key put stock-history.json --path <backup> --namespace-id <id> --remote`.
+
+## Worker CPU and KV keys
+
+The free plan allows 10 ms of CPU per cron run. Most runs find that Steam answers exactly as it did 10 minutes ago, so the Worker keeps that path short:
+
+| Key | Written | Holds |
+|---|---|---|
+| `status-meta` | every run | `{"generatedAt": ...}`, a few bytes |
+| `steam-raw` | when an answer changes | the raw Steam answers from the last run, one line per region |
+| `status-body` | when the document changes | the status document without `generatedAt` |
+| `stock-history.json` | when a status changes | the history, as before |
+| `status.json` | no longer written | the old single document, served only until the first new run |
+
+Each run fetches every region as text and compares it with `steam-raw`. If every region answered with the same text, it only writes `status-meta` and stops. It does not parse the answers, build the document or read the history. When something changed it parses and builds the document. It then reads the history only if the document changed. `steam-raw` is saved last, so a run that fails halfway is redone in full. A failed region never counts as unchanged.
+
+`functions/status.json.js` joins `status-meta` and `status-body` as text, without parsing the large body. The response has the same fields as before. Until the Worker has written the new keys once it serves the old `status.json` key.
+
+To measure CPU locally, save real-sized data once and run the benchmark. `--capture` only reads: the Steam API and the public `/status.json` and `/api/history`.
+
+```bash
+node scripts/bench-worker.mjs --capture
+node scripts/bench-worker.mjs                  # cold run plus warm medians
+node scripts/bench-worker.mjs --cold-change    # cold run where a status changes
+node scripts/bench-worker.mjs --worker /path/to/other/worker.mjs   # compare
+```
+
+Node is not workerd, so the numbers are a guide. Production CPU time is in the Workers analytics (`workersInvocationsAdaptive`, `cpuTime`).
