@@ -62,6 +62,16 @@ Shipping and return policy fields are not set. Google lists them as recommended 
 
 `sitemap.xml` is written by `scripts/prerender.mjs`. It lists the indexable pages only. Each `lastmod` is the time of the last recorded stock change for that page, from the history data. A page with no recorded change has no `lastmod`. The build time is never used. `robots.txt` points at it.
 
+## Countries Steam does not sell in
+
+`lib/availability.mjs` records what each product's Steam page says about sales outside the Steam store. It was checked on 13 Oct 2026:
+
+- Komodo sells the Steam Deck and Steam Controller in Japan, South Korea, Hong Kong and Taiwan.
+- Komodo sells the Steam Frame and Steam Machine in Japan, Taiwan and Hong Kong.
+- Valve says the Steam Frame comes to South Korea at a later date, and that the Steam Machine will not be sold there.
+
+Those pages have their own text and a link to Valve's page, so they are indexed and in the sitemap. All other country pages where Steam does not sell a product read the same apart from the name, so they stay `noindex`. `test/not-sold.test.mjs` and the sitemap test in `test/seo.test.mjs` enforce this. When Valve changes a launch, update `AVAILABILITY` and its source.
+
 ## FAQ blocks
 
 Product and country pages end with a short FAQ (`lib/faq.mjs`), marked up as `FAQPage` JSON-LD with the same text as the visible answers. Answers are built from that page's own data: the status at the last check, the local Steam price and currency, the last recorded restock, and the status of the other products in that country. So no two country pages share an FAQ. Countries Steam does not sell in get two short answers, and Komodo countries get Komodo answers. `test/faq.test.mjs` checks that every answer names its country and that no two country pages of a product share an FAQ.
