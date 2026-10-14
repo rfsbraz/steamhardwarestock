@@ -45,6 +45,12 @@ npm start
 
 Then open `http://127.0.0.1:5177`.
 
+## Install and How it works
+
+The site has a web app manifest (`public/site.webmanifest`) with PNG icons in `public/icons`, including maskable ones, so browsers offer to install it. The icons are rendered from `public/favicon.svg` by `scripts/make-icons.cjs`; run it again after changing the logo.
+
+`/about`, `/methodology` and `/disclosures` (affiliate links, analytics and consent) are built from `INFO_PAGES` in `lib/landing.mjs`, along with `/how-it-works`. All four are in the sitemap and every footer. `/how-it-works` explains where the data comes from and what each status means. Each product page has a short status explainer from `lib/explainers.mjs` that links Valve's own page. The reservation rules there were checked against Valve's pages on 13 Oct 2026 (`VERIFIED_ON`). Recheck them when Valve changes how a product is sold.
+
 ## Feeds
 
 Stock changes are published as an Atom feed at https://steamhardwarestock.com/feed.xml and as RSS at https://steamhardwarestock.com/rss.xml. Every page links them, so feed readers find them automatically.
