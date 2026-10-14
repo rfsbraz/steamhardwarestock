@@ -12,6 +12,9 @@
     <link rel="canonical" href="https://steamhardwarestock.com/">
     <link rel="manifest" href="/site.webmanifest">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <link rel="alternate" type="application/atom+xml" title="Steam hardware stock changes" href="https://steamhardwarestock.com/feed.xml">
+    <link rel="alternate" type="application/rss+xml" title="Steam hardware stock changes (RSS)" href="https://steamhardwarestock.com/rss.xml">
     <link rel="preconnect" href="https://clan.akamai.steamstatic.com">
     <link rel="preconnect" href="https://clan.fastly.steamstatic.com">
     <link rel="preconnect" href="https://www.googletagmanager.com">
@@ -67,9 +70,10 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">Unofficial tracker</p>
-          <h1>Steam hardware stock <a href="/history" class="history-link" title="Browse stock history">History →</a></h1>
+          <h1>Steam Hardware Tracker: Stock and Reservation Status</h1>
         </div>
         <div class="topbar-right">
+          <a href="/history" class="history-link" title="Browse stock history">Stock history →</a>
           <button id="themeToggle" type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
             <span id="themeToggleLabel">Auto</span>
           </button>
@@ -78,6 +82,8 @@
       </header>
 
       <p class="intro">Mark the products and countries you want, click <strong>Start watching</strong>, and keep this tab open - you'll get a browser notification when something comes in stock.</p>
+
+      <!-- home:intro -->
 
       <section class="controls" aria-label="Tracker controls">
         <div class="control-row">
@@ -177,6 +183,10 @@
     <footer class="site-footer">
       <div class="app-shell footer-inner">
         <span><a href="/history">Stock history</a></span>
+        <span><a href="/how-it-works">How it works</a></span>
+        <span><a href="/methodology">Methodology</a></span>
+        <span><a href="/about">About</a></span>
+        <span><a href="/disclosures">Disclosures</a></span>
         <span>Open source on <a href="https://github.com/rfsbraz/steamhardwarestock" target="_blank" rel="noreferrer">GitHub</a></span>
         <span><a href="https://github.com/rfsbraz/steamhardwarestock/issues" target="_blank" rel="noreferrer">Report an issue</a></span>
         <span><a href="https://buymeacoffee.com/rfsbraz" target="_blank" rel="noreferrer">Buy me a coffee</a></span>
