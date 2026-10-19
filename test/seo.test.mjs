@@ -87,6 +87,13 @@ for (const cf of ['', '1']) {
     const { pages } = build(cf);
     assert.ok(pages.length > 300);
     for (const p of pages) {
+      // The 404 page is served at any unknown path, so it has no URL of its own.
+      if (p.rel === '/404') {
+        assert.equal(p.canonical, undefined);
+        assert.equal(p.ogUrl, undefined);
+        assert.match(p.robots, /^noindex/);
+        continue;
+      }
       assert.equal(p.canonical, `${SITE}${p.rel}`, p.rel);
       assert.equal(p.ogUrl, p.canonical, p.rel);
     }
