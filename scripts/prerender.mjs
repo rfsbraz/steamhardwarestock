@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { PRODUCTS, REGIONS, VALVE_SELLS } from '../lib/products.mjs';
-import { renderProductPage, renderRegionPage, renderInfoPage, INFO_PAGES } from '../lib/landing.mjs';
+import { renderProductPage, renderRegionPage, renderInfoPage, renderNotFoundPage, INFO_PAGES } from '../lib/landing.mjs';
 import { CHECKED_REGIONS } from '../lib/steam.mjs';
 import { isIndexable, latestEvent, KOMODO_REGIONS } from '../lib/seo.mjs';
 import { buildSitemap } from '../lib/sitemap.mjs';
@@ -177,6 +177,9 @@ export async function prerender(dist, { status, history = {}, affiliate, prices 
       pages++;
     }
   }
+  // Top-level 404.html turns off the Pages SPA fallback, so unknown paths get
+  // a real 404 instead of the homepage. Not in the sitemap.
+  await fs.writeFile(path.join(dist, '404.html'), renderNotFoundPage());
   await fs.writeFile(path.join(dist, 'sitemap.xml'), buildSitemap(sitemap));
   return pages;
 }

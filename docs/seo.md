@@ -58,6 +58,10 @@ Search Console reported "Product snippets: 0 valid, 4 invalid" and "Merchant lis
 
 Shipping and return policy fields are not set. Google lists them as recommended for merchant listings, and Valve's terms vary by country.
 
+## Unknown paths
+
+The build writes a top-level `404.html` (`renderNotFoundPage` in `lib/landing.mjs`). Cloudflare Pages serves it with a 404 status for any path no file matches, such as `/faq` or `/status`. Without it Pages falls back to `index.html` with a 200, which Search Console treats as a soft 404. The page is `noindex`, has no canonical and is not in the sitemap. `test/not-found.test.mjs` covers it.
+
 ## Sitemap
 
 `sitemap.xml` is written by `scripts/prerender.mjs`. It lists the indexable pages only. Each `lastmod` is the time of the last recorded stock change for that page, from the history data. A page with no recorded change has no `lastmod`. The build time is never used. `robots.txt` points at it.
