@@ -79,3 +79,9 @@ Product and country pages end with a short FAQ (`lib/faq.mjs`), marked up as `FA
 ## Steam Deck Black Friday page
 
 `/steam-deck-black-friday` (`lib/deck-sale.mjs`) shows new and refurbished Steam Deck stock per model and country, any discount Steam lists at build time, and an FAQ with `FAQPage` JSON-LD. It is in the sitemap, with `lastmod` from the Deck and refurbished history. The homepage links to it until `SEASON_END` (5 Jan 2027). Accessory links use the same JSAUX slot as the other pages (`docs/affiliate.md`), so with no ref ID the page shows no JSAUX links.
+
+## Meta descriptions and IndexNow
+
+Every page description is 120 to 155 characters and every title 20 to 60 (`test/meta-lengths.test.mjs` renders each page type across the data states a build can see). Bing reports descriptions under about 120 characters as too short.
+
+After each Pages deploy, `scripts/indexnow.mjs` sends IndexNow the sitemap URLs that are new or have a new lastmod, compared with the live sitemap saved before the deploy. The key is public by design and is served from `/<key>.txt`. Cloudflare Crawler Hints also pings IndexNow; it is a zone setting and is not managed from this repo.
