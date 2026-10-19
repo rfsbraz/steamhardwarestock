@@ -128,7 +128,7 @@ function build(extraEnv) {
 for (const cf of ['', '1']) {
   test(`build${cf ? ' with CF_PAGES=1' : ''} puts the block and disclosures in the prerendered pages`, () => {
     const out = build({ CF_PAGES: cf, AFFILIATE_JSAUX_REF: 'ref123', AFFILIATE_AMAZON_ENABLED: '1', AFFILIATE_AMAZON_TAG: 'shs-20' });
-    for (const rel of ['steam-deck/index.html', 'steam-deck/us/index.html', 'steam-machine/gb/index.html']) {
+    for (const rel of ['steam-deck.html', 'steam-deck/us.html', 'steam-machine/gb.html']) {
       const html = out.read(rel);
       assert.ok(html.includes('class="affiliate-block"'), `${rel} has no block`);
       assert.ok(html.includes('sca_ref=ref123'), `${rel} has no JSAUX ref`);

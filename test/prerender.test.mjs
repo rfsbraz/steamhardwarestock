@@ -28,22 +28,22 @@ test('writes a page for every product and every product and region', async () =>
   const dist = setup();
   await prerender(dist, { status, history });
   for (const p of PRODUCTS) {
-    assert.ok(existsSync(path.join(dist, p.id, 'index.html')), p.id);
-    for (const r of REGIONS) assert.ok(existsSync(path.join(dist, p.id, r.code.toLowerCase(), 'index.html')), `${p.id}/${r.code}`);
+    assert.ok(existsSync(path.join(dist, `${p.id}.html`)), p.id);
+    for (const r of REGIONS) assert.ok(existsSync(path.join(dist, p.id, `${r.code.toLowerCase()}.html`)), `${p.id}/${r.code}`);
   }
 });
 
 test('landing pages carry the status and the analytics script', async () => {
   const dist = setup();
   await prerender(dist, { status, history });
-  const deckUs = readFileSync(path.join(dist, 'steam-deck', 'us', 'index.html'), 'utf8');
+  const deckUs = readFileSync(path.join(dist, 'steam-deck', 'us.html'), 'utf8');
   assert.match(deckUs, /In stock/);
   assert.match(deckUs, /static\.cloudflareinsights\.com\/beacon\.min\.js/);
   assert.match(deckUs, /Last check/);
-  const controller = readFileSync(path.join(dist, 'steam-controller', 'index.html'), 'utf8');
+  const controller = readFileSync(path.join(dist, 'steam-controller.html'), 'utf8');
   assert.match(controller, /Reservations open/);
   assert.match(controller, /static\.cloudflareinsights\.com\/beacon\.min\.js/);
-  const notSold = readFileSync(path.join(dist, 'steam-deck', 'jp', 'index.html'), 'utf8');
+  const notSold = readFileSync(path.join(dist, 'steam-deck', 'jp.html'), 'utf8');
   assert.match(notSold, /Not sold here/);
 });
 
@@ -60,7 +60,7 @@ test('the homepage shows real counts and the last check without JavaScript', asy
 test('without data the pages still build and say so', async () => {
   const dist = setup();
   await prerender(dist, { status: null, history: {} });
-  const html = readFileSync(path.join(dist, 'steam-deck', 'us', 'index.html'), 'utf8');
+  const html = readFileSync(path.join(dist, 'steam-deck', 'us.html'), 'utf8');
   assert.match(html, /Not checked yet/);
 });
 

@@ -23,6 +23,12 @@ curl -X PUT "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/rulesets/phases
 
 The `www` record must be proxied (orange cloud) for the rule to run. This PUT replaces any existing redirect rules in that phase.
 
+## URL form (no trailing slash)
+
+Every page URL has no trailing slash: `/steam-frame/us`, not `/steam-frame/us/`. Canonicals, `og:url`, the sitemap and internal links all use that form.
+
+Pages are written as `<path>.html` (`pageFile` in `scripts/prerender.mjs`), because Cloudflare Pages serves `/x` from `x.html` with a 200 and sends `/x/` to `/x` with a 308. A `x/index.html` file does the reverse and sends `/x` to `/x/`, which put every sitemap URL behind a redirect (#34). `test/trailing-slash.test.mjs` checks every sitemap URL and internal link against those rules. New pages get this for free if they are written through `writePage`.
+
 ## Pages and indexing
 
 - `/<product>` and `/<product>/<country>` are prerendered for every product and all 59 countries.
