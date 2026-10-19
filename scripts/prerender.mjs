@@ -7,6 +7,7 @@ import { isIndexable, latestEvent, KOMODO_REGIONS } from '../lib/seo.mjs';
 import { buildSitemap } from '../lib/sitemap.mjs';
 import { renderStatusPage, STATUS_PAGE_PRODUCTS, latestUpdate } from '../lib/status-page.mjs';
 import StockStatus from '../public/stock-status.js';
+import { renderDeckSalePage, deckSaleLastmod, seasonLink, DECK_SALE_PATH } from '../lib/deck-sale.mjs';
 
 function escape(s) {
   return String(s ?? '')
@@ -110,7 +111,7 @@ function withDateModified(html, when) {
   });
 }
 
-export function prerenderHome(html, status, history = {}, { regions = CHECKED_REGIONS } = {}) {
+export function prerenderHome(html, status, history = {}, { regions = CHECKED_REGIONS, now = new Date() } = {}) {
   const { inStock, rows } = summary(status);
   const regionCount = status?.regions?.length || 0;
   const when = status?.generatedAt;
@@ -121,6 +122,7 @@ export function prerenderHome(html, status, history = {}, { regions = CHECKED_RE
   out = out.replace('<div class="results-grid" id="resultsGrid"></div>', `<div class="results-grid" id="resultsGrid"><div class="empty-state"><p>Stock across the ${regionCount} countries where Steam sells Valve hardware${when ? `, as of <time datetime="${escape(when)}">${escape(new Date(when).toUTCString())}</time>` : ''}:</p><ul>${rows.join('')}</ul></div></div>`);
   out = out.replace('<h1>Steam Hardware Tracker: Stock and Reservation Status</h1>', `<h1>Steam Hardware Tracker: Stock and Reservation Status in ${regions.length} Countries</h1>`);
   out = out.replace('<!-- home:intro -->', homeIntro(status, regions));
+  out = out.replace('<!-- home:season -->', seasonLink(now));
   out = withDateModified(out, latestEvent(history, Object.keys(history || {})) || status?.generatedAt || null);
   return out;
 }
@@ -137,8 +139,12 @@ export async function prerender(dist, { status, history = {}, affiliate, prices 
   const sitemap = [
     { path: '/', lastmod: latestEvent(history, allKeys) },
     { path: '/history', lastmod: latestEvent(history, allKeys) },
-    ...INFO_PAGES.map((p) => ({ path: p.path }))
+    ...INFO_PAGES.map((p) => ({ path: p.path })),
+    { path: DECK_SALE_PATH, lastmod: deckSaleLastmod(history) }
   ];
+  const saleDir = path.join(dist, DECK_SALE_PATH.slice(1));
+  await fs.mkdir(saleDir, { recursive: true });
+  await fs.writeFile(path.join(saleDir, 'index.html'), renderDeckSalePage(history, status, { affiliate, prices }));
   for (const page of INFO_PAGES) {
     const dir = path.join(dist, page.path.slice(1));
     await fs.mkdir(dir, { recursive: true });
