@@ -90,7 +90,8 @@ test('a rebuild with only a new check time submits nothing, a stock change submi
   }).manifest;
   const changed = changedUrls(first, restock);
   assert.ok(changed.includes(`${S}/steam-deck/de`), 'the restocked country page is submitted');
-  assert.ok(!changed.includes(`${S}/steam-frame/de`), 'an unrelated page is not');
+  assert.ok(!changed.includes(`${S}/steam-frame/fr`), 'an unrelated page is not');
+  assert.ok(changed.length < 20, `${changed.length} URLs for one restock`);
 });
 
 test('the payload names the host, key and key location', () => {
