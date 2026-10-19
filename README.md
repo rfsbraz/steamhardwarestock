@@ -14,6 +14,7 @@ Live at [steamhardwarestock.com](https://steamhardwarestock.com/)
 - Steam Deck (Valve Certified Refurbished)
 - Steam Deck Dock
 - Steam Frame
+- Steam Frame Ergonomic Accessories Kit
 - Steam Machine
 
 Each product and country gets one of these statuses:

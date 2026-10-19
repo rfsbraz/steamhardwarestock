@@ -80,6 +80,13 @@ const PRODUCTS = [
     ]
   },
   {
+    id: 'steam-frame-ergonomic-kit',
+    name: 'Steam Frame Ergonomic Accessories Kit',
+    icon: 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4978440/17b05743f9d57198d8d4117a4623bfd4714c9f8b/header.jpg',
+    paths: ['/app/4978440/Steam_Frame_Ergonomic_Accessories_Kit/', '/hardware/steamframe/'],
+    packages: [{ id: 1727363, label: null, priceUsd: 59 }]
+  },
+  {
     id: 'steam-machine',
     name: 'Steam Machine',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/d3888f2e560b3a837f6f0a25345b03b6.avif',
