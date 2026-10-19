@@ -53,17 +53,17 @@ const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.is
 for (const cf of ['', '1']) {
   test(`build has the How it works page, sitemap entry, explainers and manifest links (CF_PAGES=${cf || 'unset'})`, () => {
     const dist = build(cf);
-    const how = readFileSync(path.join(dist, 'how-it-works', 'index.html'), 'utf8');
+    const how = readFileSync(path.join(dist, 'how-it-works.html'), 'utf8');
     assert.match(how, /<title>[^<]*How it works[^<]*<\/title>/i);
     assert.match(how, /<link rel="canonical" href="https:\/\/steamhardwarestock\.com\/how-it-works">/);
     for (const label of ['In stock', 'Reservations open', 'Waitlist', 'Out of stock', 'Not sold here']) assert.ok(how.includes(label), label);
     assert.match(how, /every 10 minutes/);
     assert.ok(!how.includes('—'));
     assert.match(readFileSync(path.join(dist, 'sitemap.xml'), 'utf8'), /<loc>https:\/\/steamhardwarestock\.com\/how-it-works<\/loc>/);
-    const frame = readFileSync(path.join(dist, 'steam-frame', 'index.html'), 'utf8');
+    const frame = readFileSync(path.join(dist, 'steam-frame.html'), 'utf8');
     assert.match(frame, /id="status-explained"/);
     assert.match(frame, /72 hours/);
-    const pad = readFileSync(path.join(dist, 'steam-controller', 'index.html'), 'utf8');
+    const pad = readFileSync(path.join(dist, 'steam-controller.html'), 'utf8');
     assert.match(pad, /72 hours/);
     assert.match(pad, /href="https:\/\/store\.steampowered\.com\/news\/group\/45479024\/view\/697641379212297809"/);
     assert.match(frame, /href="https:\/\/store\.steampowered\.com\/hardware\/steamframe\/"/);

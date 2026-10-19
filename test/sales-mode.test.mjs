@@ -92,9 +92,9 @@ for (const cf of ['', '1']) {
     execFileSync(process.execPath, ['scripts/build.js'], { cwd: root, env: { ...process.env, BUILD_DIST: path.join(dir, 'd'), PRERENDER_FIXTURE: path.join(dir, 'fx.json'), PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: cf }, stdio: 'pipe' });
     const sitemap = readFileSync(path.join(dir, 'd', 'sitemap.xml'), 'utf8');
     for (const id of STATUS_PAGE_PRODUCTS) {
-      assert.match(readFileSync(path.join(dir, 'd', id, 'status', 'index.html'), 'utf8'), /reservation status by country/);
+      assert.match(readFileSync(path.join(dir, 'd', id, 'status.html'), 'utf8'), /reservation status by country/);
       assert.match(sitemap, new RegExp(`<loc>https://steamhardwarestock.com/${id}/status</loc>`));
     }
-    assert.match(readFileSync(path.join(dir, 'd', 'steam-frame', 'index.html'), 'utf8'), /href="\/steam-frame\/status"/);
+    assert.match(readFileSync(path.join(dir, 'd', 'steam-frame.html'), 'utf8'), /href="\/steam-frame\/status"/);
   });
 }

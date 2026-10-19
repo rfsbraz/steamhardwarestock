@@ -82,7 +82,7 @@ for (const cf of ['', '1']) {
     writeFileSync(fixture, JSON.stringify({ status: statusDoc, history: {}, prices }));
     const dist = path.join(dir, 'dist');
     execFileSync(process.execPath, ['scripts/build.js'], { cwd: root, env: { ...process.env, BUILD_DIST: dist, PRERENDER_FIXTURE: fixture, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: cf }, stdio: 'pipe' });
-    const html = readFileSync(path.join(dist, 'steam-deck', 'index.html'), 'utf8');
+    const html = readFileSync(path.join(dist, 'steam-deck.html'), 'utf8');
     assert.match(row(html, 'GB'), /£479\.00/);
     assert.match(html, /class="checked-ago"/);
   });

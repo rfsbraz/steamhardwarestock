@@ -45,7 +45,7 @@ async function build(affiliate = OFF) {
   const dist = mkdtempSync(path.join(tmpdir(), 'shs-sale-'));
   writeFileSync(path.join(dist, 'index.html'), readFileSync(new URL('../public/index.html', import.meta.url)));
   await prerender(dist, { status, history, prices, affiliate });
-  const file = path.join(dist, DECK_SALE_PATH.slice(1), 'index.html');
+  const file = path.join(dist, `${DECK_SALE_PATH.slice(1)}.html`);
   return { dist, file, html: existsSync(file) ? readFileSync(file, 'utf8') : '', sitemap: readFileSync(path.join(dist, 'sitemap.xml'), 'utf8') };
 }
 
@@ -89,7 +89,7 @@ test('it lists the models Steam has on sale, and says so when none are', async (
   const dist = mkdtempSync(path.join(tmpdir(), 'shs-sale-none-'));
   writeFileSync(path.join(dist, 'index.html'), readFileSync(new URL('../public/index.html', import.meta.url)));
   await prerender(dist, { status, history, prices: {}, affiliate: OFF });
-  const none = readFileSync(path.join(dist, DECK_SALE_PATH.slice(1), 'index.html'), 'utf8');
+  const none = readFileSync(path.join(dist, `${DECK_SALE_PATH.slice(1)}.html`), 'utf8');
   assert.match(none.match(/<section[^>]*id="on-sale"[\s\S]*?<\/section>/)?.[0] || '', /no discount/i);
 });
 

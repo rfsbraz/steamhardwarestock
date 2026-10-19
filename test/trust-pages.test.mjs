@@ -22,20 +22,20 @@ for (const cf of ['', '1']) {
     execFileSync(process.execPath, ['scripts/build.js'], { cwd: root, env: { ...process.env, BUILD_DIST: dist, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: cf }, stdio: 'pipe' });
     const sitemap = readFileSync(path.join(dist, 'sitemap.xml'), 'utf8');
     for (const p of PATHS) {
-      const html = readFileSync(path.join(dist, p.slice(1), 'index.html'), 'utf8');
+      const html = readFileSync(path.join(dist, `${p.slice(1)}.html`), 'utf8');
       assert.match(html, new RegExp(`<link rel="canonical" href="https://steamhardwarestock.com${p}">`));
       assert.equal((html.match(/<h1\b/g) || []).length, 1, p);
       assert.ok(words(html) > 150, `${p} is thin`);
       assert.ok(!html.includes('—'), `${p} has an em dash`);
       assert.match(sitemap, new RegExp(`<loc>https://steamhardwarestock.com${p}</loc>`));
     }
-    const disc = readFileSync(path.join(dist, 'disclosures', 'index.html'), 'utf8');
+    const disc = readFileSync(path.join(dist, 'disclosures.html'), 'utf8');
     assert.match(disc, /no affiliate links at the moment/, 'default build has no affiliate IDs');
     assert.ok(!disc.includes('Amazon Associate'));
     assert.match(disc, /Consent Mode/);
     assert.match(disc, /data-consent-settings/, 'links the consent controls');
     assert.match(disc, /not affiliated with Valve/i);
-    const method = readFileSync(path.join(dist, 'methodology', 'index.html'), 'utf8');
+    const method = readFileSync(path.join(dist, 'methodology.html'), 'utf8');
     for (const field of ['inventory_available', 'allow_purchase_in_country', 'requires_reservation', 'high_pending_orders']) assert.ok(method.includes(field), field);
     for (const f of walk(dist)) {
       const html = readFileSync(f, 'utf8');

@@ -102,6 +102,20 @@ function homeIntro(status, regions) {
       </section>`;
 }
 
+// The file a page URL is served from. Cloudflare Pages serves /x from x.html
+// with a 200 and sends /x/ to /x, which matches the no-slash canonical and
+// sitemap URL. x/index.html would do the opposite: /x would 308 to /x/.
+export function pageFile(dist, urlPath) {
+  if (urlPath === '/') return path.join(dist, 'index.html');
+  return path.join(dist, `${urlPath.replace(/^\/+|\/+$/g, '')}.html`);
+}
+
+async function writePage(dist, urlPath, html) {
+  const file = pageFile(dist, urlPath);
+  await fs.mkdir(path.dirname(file), { recursive: true });
+  await fs.writeFile(file, html);
+}
+
 function withDateModified(html, when) {
   if (!when) return html;
   return html.replace(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/, (m, json) => {
@@ -142,24 +156,17 @@ export async function prerender(dist, { status, history = {}, affiliate, prices 
     ...INFO_PAGES.map((p) => ({ path: p.path })),
     { path: DECK_SALE_PATH, lastmod: deckSaleLastmod(history) }
   ];
-  const saleDir = path.join(dist, DECK_SALE_PATH.slice(1));
-  await fs.mkdir(saleDir, { recursive: true });
-  await fs.writeFile(path.join(saleDir, 'index.html'), renderDeckSalePage(history, status, { affiliate, prices }));
+  await writePage(dist, DECK_SALE_PATH, renderDeckSalePage(history, status, { affiliate, prices }));
   for (const page of INFO_PAGES) {
-    const dir = path.join(dist, page.path.slice(1));
-    await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(path.join(dir, 'index.html'), renderInfoPage(page, { affiliate }));
+    await writePage(dist, page.path, renderInfoPage(page, { affiliate }));
   }
   let pages = 0;
   for (const product of PRODUCTS) {
-    const dir = path.join(dist, product.id);
-    await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(path.join(dir, 'index.html'), renderProductPage(product, history, status, { affiliate, prices }));
+    await writePage(dist, `/${product.id}`, renderProductPage(product, history, status, { affiliate, prices }));
     sitemap.push({ path: `/${product.id}`, lastmod: latestEvent(history, REGIONS.map((r) => `${product.id}:${r.code}`)) });
     pages++;
     if (STATUS_PAGE_PRODUCTS.includes(product.id)) {
-      await fs.mkdir(path.join(dir, 'status'), { recursive: true });
-      await fs.writeFile(path.join(dir, 'status', 'index.html'), renderStatusPage(product, status));
+      await writePage(dist, `/${product.id}/status`, renderStatusPage(product, status));
       const changed = latestEvent(history, REGIONS.map((r) => `${product.id}:${r.code}`));
       const update = latestUpdate(product.id);
       const updated = update ? `${update.date}T00:00:00.000Z` : null;
@@ -168,9 +175,7 @@ export async function prerender(dist, { status, history = {}, affiliate, prices 
     }
     for (const region of REGIONS) {
       const code = region.code.toLowerCase();
-      const regionDir = path.join(dir, code);
-      await fs.mkdir(regionDir, { recursive: true });
-      await fs.writeFile(path.join(regionDir, 'index.html'), renderRegionPage(product, region, history, status, { affiliate, prices }));
+      await writePage(dist, `/${product.id}/${code}`, renderRegionPage(product, region, history, status, { affiliate, prices }));
       if (isIndexable(product, region.code)) {
         sitemap.push({ path: `/${product.id}/${code}`, lastmod: latestEvent(history, [`${product.id}:${region.code}`]) });
       }
