@@ -37,3 +37,15 @@ test('every catalog copy lists the same products and packages', () => {
     }
   }
 });
+
+test('Steam Frame Ergonomic Accessories Kit is tracked', () => {
+  const kit = byId['steam-frame-ergonomic-kit'];
+  assert.ok(kit, 'steam-frame-ergonomic-kit product missing');
+  assert.equal(kit.name, 'Steam Frame Ergonomic Accessories Kit');
+  assert.deepEqual(kit.packageIds, [1727363]);
+  assert.deepEqual(
+    kit.packages.map((p) => [p.id, p.priceUsd]),
+    [[1727363, 59]]
+  );
+  assert.equal(kit.steamPath, '/app/4978440/Steam_Frame_Ergonomic_Accessories_Kit/');
+});
