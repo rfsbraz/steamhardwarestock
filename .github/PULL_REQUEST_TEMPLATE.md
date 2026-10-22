@@ -1,9 +1,19 @@
 ## Summary
 
-## Verification
+<!-- One or two lines: what changes and why. -->
 
-- [ ] `npm run check`
-- [ ] `npm test`
-- [ ] `npm run build`
+Closes #
 
-## Notes
+## Before / After
+
+| Before | After |
+| --- | --- |
+|  |  |
+
+## Screenshots
+
+<!-- UI changes only. Delete this section otherwise. -->
+
+## Tested
+
+<!-- One line: what you ran, for example `npm run check`, `npm test` and `npm run build`. -->
