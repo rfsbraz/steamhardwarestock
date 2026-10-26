@@ -7,6 +7,7 @@ import { buildStatusDoc, STATUS_RULES_VERSION } from '../lib/status-doc.mjs';
 import { mergeEvent } from '../lib/history-merge.mjs';
 import { notifyChanges } from '../lib/notify.mjs';
 import { regionByCode } from '../lib/products.mjs';
+import { statusText } from '../lib/parts.mjs';
 
 function readMeta(raw) {
   try {
@@ -134,7 +135,7 @@ export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), n
   if (statesFp !== prev.states) {
     const historyText = await kv.get(HISTORY_KEY);
     const history = historyText ? JSON.parse(historyText) : {};
-    for (const { product, region, available, status } of results) {
+    for (const { product, region, available, status, packages } of results) {
       const changed = mergeEvent(history, {
         key: `${product.id}:${region}`,
         productId: product.id,
@@ -150,12 +151,19 @@ export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), n
         // The first event for a key only seeds history. Notify real changes.
         const previous = history[`${product.id}:${region}`].events[1];
         if (previous) {
+          const was = previous.status || (previous.available ? 'in_stock' : 'out_of_stock');
+          // Valve Index: name how many parts are in stock, not just "In stock".
+          const parts = product.parts ? {
+            ...(status === 'in_stock' ? { statusLabel: statusText(product, { status, packages }) } : {}),
+            ...(was === 'in_stock' ? { previousLabel: 'Some parts in stock' } : {})
+          } : {};
           changes.push({
             productName: product.name,
             regionName: regionByCode(region)?.name || region,
             url: `https://steamhardwarestock.com/${product.id}/${region.toLowerCase()}`,
             status,
-            previous: previous.status || (previous.available ? 'in_stock' : 'out_of_stock')
+            previous: was,
+            ...parts
           });
         }
       }

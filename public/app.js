@@ -94,6 +94,24 @@ const PRODUCTS = [
     packages: [{ id: 1727369, label: null, priceUsd: 29 }]
   },
   {
+    id: 'valve-index',
+    name: 'Valve Index',
+    icon: 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1059530/header.jpg',
+    paths: ['/hardware/valveindex'],
+    parts: true,
+    packages: [
+      { id: 354232, label: 'Headset', priceUsd: null },
+      { id: 354235, label: 'Base Station', priceUsd: null },
+      { id: 566031, label: 'Replacement Left Controller', priceUsd: null },
+      { id: 566409, label: 'Replacement Right Controller', priceUsd: null },
+      { id: 354234, label: 'Controllers (pair)', priceUsd: null },
+      { id: 580180, label: 'Replacement Tether', priceUsd: null },
+      { id: 359829, label: 'Face Gasket 2 Pack', priceUsd: null },
+      { id: 354233, label: 'Headset + Controllers', priceUsd: null },
+      { id: 354231, label: 'Full VR Kit', priceUsd: null }
+    ]
+  },
+  {
     id: 'steam-machine',
     name: 'Steam Machine',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/d3888f2e560b3a837f6f0a25345b03b6.avif',
@@ -883,6 +901,9 @@ async function checkProductRegion(product, region) {
     return { packageId, label, priceUsd, status: classifyHardwareDetails(detail), details: detail };
   });
 
+  const status = classifyProductPackages(packages);
+  // Valve Index: say how many parts have stock, not just "In stock".
+  const parts = product.parts && status.status === 'in_stock' && window.SteamStockStatus.partsLabel(packages.map((p) => p.status.status));
   return {
     product: publicProduct(product, region),
     region,
@@ -890,7 +911,7 @@ async function checkProductRegion(product, region) {
     checkedAt: generatedAt,
     packageCount: packageIds.length,
     packages,
-    status: classifyProductPackages(packages)
+    status: parts ? { ...status, label: parts } : status
   };
 }
 
