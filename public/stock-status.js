@@ -39,11 +39,15 @@
       }
       return make('reservation_open', details);
     }
+    if (details.account_restricted_from_purchasing) return make('out_of_stock', details, 'Steam is not selling this item right now.');
+    // high_pending_orders is Steam's high-demand flag. With inventory Steam
+    // still shows Buy now, so inventory decides and the flag is only a note.
+    if (details.inventory_available) {
+      return make('in_stock', details, details.high_pending_orders ? `${COPY.in_stock.reason} Steam also flags high demand for it.` : undefined);
+    }
     if (details.high_pending_orders) {
       return make('out_of_stock', details, 'Steam has a queue of pending orders, so the buy button is off. Units can come back when queued orders are cancelled.');
     }
-    if (details.account_restricted_from_purchasing) return make('out_of_stock', details, 'Steam is not selling this item right now.');
-    if (details.inventory_available) return make('in_stock', details);
     return make('out_of_stock', details);
   }
 
