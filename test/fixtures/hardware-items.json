@@ -120,5 +120,61 @@
     "inventory_available": false,
     "high_pending_orders": false,
     "allow_purchase_in_country": false
+  },
+  "index-base-station-us-in-stock-high-demand": {
+    "packageid": 354235,
+    "inventory_available": true,
+    "high_pending_orders": true,
+    "account_restricted_from_purchasing": false,
+    "requires_reservation": false,
+    "allow_purchase_in_country": true,
+    "estimated_delivery_soonest_business_days": 6,
+    "estimated_delivery_latest_business_days": 10,
+    "requires_signature": false
+  },
+  "frame-psu-us-in-stock-high-demand": {
+    "packageid": 1727369,
+    "inventory_available": true,
+    "high_pending_orders": true,
+    "account_restricted_from_purchasing": false,
+    "requires_reservation": false,
+    "allow_purchase_in_country": true,
+    "estimated_delivery_soonest_business_days": 6,
+    "estimated_delivery_latest_business_days": 10,
+    "requires_signature": false
+  },
+  "index-controllers-us-high-demand-no-inventory": {
+    "packageid": 354234,
+    "inventory_available": false,
+    "high_pending_orders": true,
+    "account_restricted_from_purchasing": false,
+    "requires_reservation": false,
+    "allow_purchase_in_country": true,
+    "estimated_delivery_soonest_business_days": 6,
+    "estimated_delivery_latest_business_days": 10,
+    "requires_signature": false
+  },
+  "frame-kit-us-restricted-high-demand": {
+    "packageid": 1727366,
+    "inventory_available": true,
+    "high_pending_orders": true,
+    "account_restricted_from_purchasing": true,
+    "requires_reservation": false,
+    "allow_purchase_in_country": true,
+    "estimated_delivery_soonest_business_days": 6,
+    "estimated_delivery_latest_business_days": 10,
+    "account_first_date_purchase_requirement": 1777273200,
+    "requires_signature": false
+  },
+  "frame-psu-au-in-stock": {
+    "packageid": 1727369,
+    "inventory_available": true,
+    "high_pending_orders": false,
+    "account_restricted_from_purchasing": false,
+    "requires_reservation": false,
+    "allow_purchase_in_country": true,
+    "estimated_delivery_soonest_business_days": 3,
+    "estimated_delivery_latest_business_days": 5,
+    "requires_signature": false
   }
 }
