@@ -52,10 +52,11 @@ test('the page answers the charger questions and keeps the purchase rule unconfi
   const body = text(read('steam-hardware-power-supply.html'));
   assert.match(body, /Power Supply not included/);
   assert.match(body, /45W/);
+  assert.match(body, /Power Supply Unit page on Steam , checked 26 Oct 2026/);
   assert.match(body, /Steam Deck charger/);
-  assert.match(body, /reported/i);
-  assert.match(body, /buy after you order a Frame/i);
-  assert.match(body, /not confirmed/i);
+  assert.match(body, /as reported on r\/SteamFrame/);
+  assert.match(body, /after you order a Frame/);
+  assert.match(body, /Not confirmed\..*unverified/);
 });
 
 test('nothing calls the power supply discontinued', () => {
