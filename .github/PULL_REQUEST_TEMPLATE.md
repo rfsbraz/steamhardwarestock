@@ -1,13 +1,13 @@
-## Summary
+## What and why
 
-<!-- One or two lines: what changes and why. -->
+<!-- What does this change, and what problem did you hit? -->
 
-Closes #
+Closes #<!-- Please agree on the approach in an issue first. Typo and docs fixes can skip this. -->
 
-## Screenshots
+## How you tested it
 
-<!-- UI changes only. Delete this section otherwise. -->
+<!-- Tests added, and what you ran (`npm run check`, `npm test`, `npm run build`). Screenshots for UI changes. -->
 
-## Tested
+## AI use
 
-<!-- One line: what you ran, for example `npm run check`, `npm test` and `npm run build`. -->
+<!-- Fine to use, just say so and confirm you understand every line. -->
