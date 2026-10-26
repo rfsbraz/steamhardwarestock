@@ -48,11 +48,11 @@ Copy is in `lib/seo.mjs` (`PRODUCT_SEO`). The choices came from the Search Conso
 | --- | --- | --- |
 | Frame and Machine searches are about availability and countries | "steam frame availability" 436 impressions, "steam frame available countries" 114 at 14.9% CTR, "steam machine available countries" 98, "steam machine country availability" 45 | Titles lead with "Availability" and "by Country". The product page lists the countries Steam sells in. |
 | "tracker" searches get impressions but few clicks | "steam hardware tracker" 1,080 impressions at 1.1% CTR, "steam controller tracker" 440 at 0.45% | The homepage title starts "Steam Hardware Tracker". The Controller title says "Stock Tracker". |
-| Dock searches are about restocks and being out of stock | "steam deck dock restock" 79, "steam deck dock out of stock" 65, "docking station restock" 41 | Dock title "Restock: Out of Stock or Discontinued?", with a lead that answers the discontinued question, the last in stock dates and a Europe section |
+| Dock searches are about restocks and being out of stock | "steam deck dock restock" 79, "steam deck dock out of stock" 65, "docking station restock" 41 | Dock title "Restock: Out of Stock Tracker". The page leads with whether the dock is discontinued, the last in stock dates and a Europe section |
 | Deck restock searches rank badly | "steam deck restock tracker" 98 impressions at position 21.9, "steam deck stock alert" at 29.5 | Deck title "Restock Tracker", plus a restock section with recorded restocks |
 | Country searches | "steam frame chile", "steam machine malta", "steam controller cyprus" | Country page titles read "<product> Stock in <country>: <status>" |
 
-Since 26 Oct 2026 the homepage and the Frame, Dock, Machine, Deck and Controller pages run the round 1 CTR test copy. Their titles and descriptions are fixed text (`description` in `PRODUCT_SEO`, and `public/index.html`), with no live in-stock count, so the copy stays the same for the whole test. `test/search-copy.test.mjs` pins it. The H1, body and country pages are unchanged. The Dock title changed again on 26 Oct 2026 (#63), so the Dock is no longer a clean round 1 page. Its description is the round 1 text.
+Since 26 Oct 2026 the homepage and the Frame, Dock, Machine, Deck and Controller pages run the round 1 CTR test copy. Their titles and descriptions are fixed text (`description` in `PRODUCT_SEO`, and `public/index.html`), with no live in-stock count, so the copy stays the same for the whole test. `test/search-copy.test.mjs` pins it. The H1, body and country pages are unchanged.
 
 ## Product structured data
 

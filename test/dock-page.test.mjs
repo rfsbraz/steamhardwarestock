@@ -49,10 +49,6 @@ const html = build();
 const body = html.slice(html.indexOf('<body'));
 const section = (id) => text((body.match(new RegExp(`<section[^>]*id="${id}"[\\s\\S]*?</section>`)) || [''])[0]);
 
-test('the dock title asks the restock and discontinued questions', () => {
-  assert.equal(decode(html.match(/<title>([^<]*)<\/title>/)[1]), 'Steam Deck Dock Restock: Out of Stock or Discontinued?');
-});
-
 test('the lead answers "is it discontinued?" before the country list', () => {
   const lead = section('dock-status');
   assert.match(lead, /Is the Steam Deck Dock discontinued\?/);

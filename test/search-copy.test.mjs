@@ -21,7 +21,7 @@ const COPY = {
     description: 'Is the Steam Frame in stock? See where Steam sells it, plus the waitlist or reservation status and price in each of 31 countries. Free restock alert.'
   },
   '/steam-dock': {
-    title: 'Steam Deck Dock Restock: Out of Stock or Discontinued?',
+    title: 'Steam Deck Dock Out of Stock? Restock Tracker by Country',
     description: 'Is the Steam Deck Docking Station out of stock? Live stock in 31 Steam countries, the date it was last in stock in each, and a free alert when it restocks.'
   },
   '/steam-machine': {
