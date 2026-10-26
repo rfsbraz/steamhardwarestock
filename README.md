@@ -15,6 +15,7 @@ Live at [steamhardwarestock.com](https://steamhardwarestock.com/)
 - Steam Deck Dock
 - Steam Frame
 - Steam Frame Ergonomic Accessories Kit
+- Steam Frame Accessory Replacement Kit
 - Steam Hardware Power Supply Unit
 - Valve Index (discontinued, tracked part by part)
 - Steam Machine

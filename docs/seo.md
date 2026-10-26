@@ -96,6 +96,10 @@ Valve stopped making the Valve Index and sells the remaining stock at 20% off wh
 - The product page has a "Remaining parts" table with each part's US price and the number of countries that have it in stock. Country pages list every part, priced or not.
 - The copy quotes Valve and does not promise a restock. `test/valve-index.test.mjs` covers it.
 
+## Steam Frame Replacement Kit page
+
+`/steam-frame-replacement-kit` tracks Steam package 1727366 (face gasket, head cushion and standard light blocker). On 26 Oct 2026 Steam flagged it `account_restricted_from_purchasing` in every country, with an account purchase date requirement of 27 Apr 2026, and its page reads "Login for purchase". The checker uses no account, so a restricted package reads Out of stock even where Steam has units (US and CA that day). The page says the limit may mean Frame owners only and marks that unverified. `test/replacement-kit.test.mjs` covers it.
+
 ## Steam Deck Black Friday page
 
 `/steam-deck-black-friday` (`lib/deck-sale.mjs`) shows new and refurbished Steam Deck stock per model and country, any discount Steam lists at build time, and an FAQ with `FAQPage` JSON-LD. It is in the sitemap, with `lastmod` from the Deck and refurbished history. The homepage links to it until `SEASON_END` (5 Jan 2027). Accessory links use the same JSAUX slot as the other pages (`docs/affiliate.md`), so with no ref ID the page shows no JSAUX links.
