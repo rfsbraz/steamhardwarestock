@@ -52,6 +52,8 @@ Copy is in `lib/seo.mjs` (`PRODUCT_SEO`). The choices came from the Search Conso
 | Deck restock searches rank badly | "steam deck restock tracker" 98 impressions at position 21.9, "steam deck stock alert" at 29.5 | Deck title "Restock Tracker", plus a restock section with recorded restocks |
 | Country searches | "steam frame chile", "steam machine malta", "steam controller cyprus" | Country page titles read "<product> Stock in <country>: <status>" |
 
+Since 26 Oct 2026 the homepage and the Frame, Dock, Machine, Deck and Controller pages run the round 1 CTR test copy. Their titles and descriptions are fixed text (`description` in `PRODUCT_SEO`, and `public/index.html`), with no live in-stock count, so the copy stays the same for the whole test. `test/search-copy.test.mjs` pins it. The H1, body and country pages are unchanged.
+
 ## Product structured data
 
 Search Console reported "Product snippets: 0 valid, 4 invalid" and "Merchant listings: 0 valid, 2 invalid". The old offers had no price.
