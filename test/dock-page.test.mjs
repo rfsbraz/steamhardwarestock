@@ -49,6 +49,11 @@ const html = build();
 const body = html.slice(html.indexOf('<body'));
 const section = (id) => text((body.match(new RegExp(`<section[^>]*id="${id}"[\\s\\S]*?</section>`)) || [''])[0]);
 
+test('the intro counts the same 30 countries as the lead', () => {
+  // Steam does not sell the dock in Australia, so it is not one of them.
+  assert.match(text(body), /In stock in 0 of 30 Steam countries at the last check\./);
+});
+
 test('the lead answers "is it discontinued?" before the country list', () => {
   const lead = section('dock-status');
   assert.match(lead, /Is the Steam Deck Dock discontinued\?/);
