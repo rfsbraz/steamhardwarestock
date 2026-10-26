@@ -87,6 +87,13 @@ const PRODUCTS = [
     packages: [{ id: 1727363, label: null, priceUsd: 59 }]
   },
   {
+    id: 'steam-hardware-power-supply',
+    name: 'Steam Hardware Power Supply Unit',
+    icon: 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4978480/f7a4bef871f21fa74edde91cab66c72ab5753e18/header.jpg',
+    paths: ['/app/4978480/Steam_Hardware_Power_Supply_Unit/'],
+    packages: [{ id: 1727369, label: null, priceUsd: 29 }]
+  },
+  {
     id: 'steam-machine',
     name: 'Steam Machine',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/d3888f2e560b3a837f6f0a25345b03b6.avif',

@@ -15,6 +15,7 @@ Live at [steamhardwarestock.com](https://steamhardwarestock.com/)
 - Steam Deck Dock
 - Steam Frame
 - Steam Frame Ergonomic Accessories Kit
+- Steam Hardware Power Supply Unit
 - Steam Machine
 
 Each product and country gets one of these statuses:
