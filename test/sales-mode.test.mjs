@@ -24,7 +24,8 @@ test('button state is derived from the Steam fields', () => {
   assert.equal(buttonFor(fx['deck-jp-not-sold']), 'unavailable');
   assert.equal(buttonFor(null), 'unavailable');
   assert.equal(buttonFor({ requires_reservation: true, reservation_not_allowed: true }), 'unavailable');
-  assert.equal(buttonFor({ inventory_available: true, high_pending_orders: true }), 'unavailable');
+  assert.equal(buttonFor(fx['index-base-station-us-in-stock-high-demand']), 'buy');
+  assert.equal(buttonFor(fx['index-controllers-us-high-demand-no-inventory']), 'unavailable');
   assert.equal(buttonFor({ inventory_available: true, account_restricted_from_purchasing: true }), 'unavailable');
   assert.deepEqual(Object.values(BUTTONS).map((b) => b.label), ['Buy', 'Reserve', 'Join waitlist', 'Unavailable']);
 });

@@ -35,6 +35,23 @@ test('normal stock states', () => {
   assert.equal(classifyDetails(null).status, 'out_of_stock');
 });
 
+test('an item Steam flags as high demand is in stock while it has inventory', () => {
+  for (const key of ['index-base-station-us-in-stock-high-demand', 'frame-psu-us-in-stock-high-demand']) {
+    const s = classifyDetails(fx[key]);
+    assert.equal(s.status, 'in_stock', key);
+    assert.equal(s.found, true, key);
+    assert.match(s.reason, /high demand/, key);
+  }
+  assert.equal(classifyDetails(fx['frame-psu-au-in-stock']).status, 'in_stock');
+});
+
+test('high demand without inventory, or a restricted sale, stays out of stock', () => {
+  assert.equal(classifyDetails(fx['index-controllers-us-high-demand-no-inventory']).status, 'out_of_stock');
+  const restricted = classifyDetails(fx['frame-kit-us-restricted-high-demand']);
+  assert.equal(restricted.status, 'out_of_stock');
+  assert.equal(restricted.reason, 'Steam is not selling this item right now.');
+});
+
 test('a product takes the best status of its packages', () => {
   const pick = (...keys) => combineStatuses(keys.map((k) => classifyDetails(fx[k]))).status;
   assert.equal(pick('dock-us-out-of-stock', 'deck-us-in-stock'), 'in_stock');

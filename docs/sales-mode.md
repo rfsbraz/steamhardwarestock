@@ -6,10 +6,10 @@ Each check records the button Steam shows for every product in every region, nex
 
 | `button` | Shown as | When |
 | --- | --- | --- |
-| `buy` | Buy | Status `in_stock`: `inventory_available` is true and nothing blocks the purchase |
+| `buy` | Buy | Status `in_stock`: `inventory_available` is true and nothing blocks the purchase. `high_pending_orders` (high demand) does not block it |
 | `reserve` | Reserve | Status `reservation_open`: `requires_reservation` is true and Steam is not running a waitlist |
 | `waitlist` | Join waitlist | Status `waitlist`: `requires_reservation` plus `position_is_waitlist`, `queue_in_waitlist` or `high_pending_orders` |
-| `unavailable` | Unavailable | Anything else: out of stock, `reservation_not_allowed`, `account_restricted_from_purchasing`, or `allow_purchase_in_country` false |
+| `unavailable` | Unavailable | Anything else: out of stock (including `high_pending_orders` with no inventory), `reservation_not_allowed`, `account_restricted_from_purchasing`, or `allow_purchase_in_country` false |
 
 `buttonFor(details)` in `public/stock-status.js` maps the status from `classifyDetails`, so the button and the status read the same fields in the same order and can never disagree. A product with several models takes the best button: Buy, then Reserve, then Join waitlist.
 
