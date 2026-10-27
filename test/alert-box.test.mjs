@@ -47,7 +47,7 @@ test('the heading follows what Steam shows', () => {
 });
 
 test('the RSS feed is a visible link in the box', () => {
-  assert.match(box(page('steam-deck')), /<a href="\/rss\.xml">Or follow the RSS feed<\/a>/);
+  assert.match(box(page('steam-deck')), /<a href="\/rss\.xml"[^>]*>Or follow the RSS feed<\/a>/);
 });
 
 test('the country is the saved one, else the browser region when Steam sells there', () => {

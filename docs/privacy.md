@@ -8,7 +8,12 @@ GA (`G-D4LRTXD5LR`) runs with Google Consent Mode v2. The head of every page set
 - They are **granted** everywhere else.
 - A choice saved in `localStorage` (`shs-consent`, `granted` or `denied`) is applied with `consent update` in the same script, before `config`. A returning visitor is never counted under the default.
 
-This is Consent Mode's advanced setup: with consent denied, GA sets no cookies and sends cookieless pings. Every GA event follows the consent state, including `affiliate_click`.
+This is Consent Mode's advanced setup: with consent denied, GA sets no cookies and sends cookieless pings. Every GA event follows the consent state, including `affiliate_click` and `alert_subscribe`.
+
+### Events
+
+- `affiliate_click`: see [affiliate.md](affiliate.md).
+- `alert_subscribe`: someone starts watching a product. Params are `product` (the product slug) and `channel` (`rss` for now, the RSS link in the alert box on product pages). One delegated click listener in `lib/landing.mjs`, inlined in the product pages. It does nothing if `gtag` is missing or throws. GA4 only reports `channel` once it is registered as an event-scoped custom dimension.
 
 Switzerland is included because its data protection law (revDSG) covers the same tracking, and Google asks for consent there for ads. Iceland, Liechtenstein and Norway are in the EEA, so GDPR applies.
 
