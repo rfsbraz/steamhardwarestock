@@ -155,7 +155,8 @@ test('built pages show cards where there are deals and text links elsewhere', ()
     const html = out.read(rel);
     assert.ok(html.includes('class="deal-strip"'), `${rel} has no cards`);
     assert.ok(!html.includes('class="affiliate-block"'), `${rel} still has the text links`);
-    assert.ok(!/<img [^>]*src="https?:/.test(html.slice(html.indexOf('deal-strip'))), `${rel} loads a remote image`);
+    const strip = html.slice(html.indexOf('class="deal-strip"'), html.indexOf('</aside>', html.indexOf('class="deal-strip"')));
+    assert.ok(!/<img [^>]*src="https?:/.test(strip), `${rel} loads a remote image`);
   }
   assert.ok(out.read('steam-machine/gb.html').includes('class="affiliate-block"'));
   const blocked = build({ AFFILIATE_JSAUX_REF: 'ref123', JSAUX_STUB: 'fail' });

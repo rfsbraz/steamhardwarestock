@@ -1490,6 +1490,15 @@ h1 .history-link {
   padding: 3px 8px;
   font-size: 0.72rem;
 }
+.pcard .why {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.results-section .pcards {
+  margin: 0;
+}
 .home-intro h2 {
   font-size: 1.05rem;
   margin: 0 0 8px;

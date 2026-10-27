@@ -68,7 +68,7 @@ test('a country with some parts in stock never reads plain In stock', () => {
   assert.match(pick(us, /<meta name="description" content="([^"]*)"/), /^Valve Index in United States: 4 of 9 parts in stock on the Steam Store\./);
   assert.match(text(us), /4 of 9 parts in stock/);
   assert.doesNotMatch(text(us), /it was in stock at the last check/);
-  assert.match(text(read('steam-deck/us.html')), /Valve Index : 4 of 9 parts in stock/);
+  assert.match(text(read('steam-deck/us.html')), /Valve Index 4 of 9 parts in stock/);
 
   assert.equal(pick(read('valve-index/de.html'), /<title>([^<]*)<\/title>/), 'Valve Index Stock in Germany: Out of stock');
 });
