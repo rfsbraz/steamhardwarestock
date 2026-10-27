@@ -20,7 +20,7 @@ const prices = {
 };
 
 function row(html, code) {
-  const m = html.match(new RegExp(`<tr>\\s*<td><a href="/steam-deck/${code.toLowerCase()}">[\\s\\S]*?</tr>`));
+  const m = html.match(new RegExp(`<tr data-cc="${code}">[\\s\\S]*?</tr>`));
   assert.ok(m, `no row for ${code}`);
   return m[0];
 }
@@ -40,11 +40,10 @@ test('no price means an empty cell, never a guessed one', () => {
   assert.match(row(none, 'US'), /<td class="price"><\/td>/);
 });
 
-test('checked time comes from the last check, only for rows that were checked', () => {
+test('the checked time comes from the last check, once above the table', () => {
   const html = renderProductPage(deck, {}, statusDoc, { prices });
-  assert.match(row(html, 'US'), new RegExp(`<time class="checked-ago" data-cell="steam-deck:US" datetime="${generatedAt}"[^>]*>Tue, 13 Oct 2026 12:00:00 GMT</time>`));
-  assert.match(row(html, 'FR'), /<td class="checked"><\/td>/, 'FR has no cell in this status doc');
-  assert.match(row(html, 'JP'), /<td class="checked"><\/td>/);
+  assert.match(html, new RegExp(`<p class="checked-line">All 31 countries were checked together <time class="checked-ago" datetime="${generatedAt}"[^>]*>at 12:00 GMT</time>`));
+  assert.ok(!row(html, 'US').includes('checked-ago'), 'no time on the row');
   const unchecked = renderProductPage(deck, {}, null, { prices });
   assert.ok(!unchecked.includes('checked-ago"'));
 });
