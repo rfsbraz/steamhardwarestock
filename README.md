@@ -67,7 +67,7 @@ Canonical host, page rules, structured data and the sitemap are described in [do
 
 ## Affiliate links
 
-The site can show JSAUX and Amazon accessory links. They are off until the IDs are set; see [docs/affiliate.md](docs/affiliate.md).
+The tracker uses affiliate links, JSAUX for now, to help cover its hosting costs. If you buy through one it may earn a commission, at no extra cost to you, as the [disclosures page](https://steamhardwarestock.com/disclosures) says. Amazon links stay off until a tag is set; see [docs/affiliate.md](docs/affiliate.md).
 
 ## Contributing
 
