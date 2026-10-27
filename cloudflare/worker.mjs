@@ -192,7 +192,8 @@ export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), n
 
 // The landing pages are static, so a status change asks GitHub to run the
 // Pages deploy workflow. At most one dispatch per 10 minutes. Without
-// GH_DISPATCH_TOKEN this does nothing.
+// GH_DISPATCH_TOKEN this does nothing. checked_at tells the build which check
+// to wait for, since KV can serve it the previous one for up to a minute.
 async function maybeDispatch(env, fetchImpl, now) {
   if (!env.GH_DISPATCH_TOKEN) return;
   const last = Number(await env.STOCK_KV.get(DISPATCH_KEY)) || 0;
@@ -207,7 +208,7 @@ async function maybeDispatch(env, fetchImpl, now) {
         'user-agent': 'steamhardwarestock-cron',
         'x-github-api-version': '2022-11-28'
       },
-      body: JSON.stringify({ ref: 'main' })
+      body: JSON.stringify({ ref: 'main', inputs: { checked_at: now.toISOString() } })
     });
     if (res.ok) {
       await env.STOCK_KV.put(DISPATCH_KEY, String(now.getTime()));
