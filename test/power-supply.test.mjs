@@ -71,7 +71,7 @@ test('the Frame, Deck and home pages link to the power supply page', () => {
   }
   const frame = read('steam-frame.html');
   const at = frame.indexOf(`href="${SLUG}"`);
-  assert.ok(at > frame.indexOf('id="countries-title"') && at < frame.indexOf('aria-label="Per-country stock"'), 'Frame link sits in the countries and prices section');
+  assert.ok(at > frame.indexOf('id="countries-title"') && at < frame.indexOf('id="ctable-title"'), 'Frame link sits in the countries and prices section');
 });
 
 test('the power supply page and its country pages are in the sitemap', () => {

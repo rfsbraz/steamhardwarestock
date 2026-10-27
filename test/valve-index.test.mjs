@@ -59,7 +59,7 @@ test('a country with some parts in stock never reads plain In stock', () => {
   assert.equal(StockStatus.partsLabel(['out_of_stock', 'out_of_stock']), null);
 
   const page = read('valve-index.html');
-  const usRow = page.match(/<tr>\s*<td><a href="\/valve-index\/us">[\s\S]*?<\/tr>/)[0];
+  const usRow = page.match(/<tr data-cc="US">[\s\S]*?<\/tr>/)[0];
   assert.match(usRow, /4 of 9 parts in stock/);
   assert.doesNotMatch(usRow, />In stock</);
 
