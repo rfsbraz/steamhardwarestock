@@ -1125,3 +1125,63 @@ h1 .history-link {
   outline: 3px solid #4c8bf5;
   outline-offset: 2px;
 }
+
+/* Alert box under the product title. */
+.alert-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border: 2px solid var(--surface-strong);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.alert-box > div {
+  flex: 1 1 320px;
+}
+.alert-box h2 {
+  margin: 0 0 2px;
+  font-size: 1.05rem;
+}
+.alert-box p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+.alert-box form {
+  display: flex;
+  gap: 8px;
+}
+.alert-box select {
+  width: auto;
+  min-height: 42px;
+  padding: 6px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text);
+  font: inherit;
+}
+.alert-box button {
+  min-height: 42px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--surface-strong);
+  color: var(--text-strong);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+@media (max-width: 760px) {
+  .alert-box form {
+    width: 100%;
+  }
+  .alert-box select,
+  .alert-box button {
+    flex: 1;
+  }
+}
