@@ -1578,3 +1578,63 @@ details.notsold p {
     text-align: right;
   }
 }
+
+/* 30-day restock timeline on the Steam Deck page. */
+.tl {
+  display: grid;
+  grid-template-columns: 170px 1fr 120px;
+  gap: 6px 10px;
+  align-items: center;
+  font-size: 0.86rem;
+}
+.tl .track {
+  position: relative;
+  height: 16px;
+  background: var(--gray-bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.tl .track i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--green);
+}
+.tl .axis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.tl .now {
+  font-size: 0.8rem;
+}
+.tl .small {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+.tl-legend {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+.tl-legend i {
+  display: inline-block;
+  width: 12px;
+  height: 10px;
+  background: var(--green);
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+@media (max-width: 760px) {
+  .tl {
+    grid-template-columns: 82px 1fr 78px;
+    gap: 6px;
+    font-size: 0.76rem;
+  }
+  .tl .now .badge {
+    font-size: 0.66rem;
+    padding: 1px 5px;
+  }
+}

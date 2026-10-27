@@ -250,7 +250,7 @@ for (const cf of ['', '1']) {
     assert.ok(section, 'restock section missing');
     assert.match(section, /Steam Deck restock/i);
     assert.match(section, /United States/);
-    assert.match(section, /12 Oct 2026/);
+    assert.match(section, /United States: 1 restock, most recently 12 Oct\./);
     assert.match(section, /Germany/);
     assert.doesNotMatch(section, /expected|rumou?r|will restock on|next restock date/i);
   });
