@@ -1410,3 +1410,30 @@ h1 .history-link {
     font-size: 1.5rem;
   }
 }
+
+/* Check time, cadence and source in one line. */
+.trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  align-items: center;
+  margin: 0 0 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+.trust .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  margin-right: 6px;
+  box-shadow: 0 0 0 3px var(--green-bg);
+}
+.trust b {
+  color: var(--text);
+}
