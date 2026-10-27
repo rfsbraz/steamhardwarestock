@@ -31,6 +31,10 @@ On the Steam Deck, Dock and Controller pages, and in the matching homepage rows,
 - `pages-deploy.yml` also runs daily at 05:30 UTC, so prices and the "checked" date are at most a day old. It reuses the existing deploy secrets. `scripts/indexnow.mjs` leaves the strip out of the content hash, so price changes alone don't ping IndexNow.
 - Tests use a recorded copy of the feed in `test/fixtures/jsaux-products.json`.
 
+## Promo pill
+
+`jsaux.promo` in `affiliate.config.json` adds a pill next to the strip title, for example `{ "label": "JSAUX Halloween Sale, until 5 Nov", "endsAt": "2026-11-06T08:00:00Z", "coupon": "" }`. Builds after `endsAt` leave it out, and the landing pages remove it in the browser once `endsAt` has passed, so a page built before the end never shows an old sale. Set `coupon` to an affiliate code to show ", code CODE" in the pill. Without a label or a valid date the promo is ignored. It only shows with the product cards.
+
 ## Disclosures
 
 - On the cards: a small "Ad" tag whose tooltip is the full sentence below, and a line under the cards: "Prices from jsaux.com in USD, checked <date>. Affiliate links", linking to `/disclosures`.
