@@ -43,7 +43,7 @@ On the Steam Deck, Dock and Controller pages, and in the matching homepage rows,
 
 ## Click tracking
 
-One delegated click listener sends `gtag('event', 'affiliate_click', { product, partner, link })`. It does nothing if `gtag` is missing or throws. The homepage gets it from `affiliate.js`, and the landing pages get it inline, from the same function.
+One delegated click listener sends `gtag('event', 'affiliate_click', { product, partner, link, format })`. `format` is `card` for a product card and `link` for a text link, so the two can be compared. Card clicks also send `item`, the JSAUX product handle, and `position`, the card's place in the strip from 1. GA4 only reports `format`, `item` and `position` once they are registered as event-scoped custom dimensions in the property. It does nothing if `gtag` is missing or throws. The homepage gets it from `affiliate.js`, and the landing pages get it inline, from the same function.
 
 ## Links
 

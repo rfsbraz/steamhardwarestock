@@ -114,7 +114,7 @@
     return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
   }
 
-  function dealCard(productId, deal, ref) {
+  function dealCard(productId, deal, ref, position) {
     if (!deal || typeof deal.url !== 'string' || typeof deal.image !== 'string' || !/^\/deals\/[a-z0-9-]+\.(webp|png|jpg)$/i.test(deal.image)) return '';
     if (!(deal.price > 0)) return '';
     let url;
@@ -122,7 +122,7 @@
     if (url.origin !== JSAUX_ORIGIN) return '';
     url.searchParams.set('sca_ref', ref);
     const off = deal.was > deal.price ? Math.round((1 - deal.price / deal.was) * 100) : 0;
-    return `<li class="deal-card"><a href="${escapeHtml(url.toString())}" target="_blank" rel="${REL}" data-affiliate="jsaux" data-product="${escapeHtml(productId)}">`
+    return `<li class="deal-card"><a href="${escapeHtml(url.toString())}" target="_blank" rel="${REL}" data-affiliate="jsaux" data-product="${escapeHtml(productId)}" data-format="card" data-item="${escapeHtml(deal.handle)}" data-position="${position}">`
       + `<span class="deal-media"><img src="${escapeHtml(deal.image)}" alt="" width="160" height="160" loading="lazy" decoding="async">${off > 0 ? `<span class="deal-badge">-${off}%</span>` : ''}</span>`
       + `<span class="deal-name">${escapeHtml(deal.title)}</span>`
       + `<span class="deal-price"><strong>${money(deal.price)}</strong>${off > 0 ? ` <s>${money(deal.was)}</s>` : ''}</span>`
@@ -146,7 +146,7 @@
     const day = checkedDay(feed.checkedAt);
     return `<aside class="deal-strip" aria-label="Accessory deals">
   <div class="deal-head"><span class="deal-title">${escapeHtml(DEAL_TITLES[productId])}${sale ? ' on sale' : ''}</span>${promoPill(config.jsaux.promo, now)}<span class="deal-ad" title="${escapeHtml(DISCLOSURE)}">Ad</span></div>
-  <ul class="deal-list">${shown.map((d) => dealCard(productId, d, ref)).join('')}</ul>
+  <ul class="deal-list">${shown.map((d, i) => dealCard(productId, d, ref, i + 1)).join('')}</ul>
   <p class="deal-foot">Prices from jsaux.com in USD${day ? `, checked ${escapeHtml(day)}` : ''}. <a href="/disclosures">Affiliate links</a></p>
 </aside>`;
   }
@@ -184,11 +184,17 @@
         var target = event.target;
         var link = target && target.closest ? target.closest('a[data-affiliate]') : null;
         if (!link || typeof win.gtag !== 'function') return;
-        win.gtag('event', 'affiliate_click', {
+        var params = {
           product: link.getAttribute('data-product'),
           partner: link.getAttribute('data-affiliate'),
-          link: link.href
-        });
+          link: link.href,
+          format: link.getAttribute('data-format') || 'link'
+        };
+        if (params.format === 'card') {
+          params.item = link.getAttribute('data-item');
+          params.position = Number(link.getAttribute('data-position'));
+        }
+        win.gtag('event', 'affiliate_click', params);
       } catch (_) {
         // Tracking must never block the click.
       }
