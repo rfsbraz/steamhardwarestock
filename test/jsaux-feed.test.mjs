@@ -131,7 +131,7 @@ function build(extraEnv) {
     stdio: 'pipe'
   });
   const asset = readdirSync(dist).find((f) => /^affiliate\.[a-f0-9]{8}\.js$/.test(f));
-  return { dist, affiliateJs: readFileSync(path.join(dist, asset), 'utf8') };
+  return { dist, affiliateJs: readFileSync(path.join(dist, asset), 'utf8'), read: (rel) => readFileSync(path.join(dist, rel), 'utf8') };
 }
 
 test('the build copies deal images and bakes the deals into affiliate.js', () => {
@@ -147,4 +147,18 @@ test('the build skips the feed without a JSAUX ref and survives a blocked feed',
   const blocked = build({ AFFILIATE_JSAUX_REF: 'ref123', JSAUX_STUB: 'fail' });
   assert.ok(!blocked.affiliateJs.includes('"deals"'));
   assert.ok(blocked.affiliateJs.includes('"ref123"'));
+});
+
+test('built pages show cards where there are deals and text links elsewhere', () => {
+  const out = build({ AFFILIATE_JSAUX_REF: 'ref123' });
+  for (const rel of ['steam-deck.html', 'steam-deck/us.html', 'steam-dock.html', 'steam-controller.html']) {
+    const html = out.read(rel);
+    assert.ok(html.includes('class="deal-strip"'), `${rel} has no cards`);
+    assert.ok(!html.includes('class="affiliate-block"'), `${rel} still has the text links`);
+    assert.ok(!/<img [^>]*src="https?:/.test(html.slice(html.indexOf('deal-strip'))), `${rel} loads a remote image`);
+  }
+  assert.ok(out.read('steam-machine/gb.html').includes('class="affiliate-block"'));
+  const blocked = build({ AFFILIATE_JSAUX_REF: 'ref123', JSAUX_STUB: 'fail' });
+  assert.ok(blocked.read('steam-deck.html').includes('class="affiliate-block"'), 'blocked feed keeps the text links');
+  assert.ok(!blocked.read('steam-deck.html').includes('deal-strip'));
 });

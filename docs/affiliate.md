@@ -20,9 +20,20 @@ The build bakes the result into the hashed `affiliate.js` and the landing pages.
 - **Amazon flag off, or no tag:** no Amazon links and no Amazon disclosure.
 - **Nothing set** (the default): the site looks exactly as before.
 
+## Product cards
+
+On the Steam Deck, Dock and Controller pages, and in the matching homepage rows, the JSAUX text links are replaced by a strip of up to four product cards: image, name, price, the old price struck through and a `-NN%` badge when JSAUX lists one, and a "Shop at JSAUX" button. Each card links to the product page with `?sca_ref=`.
+
+- `lib/jsaux-feed.mjs` reads `https://jsaux.com/collections/all/products.json` during the build. `DEAL_PICKS` is the hand-picked list of handles per page, in display order. Steam Deck and Steam Controller items only: anything with Switch, ROG Ally or Legion in the title is dropped. The Valve Index has no picks because JSAUX sells nothing for it.
+- The price is the cheapest in-stock variant. It counts as a sale only when that variant's `compare_at_price` is higher. Sold-out products are skipped.
+- Images are fetched at 320px from the Shopify CDN and copied into `dist/deals/`, so visitors load nothing from JSAUX or Shopify.
+- The build skips the feed when `PRERENDER_OFFLINE=1` or there is no JSAUX ref. If the fetch fails, the pages keep the text links.
+- Tests use a recorded copy of the feed in `test/fixtures/jsaux-products.json`.
+
 ## Disclosures
 
-- Next to the links: "We may earn a commission when you buy through these links, at no extra cost to you." When Amazon links show, it also says "As an Amazon Associate I earn from qualifying purchases."
+- On the cards: a small "Ad" tag whose tooltip is the full sentence below, and a line under the cards: "Prices from jsaux.com in USD, checked <date>. Affiliate links", linking to `/disclosures`.
+- Next to the text links: "We may earn a commission when you buy through these links, at no extra cost to you." When Amazon links show, it also says "As an Amazon Associate I earn from qualifying purchases."
 - In the footer of the homepage and the landing pages: the same lines, shown only when the matching links are on.
 
 ## Click tracking

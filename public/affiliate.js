@@ -36,6 +36,14 @@
     'steam-machine': [{ label: 'USB-C hubs and storage', query: 'usb c hub nvme enclosure' }]
   };
 
+  // Product cards from the JSAUX feed (lib/jsaux-feed.mjs). The build adds
+  // CONFIG.deals; without it the pages keep the JSAUX text links above.
+  const DEAL_TITLES = {
+    'steam-deck': 'Steam Deck accessories',
+    'steam-dock': 'Steam Deck docks and chargers',
+    'steam-controller': 'Steam Controller accessories'
+  };
+
   const DISCLOSURE = 'We may earn a commission when you buy through these links, at no extra cost to you.';
   const AMAZON_DISCLOSURE = 'As an Amazon Associate I earn from qualifying purchases.';
   const REL = 'sponsored noopener';
@@ -88,15 +96,56 @@
     return `<li><a href="${escapeHtml(link.url)}" target="_blank" rel="${REL}" data-affiliate="${escapeHtml(link.partner)}" data-product="${escapeHtml(productId)}">${escapeHtml(link.label)}</a></li>`;
   }
 
+  function money(cents) {
+    return `$${(cents / 100).toFixed(2)}`;
+  }
+
+  function checkedDay(iso) {
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+  }
+
+  function dealCard(productId, deal, ref) {
+    if (!deal || typeof deal.url !== 'string' || typeof deal.image !== 'string' || !/^\/deals\/[a-z0-9-]+\.(webp|png|jpg)$/i.test(deal.image)) return '';
+    if (!(deal.price > 0)) return '';
+    let url;
+    try { url = new URL(deal.url); } catch (_) { return ''; }
+    if (url.origin !== JSAUX_ORIGIN) return '';
+    url.searchParams.set('sca_ref', ref);
+    const off = deal.was > deal.price ? Math.round((1 - deal.price / deal.was) * 100) : 0;
+    return `<li class="deal-card"><a href="${escapeHtml(url.toString())}" target="_blank" rel="${REL}" data-affiliate="jsaux" data-product="${escapeHtml(productId)}">`
+      + `<span class="deal-media"><img src="${escapeHtml(deal.image)}" alt="" width="160" height="160" loading="lazy" decoding="async">${off > 0 ? `<span class="deal-badge">-${off}%</span>` : ''}</span>`
+      + `<span class="deal-name">${escapeHtml(deal.title)}</span>`
+      + `<span class="deal-price"><strong>${money(deal.price)}</strong>${off > 0 ? ` <s>${money(deal.was)}</s>` : ''}</span>`
+      + '<span class="deal-cta">Shop at JSAUX</span></a></li>';
+  }
+
+  function dealStrip(productId, config) {
+    const ref = str(config.jsaux && config.jsaux.refId);
+    const feed = config.deals;
+    const deals = feed && feed.pages && feed.pages[productId];
+    if (!ref || !DEAL_TITLES[productId] || !Array.isArray(deals)) return '';
+    const shown = deals.filter((d) => dealCard(productId, d, ref));
+    if (!shown.length) return '';
+    const sale = shown.some((d) => d.was > d.price);
+    const day = checkedDay(feed.checkedAt);
+    return `<aside class="deal-strip" aria-label="Accessory deals">
+  <div class="deal-head"><span class="deal-title">${escapeHtml(DEAL_TITLES[productId])}${sale ? ' on sale' : ''}</span><span class="deal-ad" title="${escapeHtml(DISCLOSURE)}">Ad</span></div>
+  <ul class="deal-list">${shown.map((d) => dealCard(productId, d, ref)).join('')}</ul>
+  <p class="deal-foot">Prices from jsaux.com in USD${day ? `, checked ${escapeHtml(day)}` : ''}. <a href="/disclosures">Affiliate links</a></p>
+</aside>`;
+  }
+
   function accessoryBlock(productId, config) {
     const c = config || CONFIG;
-    const jsaux = jsauxLinks(productId, c);
+    const strip = dealStrip(productId, c);
+    const jsaux = strip ? [] : jsauxLinks(productId, c);
     const amazon = amazonLinks(productId, c);
-    if (!jsaux.length && !amazon.length) return '';
+    if (!jsaux.length && !amazon.length) return strip;
     const lines = [];
     if (jsaux.length) lines.push(DISCLOSURE);
     if (amazon.length) lines.push(AMAZON_DISCLOSURE);
-    return `<aside class="affiliate-block" aria-label="Accessories">
+    return `${strip}<aside class="affiliate-block" aria-label="Accessories">
   <span class="affiliate-title">Accessories</span>
   <ul class="affiliate-links">${[...jsaux, ...amazon].map((l) => linkHtml(productId, l)).join('')}</ul>
   <p class="affiliate-disclosure">${lines.map(escapeHtml).join(' ')}</p>
