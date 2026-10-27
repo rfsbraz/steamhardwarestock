@@ -42,6 +42,12 @@ const PRODUCTS = {
     steamPath: '/app/4978440/Steam_Frame_Ergonomic_Accessories_Kit/',
     packageIds: [1727363]
   },
+  'steam-frame-replacement-kit': {
+    name: 'Steam Frame Accessory Replacement Kit',
+    icon: 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4978460/b5bfde22c354c98a3e361abdd6e37328397600d4/header.jpg',
+    steamPath: '/app/4978460/Steam_Frame_Accessory_Replacement_Kit/',
+    packageIds: [1727366]
+  },
   'steam-hardware-power-supply': {
     name: 'Steam Hardware Power Supply Unit',
     icon: 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4978480/f7a4bef871f21fa74edde91cab66c72ab5753e18/header.jpg',
