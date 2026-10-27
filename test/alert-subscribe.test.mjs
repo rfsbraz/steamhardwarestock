@@ -44,12 +44,12 @@ function pressAlertButton(click, html) {
   click.fire('submit', form);
 }
 
-test('clicking the RSS link in the alert box sends alert_subscribe with the product and channel', () => {
+test('clicking the RSS link in the alert box sends alert_subscribe with the product, channel and source', () => {
   for (const id of ['steam-deck', 'steam-dock']) {
     const calls = [];
     const click = setup((...a) => calls.push(a));
     click(rssLink(page(id)));
-    assert.deepEqual(calls, [['event', 'alert_subscribe', { product: id, channel: 'rss' }]]);
+    assert.deepEqual(calls, [['event', 'alert_subscribe', { product: id, channel: 'rss', source: 'product_page' }]]);
   }
 });
 
@@ -78,7 +78,7 @@ test('pressing the alert box button sends alert_subscribe with the product and t
     const calls = [];
     const click = setup((...a) => calls.push(a));
     pressAlertButton(click, page(id));
-    assert.deepEqual(calls, [['event', 'alert_subscribe', { product: id, channel: 'tab' }]], id);
+    assert.deepEqual(calls, [['event', 'alert_subscribe', { product: id, channel: 'tab', source: 'product_page' }]], id);
   }
 });
 
@@ -89,8 +89,8 @@ test('the RSS link still sends rss and each action sends exactly one event', () 
   click(rssLink(html));
   pressAlertButton(click, html);
   assert.deepEqual(calls, [
-    ['event', 'alert_subscribe', { product: 'steam-deck', channel: 'rss' }],
-    ['event', 'alert_subscribe', { product: 'steam-deck', channel: 'tab' }]
+    ['event', 'alert_subscribe', { product: 'steam-deck', channel: 'rss', source: 'product_page' }],
+    ['event', 'alert_subscribe', { product: 'steam-deck', channel: 'tab', source: 'product_page' }]
   ]);
 });
 
