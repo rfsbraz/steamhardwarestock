@@ -85,7 +85,7 @@ test('one delegated click handler fires the GA4 event', () => {
   Affiliate.installClickTracking(dom.doc, { gtag: (...a) => calls.push(a) });
   dom.click(dom.inside);
   dom.click(dom.outside);
-  assert.deepEqual(calls, [['event', 'affiliate_click', { product: 'steam-deck', partner: 'jsaux', link: 'https://jsaux.com/x?sca_ref=r' }]]);
+  assert.deepEqual(calls, [['event', 'affiliate_click', { product: 'steam-deck', partner: 'jsaux', link: 'https://jsaux.com/x?sca_ref=r', format: 'link' }]]);
 });
 
 test('click tracking does nothing when gtag is missing or throws', () => {

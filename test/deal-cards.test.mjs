@@ -35,11 +35,12 @@ test('the strip shows one card per deal with image, name, price, old price, badg
   assert.match(html, /Steam Deck accessories on sale/);
 });
 
-test('card links go to the product with the ref and stay sponsored', () => {
-  const links = anchors(Affiliate.accessoryBlock('steam-deck', CARDS)).filter((a) => a.includes('jsaux.com'));
+test('card links go through a /go/ path on this site and stay sponsored', () => {
+  const links = anchors(Affiliate.accessoryBlock('steam-deck', CARDS)).filter((a) => a.includes('data-format="card"'));
   assert.equal(links.length, 2);
+  assert.match(links[0], /href="\/go\/jsaux-steam-deck-docking-station"/);
+  assert.match(links[1], /href="\/go\/jsaux-steam-deck-screen-protector-1"/);
   for (const a of links) {
-    assert.match(a, /href="https:\/\/jsaux\.com\/products\/[a-z0-9-]+\?sca_ref=ref123"/);
     assert.match(a, /target="_blank" rel="sponsored noopener" data-affiliate="jsaux" data-product="steam-deck"/);
   }
 });

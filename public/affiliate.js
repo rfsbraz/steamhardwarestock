@@ -114,15 +114,28 @@
     return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
   }
 
-  function dealCard(productId, deal, ref) {
+  // Cards link to a first-party path so clicks show up in Cloudflare
+  // analytics. The build turns each picked handle into a 302 in _redirects.
+  const HANDLE = /^[a-z0-9-]+$/;
+
+  function goPath(handle) {
+    return `/go/jsaux-${handle}`;
+  }
+
+  function jsauxRedirects(handles, ref) {
+    const query = ref ? `?sca_ref=${encodeURIComponent(ref)}` : '';
+    return [...new Set(handles)].filter((h) => HANDLE.test(h))
+      .map((h) => `${goPath(h)} ${JSAUX_ORIGIN}/products/${h}${query} 302\n`).join('');
+  }
+
+  function dealCard(productId, deal, position) {
     if (!deal || typeof deal.url !== 'string' || typeof deal.image !== 'string' || !/^\/deals\/[a-z0-9-]+\.(webp|png|jpg)$/i.test(deal.image)) return '';
     if (!(deal.price > 0)) return '';
     let url;
     try { url = new URL(deal.url); } catch (_) { return ''; }
-    if (url.origin !== JSAUX_ORIGIN) return '';
-    url.searchParams.set('sca_ref', ref);
+    if (url.origin !== JSAUX_ORIGIN || !HANDLE.test(deal.handle) || url.pathname !== `/products/${deal.handle}`) return '';
     const off = deal.was > deal.price ? Math.round((1 - deal.price / deal.was) * 100) : 0;
-    return `<li class="deal-card"><a href="${escapeHtml(url.toString())}" target="_blank" rel="${REL}" data-affiliate="jsaux" data-product="${escapeHtml(productId)}">`
+    return `<li class="deal-card"><a href="${escapeHtml(goPath(deal.handle))}" target="_blank" rel="${REL}" data-affiliate="jsaux" data-product="${escapeHtml(productId)}" data-format="card" data-item="${escapeHtml(deal.handle)}" data-position="${position}">`
       + `<span class="deal-media"><img src="${escapeHtml(deal.image)}" alt="" width="160" height="160" loading="lazy" decoding="async">${off > 0 ? `<span class="deal-badge">-${off}%</span>` : ''}</span>`
       + `<span class="deal-name">${escapeHtml(deal.title)}</span>`
       + `<span class="deal-price"><strong>${money(deal.price)}</strong>${off > 0 ? ` <s>${money(deal.was)}</s>` : ''}</span>`
@@ -140,13 +153,13 @@
     const feed = config.deals;
     const deals = feed && feed.pages && feed.pages[productId];
     if (!ref || !DEAL_TITLES[productId] || !Array.isArray(deals)) return '';
-    const shown = deals.filter((d) => dealCard(productId, d, ref));
+    const shown = deals.filter((d) => dealCard(productId, d));
     if (!shown.length) return '';
     const sale = shown.some((d) => d.was > d.price);
     const day = checkedDay(feed.checkedAt);
     return `<aside class="deal-strip" aria-label="Accessory deals">
   <div class="deal-head"><span class="deal-title">${escapeHtml(DEAL_TITLES[productId])}${sale ? ' on sale' : ''}</span>${promoPill(config.jsaux.promo, now)}<span class="deal-ad" title="${escapeHtml(DISCLOSURE)}">Ad</span></div>
-  <ul class="deal-list">${shown.map((d) => dealCard(productId, d, ref)).join('')}</ul>
+  <ul class="deal-list">${shown.map((d, i) => dealCard(productId, d, i + 1)).join('')}</ul>
   <p class="deal-foot">Prices from jsaux.com in USD${day ? `, checked ${escapeHtml(day)}` : ''}. <a href="/disclosures">Affiliate links</a></p>
 </aside>`;
   }
@@ -184,11 +197,17 @@
         var target = event.target;
         var link = target && target.closest ? target.closest('a[data-affiliate]') : null;
         if (!link || typeof win.gtag !== 'function') return;
-        win.gtag('event', 'affiliate_click', {
+        var params = {
           product: link.getAttribute('data-product'),
           partner: link.getAttribute('data-affiliate'),
-          link: link.href
-        });
+          link: link.href,
+          format: link.getAttribute('data-format') || 'link'
+        };
+        if (params.format === 'card') {
+          params.item = link.getAttribute('data-item');
+          params.position = Number(link.getAttribute('data-position'));
+        }
+        win.gtag('event', 'affiliate_click', params);
       } catch (_) {
         // Tracking must never block the click.
       }
@@ -204,7 +223,7 @@
     }
   }
 
-  const api = { CONFIG, DISCLOSURE, AMAZON_DISCLOSURE, REL, JSAUX, AMAZON, resolveConfig, accessoryBlock, footerDisclosure, installClickTracking, hideEndedPromos };
+  const api = { CONFIG, DISCLOSURE, AMAZON_DISCLOSURE, REL, JSAUX, AMAZON, resolveConfig, accessoryBlock, footerDisclosure, installClickTracking, hideEndedPromos, jsauxRedirects };
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   } else {
