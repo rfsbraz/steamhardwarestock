@@ -1320,3 +1320,93 @@ h1 .history-link {
     flex: 1;
   }
 }
+
+/* "Right now" status summary on product pages. */
+.hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  margin: 0 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--line);
+}
+.hero.has-yc {
+  grid-template-columns: 1.3fr 1fr;
+}
+.hero > div {
+  background: var(--surface);
+  padding: 16px;
+}
+.hero > div[hidden] {
+  display: none;
+}
+.hero .lbl {
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+.hero .big {
+  font-size: 1.9rem;
+  font-weight: 850;
+  line-height: 1.1;
+}
+.hero .big.g {
+  color: var(--green);
+}
+.hero .big.a {
+  color: var(--amber);
+}
+.hero .big.r {
+  color: var(--muted);
+}
+.hero .bar {
+  display: flex;
+  height: 10px;
+  border-radius: 99px;
+  overflow: hidden;
+  margin: 10px 0 8px;
+  background: var(--gray-bg);
+}
+.hero .bar i {
+  display: block;
+}
+.hero .bar .g {
+  background: var(--green);
+}
+.hero .bar .a {
+  background: #e0a030;
+}
+.hero .bar .o {
+  background: var(--line-strong);
+}
+.hero p {
+  margin: 6px 0 0;
+  font-size: 0.92rem;
+}
+.hero .yc-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-top: 4px;
+}
+.hero .yc-alert {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: var(--green-bg);
+  color: var(--green);
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+@media (max-width: 760px) {
+  .hero.has-yc {
+    grid-template-columns: 1fr;
+  }
+  .hero .big {
+    font-size: 1.5rem;
+  }
+}
