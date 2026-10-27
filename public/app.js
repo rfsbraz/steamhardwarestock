@@ -719,6 +719,17 @@ function updateSummary() {
   }
 }
 
+// GA4 alert_subscribe, sent from startWatching only once watching actually starts:
+// picked slugs in catalog order. Tracking must never block the button.
+function trackStartWatching() {
+  try {
+    if (typeof window.gtag !== 'function') return;
+    const picked = state.products.map((product) => product.id).filter((id) => state.selectedProducts.has(id));
+    if (!picked.length) return;
+    window.gtag('event', 'alert_subscribe', { product: picked.join(','), channel: 'tab', source: 'homepage' });
+  } catch (_) {}
+}
+
 async function startWatching() {
   if (!state.selectedProducts.size || !state.selectedRegions.size) {
     setMessage('Select at least one product and one country.');
@@ -732,6 +743,7 @@ async function startWatching() {
   }
 
   state.running = true;
+  trackStartWatching();
   savePreferences();
   renderControls();
   await checkNow({ manual: false });
