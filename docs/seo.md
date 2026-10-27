@@ -88,6 +88,14 @@ Those pages have their own text and a link to Valve's page, so they are indexed 
 
 Product and country pages end with a short FAQ (`lib/faq.mjs`), marked up as `FAQPage` JSON-LD with the same text as the visible answers. Answers are built from that page's own data: the status at the last check, the local Steam price and currency, the last recorded restock, and the status of the other products in that country. So no two country pages share an FAQ. Countries Steam does not sell in get two short answers, and Komodo countries get Komodo answers. `test/faq.test.mjs` checks that every answer names its country and that no two country pages of a product share an FAQ.
 
+## Valve Index page
+
+Valve stopped making the Valve Index and sells the remaining stock at 20% off while supplies last (Steam's "Valve Index Sunset" page, 13 Oct 2026). `/valve-index` tracks its nine Steam packages as parts (`parts: true` in `lib/products.mjs`), from the headset to the face gasket.
+
+- A country counts as in stock when any part is. To avoid claiming more than Steam shows, every in-stock label names the count, such as "4 of 9 parts in stock" (`StockStatus.partsLabel`, `lib/parts.mjs`). This applies to the product table, country pages, titles, descriptions, FAQ answers, the live tracker card and change alerts.
+- The product page has a "Remaining parts" table with each part's US price and the number of countries that have it in stock. Country pages list every part, priced or not.
+- The copy quotes Valve and does not promise a restock. `test/valve-index.test.mjs` covers it.
+
 ## Steam Deck Black Friday page
 
 `/steam-deck-black-friday` (`lib/deck-sale.mjs`) shows new and refurbished Steam Deck stock per model and country, any discount Steam lists at build time, and an FAQ with `FAQPage` JSON-LD. It is in the sitemap, with `lastmod` from the Deck and refurbished history. The homepage links to it until `SEASON_END` (5 Jan 2027). Accessory links use the same JSAUX slot as the other pages (`docs/affiliate.md`), so with no ref ID the page shows no JSAUX links.

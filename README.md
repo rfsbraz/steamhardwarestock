@@ -16,6 +16,7 @@ Live at [steamhardwarestock.com](https://steamhardwarestock.com/)
 - Steam Frame
 - Steam Frame Ergonomic Accessories Kit
 - Steam Hardware Power Supply Unit
+- Valve Index (discontinued, tracked part by part)
 - Steam Machine
 
 Each product and country gets one of these statuses:

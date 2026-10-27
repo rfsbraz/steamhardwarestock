@@ -48,6 +48,12 @@ const PRODUCTS = {
     steamPath: '/app/4978480/Steam_Hardware_Power_Supply_Unit/',
     packageIds: [1727369]
   },
+  'valve-index': {
+    name: 'Valve Index',
+    icon: 'https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/1059530/header.jpg',
+    steamPath: '/hardware/valveindex',
+    packageIds: [354232, 354235, 566031, 566409, 354234, 580180, 359829, 354233, 354231]
+  },
   'steam-machine': {
     name: 'Steam Machine',
     icon: 'https://clan.akamai.steamstatic.com/images/clan/45479024/d3888f2e560b3a837f6f0a25345b03b6.avif',

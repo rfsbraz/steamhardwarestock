@@ -92,7 +92,14 @@
     return COPY[status] || COPY.out_of_stock;
   }
 
-  const api = { STATUSES, BUTTONS, classifyDetails, combineStatuses, copyFor, buttonFor, combineButtons };
+  // Products sold as separate parts (the Valve Index). A country where only
+  // some parts have stock reads "4 of 9 parts in stock", never "In stock".
+  function partsLabel(statuses) {
+    const n = statuses.filter((s) => s === 'in_stock').length;
+    return n ? `${n} of ${statuses.length} parts in stock` : null;
+  }
+
+  const api = { STATUSES, BUTTONS, classifyDetails, combineStatuses, copyFor, buttonFor, combineButtons, partsLabel };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.SteamStockStatus = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
