@@ -720,12 +720,13 @@ function updateSummary() {
 }
 
 // GA4 alert_subscribe for the Start watching button: picked slugs in catalog
-// order, or 'all' when none are picked. Tracking must never block the button.
+// order. Nothing is sent when no product is picked. Tracking must never block the button.
 function trackStartWatching() {
   try {
     if (typeof window.gtag !== 'function') return;
     const picked = state.products.map((product) => product.id).filter((id) => state.selectedProducts.has(id));
-    window.gtag('event', 'alert_subscribe', { product: picked.length ? picked.join(',') : 'all', channel: 'tab', source: 'homepage' });
+    if (!picked.length) return;
+    window.gtag('event', 'alert_subscribe', { product: picked.join(','), channel: 'tab', source: 'homepage' });
   } catch (_) {}
 }
 

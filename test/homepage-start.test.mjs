@@ -82,12 +82,12 @@ test('several products are joined in catalog order, whatever order ?p= uses', ()
   assert.deepEqual(r.subscribes(), [{ product: 'steam-controller,steam-deck,steam-machine', channel: 'tab', source: 'homepage' }]);
 });
 
-test('no products picked sends product all', () => {
+test('no products picked sends no alert_subscribe', () => {
   const r = recorder();
   const page = boot({ search: '?r=PT', gtag: r.gtag });
   page.untickAll();
   page.press();
-  assert.deepEqual(r.subscribes(), [{ product: 'all', channel: 'tab', source: 'homepage' }]);
+  assert.deepEqual(r.subscribes(), []);
 });
 
 test('the default selection (no ?p=) sends that product', () => {
