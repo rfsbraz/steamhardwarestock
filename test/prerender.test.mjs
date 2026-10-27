@@ -39,7 +39,7 @@ test('landing pages carry the status and the analytics script', async () => {
   const deckUs = readFileSync(path.join(dist, 'steam-deck', 'us.html'), 'utf8');
   assert.match(deckUs, /In stock/);
   assert.match(deckUs, /static\.cloudflareinsights\.com\/beacon\.min\.js/);
-  assert.match(deckUs, /Last check/);
+  assert.match(deckUs, /<b>Checked <time class="checked-ago"/);
   const controller = readFileSync(path.join(dist, 'steam-controller.html'), 'utf8');
   assert.match(controller, /Reservations open/);
   assert.match(controller, /static\.cloudflareinsights\.com\/beacon\.min\.js/);
