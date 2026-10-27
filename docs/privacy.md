@@ -18,7 +18,7 @@ This is Consent Mode's advanced setup: with consent denied, GA sets no cookies a
   - `channel`: `rss` for the RSS link in the alert box on product pages, `tab` for the alert box button (it opens the tracker in a tab) and for the homepage Start watching button.
   - `source`: `product_page` or `homepage`.
 
-  On product pages, delegated click and submit listeners in `lib/landing.mjs` are inlined in the page, and `tab` is sent on the form's submit so a button press counts once. On the homepage, `public/app.js` sends it when Start watching is pressed with at least one product picked, and sends nothing when none are. It does nothing if `gtag` is missing or throws. GA4 only reports `channel` and `source` once they are registered as event-scoped custom dimensions.
+  On product pages, delegated click and submit listeners in `lib/landing.mjs` are inlined in the page, and `tab` is sent on the form's submit so a button press counts once. On the homepage, `public/app.js` sends it when Start watching actually starts watching, so a press with no product or no country picked sends nothing. It does nothing if `gtag` is missing or throws. GA4 only reports `channel` and `source` once they are registered as event-scoped custom dimensions.
 
 Switzerland is included because its data protection law (revDSG) covers the same tracking, and Google asks for consent there for ads. Iceland, Liechtenstein and Norway are in the EEA, so GDPR applies.
 

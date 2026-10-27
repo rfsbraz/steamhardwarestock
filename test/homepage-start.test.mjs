@@ -54,11 +54,15 @@ function boot({ search = '', gtag } = {}) {
   vm.createContext(win);
   vm.runInContext(APP, win);
   for (const fn of docListeners.DOMContentLoaded || []) fn();
-  const productBoxes = created.filter((el) => el.tagName === 'INPUT' && el.type === 'checkbox');
+  const chips = (isProduct) => created
+    .filter((el) => el.tagName === 'LABEL' && String(el.className).includes('product-chip') === isProduct)
+    .flatMap((label) => label.children.filter((c) => c.tagName === 'INPUT' && c.type === 'checkbox'));
+  // Untick every chip of one kind, like a visitor clearing that selection.
+  const untick = (boxes) => { for (const box of boxes) { if (box.checked) { box.checked = false; box.fire('change'); } } };
   return {
     press: () => byId.get('startButton').fire('click'),
-    // Untick every product chip, like a visitor clearing the selection.
-    untickAll: () => { for (const box of productBoxes) { if (box.checked) { box.checked = false; box.fire('change'); } } }
+    untickProducts: () => untick(chips(true)),
+    untickCountries: () => untick(chips(false))
   };
 }
 
@@ -85,7 +89,15 @@ test('several products are joined in catalog order, whatever order ?p= uses', ()
 test('no products picked sends no alert_subscribe', () => {
   const r = recorder();
   const page = boot({ search: '?r=PT', gtag: r.gtag });
-  page.untickAll();
+  page.untickProducts();
+  page.press();
+  assert.deepEqual(r.subscribes(), []);
+});
+
+test('products picked, no country, sends no alert_subscribe', () => {
+  const r = recorder();
+  const page = boot({ search: '?p=steam-deck,steam-machine&r=PT', gtag: r.gtag });
+  page.untickCountries();
   page.press();
   assert.deepEqual(r.subscribes(), []);
 });

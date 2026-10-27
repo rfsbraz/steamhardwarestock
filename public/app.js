@@ -719,8 +719,8 @@ function updateSummary() {
   }
 }
 
-// GA4 alert_subscribe for the Start watching button: picked slugs in catalog
-// order. Nothing is sent when no product is picked. Tracking must never block the button.
+// GA4 alert_subscribe, sent from startWatching only once watching actually starts:
+// picked slugs in catalog order. Tracking must never block the button.
 function trackStartWatching() {
   try {
     if (typeof window.gtag !== 'function') return;
@@ -731,7 +731,6 @@ function trackStartWatching() {
 }
 
 async function startWatching() {
-  trackStartWatching();
   if (!state.selectedProducts.size || !state.selectedRegions.size) {
     setMessage('Select at least one product and one country.');
     return;
@@ -744,6 +743,7 @@ async function startWatching() {
   }
 
   state.running = true;
+  trackStartWatching();
   savePreferences();
   renderControls();
   await checkNow({ manual: false });
