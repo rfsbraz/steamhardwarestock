@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DEAL_PICKS, MAX_DEALS, dealFrom, pickDeals, loadDeals } from '../lib/jsaux-feed.mjs';
+import Affiliate from '../public/affiliate.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // Recorded from https://jsaux.com/collections/all/products.json on 27 Oct 2026, trimmed to the fields we read.
@@ -73,6 +74,13 @@ test('the picks cover Deck, Dock and Controller, and every picked product is for
       assert.doesNotMatch(p.title, /switch|ally|legion/i);
     }
   }
+});
+
+test('the Steam Deck Dock page picks docks and links to the docking stations collection', () => {
+  const deals = pickDeals(FEED.products)['steam-dock'];
+  assert.equal(deals.length, MAX_DEALS);
+  for (const d of deals) assert.match(d.title, /docking station/i, `${d.handle} is not a dock`);
+  assert.deepEqual(Affiliate.JSAUX['steam-dock'].map((l) => l.path), ['/collections/docking-stations']);
 });
 
 test('keeps pick order, drops missing handles and shows at most four per page', () => {

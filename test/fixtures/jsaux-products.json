@@ -132,6 +132,53 @@
    ]
   },
   {
+   "handle": "rgb-docking-station-for-steam-deck",
+   "title": "RGB Docking Station",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/HB1201S_1.png?v=1756894988"
+    }
+   ],
+   "variants": [
+    {
+     "price": "79.99",
+     "compare_at_price": "109.99",
+     "available": true
+    },
+    {
+     "price": "59.99",
+     "compare_at_price": "89.99",
+     "available": false
+    },
+    {
+     "price": "45.99",
+     "compare_at_price": "59.99",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "7-in-1-rgb-cooling-docking-station",
+   "title": "7-in-1 RGB Cooling Docking Station",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/7-in-1-RGB-Cooling-Docking-Station-1.png?v=1743130859"
+    }
+   ],
+   "variants": [
+    {
+     "price": "55.99",
+     "compare_at_price": "59.99",
+     "available": true
+    },
+    {
+     "price": "75.99",
+     "compare_at_price": null,
+     "available": true
+    }
+   ]
+  },
+  {
    "handle": "100w-usb-c-to-usb-c-cable",
    "title": "Transparent 100W USB-C to USB-C Charging Cable",
    "images": [
