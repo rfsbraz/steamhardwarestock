@@ -22,7 +22,7 @@ The build bakes the result into the hashed `affiliate.js` and the landing pages.
 
 ## Product cards
 
-On the Steam Deck, Dock and Controller pages, and in the matching homepage rows, the JSAUX text links are replaced by a strip of up to four product cards: image, name, price, the old price struck through and a `-NN%` badge when JSAUX lists one, and a "Shop at JSAUX" button. Each card links to the product page with `?sca_ref=`.
+On the Steam Deck, Dock and Controller pages, and in the matching homepage rows, the JSAUX text links are replaced by a strip of up to four product cards: image, name, price, the old price struck through and a `-NN%` badge when JSAUX lists one, and a "Shop at JSAUX" button. Each card links to `/go/jsaux-<handle>` on this site, which sends a 302 to the product page with `?sca_ref=` (see [/go/ links](#go-links)).
 
 - `lib/jsaux-feed.mjs` reads `https://jsaux.com/collections/all/products.json` during the build. `DEAL_PICKS` is the hand-picked list of handles per page, in display order. Steam Deck and Steam Controller items only: anything with Switch, ROG Ally or Legion in the title is dropped. The Valve Index has no picks because JSAUX sells nothing for it.
 - The price is the cheapest in-stock variant. It counts as a sale only when that variant's `compare_at_price` is higher. Sold-out products are skipped.
@@ -44,6 +44,22 @@ On the Steam Deck, Dock and Controller pages, and in the matching homepage rows,
 ## Click tracking
 
 One delegated click listener sends `gtag('event', 'affiliate_click', { product, partner, link, format })`. `format` is `card` for a product card and `link` for a text link, so the two can be compared. Card clicks also send `item`, the JSAUX product handle, and `position`, the card's place in the strip from 1. GA4 only reports `format`, `item` and `position` once they are registered as event-scoped custom dimensions in the property. It does nothing if `gtag` is missing or throws. The homepage gets it from `affiliate.js`, and the landing pages get it inline, from the same function.
+
+## /go/ links
+
+Card buttons go through a first-party path, `/go/jsaux-<handle>`, so each click is also a request to this site. The text links still go straight to JSAUX.
+
+- The build writes `dist/_redirects` with one rule per handle in `DEAL_PICKS`, for example `/go/jsaux-steam-deck-docking-station https://jsaux.com/products/steam-deck-docking-station?sca_ref=<ref> 302`. Without a JSAUX ref the rule has no `sca_ref`, so the path still works. Cloudflare Pages applies the file on deploy. Nothing else in Cloudflare needs to change.
+- Picks that are not shown today keep their rule, so a cached page with an older card still redirects.
+- `rel="sponsored noopener"`, `target="_blank"` and the `affiliate_click` event are unchanged. GA's `link` is now the `/go/` URL. `item` still has the handle.
+- To check locally: `npm run build`, then `npx wrangler@4 pages dev dist` and `curl -sI http://127.0.0.1:8788/go/jsaux-<handle>`.
+
+Reading the clicks in Cloudflare: a `/go/` hit is a 302 with no page, so the Web Analytics beacon does not see it. Use the edge request data instead:
+
+- Dashboard: the steamhardwarestock.com zone, Analytics, Traffic, Add filter, Path, starts with `/go/`. The Path filter needs the Pro plan or higher.
+- GraphQL Analytics API, any plan: `httpRequestsAdaptiveGroups` on the zone, filtered with `clientRequestPath_like: "/go/%"`, `edgeResponseStatus: 302` and `requestSource: "eyeball"`, grouped by `clientRequestPath`. Each path is one product, so the count per path is clicks per product. Every plan keeps about 30 days. It needs a token with Zone Analytics read, so ask whoever owns the Cloudflare account to run it or set up a Custom Dashboard with the same filter.
+
+Edge counts include bots and prefetches, so expect them to run a bit higher than GA's `affiliate_click`. GA still has the page, the format and the card position.
 
 ## Links
 
