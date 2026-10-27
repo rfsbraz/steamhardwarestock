@@ -1500,3 +1500,73 @@ h1 .history-link {
     height: 30px;
   }
 }
+
+/* Country table on product pages, grouped by status. */
+.ctable-section h2 {
+  margin-bottom: 2px;
+}
+.checked-line {
+  margin: 0 0 10px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+.ctable tr.grp th {
+  background: var(--surface-soft);
+  font-weight: 800;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-align: left;
+}
+details.notsold {
+  margin-top: 10px;
+  font-size: 0.88rem;
+}
+details.notsold summary {
+  cursor: pointer;
+  color: var(--blue);
+}
+details.notsold p {
+  margin: 8px 0 0;
+  line-height: 1.6;
+}
+@media (max-width: 760px) {
+  .ctable-section .history-table-wrap {
+    overflow: visible;
+    border: 0;
+  }
+  .ctable thead {
+    display: none;
+  }
+  .ctable,
+  .ctable tbody,
+  .ctable tr,
+  .ctable th,
+  .ctable td {
+    display: block;
+    width: 100%;
+  }
+  .ctable tr[data-cc] {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .ctable td {
+    border: 0;
+    padding: 0 4px;
+  }
+  .ctable td.st {
+    text-align: right;
+  }
+  .ctable td.price,
+  .ctable td.ls {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .ctable td.ls {
+    text-align: right;
+  }
+}
