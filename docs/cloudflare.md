@@ -13,7 +13,7 @@ The site runs on Cloudflare. Vercel hosting was removed in October 2026.
 
 | Workflow | Runs on | Does |
 | --- | --- | --- |
-| `.github/workflows/pages-deploy.yml` | `workflow_dispatch` (from the Worker or by hand), push to `main` | `npm run build` with `CF_PAGES=1` and `PRERENDER_SOURCE_URL=https://steamhardwarestock.pages.dev`, then `wrangler pages deploy dist --project-name steamhardwarestock` |
+| `.github/workflows/pages-deploy.yml` | `workflow_dispatch` (from the Worker or by hand), push to `main`, daily at 05:30 UTC | `npm run build` with `CF_PAGES=1` and `PRERENDER_SOURCE_URL=https://steamhardwarestock.pages.dev`, then `wrangler pages deploy dist --project-name steamhardwarestock` |
 | `.github/workflows/worker-deploy.yml` | push to `main` touching `cloudflare/**`, `lib/**`, `public/stock-status.js` or `package-lock.json`; `workflow_dispatch` | `wrangler deploy --config cloudflare/wrangler.toml` |
 
 `wrangler pages deploy` runs from the repo root, so it also uploads `functions/` and reads the KV binding from `wrangler.toml`.
