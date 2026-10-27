@@ -105,3 +105,9 @@ test('styles cover the strip, with sideways scrolling when it gets narrow', () =
   for (const sel of ['.deal-strip', '.deal-card', '.deal-badge', '.deal-ad', '.deal-foot']) assert.ok(css.includes(sel), sel);
   assert.match(css, /@container[^{]*\{\s*\.deal-list\s*\{[^}]*overflow-x:\s*auto/);
 });
+
+test('the Steam Deck Dock strip is titled for docks only', () => {
+  const dock = deal('upgraded-docking-station-for-steam-deck', '6-in-1 Docking Station', 3999, 4999);
+  const html = Affiliate.accessoryBlock('steam-dock', { ...CARDS, deals: { checkedAt: DEALS.checkedAt, pages: { 'steam-dock': [dock] } } });
+  assert.match(html, /<span class="deal-title">Steam Deck docks on sale<\/span>/);
+});

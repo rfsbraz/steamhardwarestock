@@ -40,7 +40,7 @@
   // CONFIG.deals; without it the pages keep the JSAUX text links above.
   const DEAL_TITLES = {
     'steam-deck': 'Steam Deck accessories',
-    'steam-dock': 'Steam Deck docks and chargers',
+    'steam-dock': 'Steam Deck docks',
     'steam-controller': 'Steam Controller accessories'
   };
 
