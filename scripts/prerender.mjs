@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { PRODUCTS, REGIONS, VALVE_SELLS } from '../lib/products.mjs';
-import { renderProductPage, renderRegionPage, renderInfoPage, renderNotFoundPage, INFO_PAGES } from '../lib/landing.mjs';
+import { renderProductPage, renderRegionPage, renderInfoPage, renderNotFoundPage, INFO_PAGES, productCards } from '../lib/landing.mjs';
 import { CHECKED_REGIONS } from '../lib/steam.mjs';
 import { isIndexable, latestEvent, KOMODO_REGIONS } from '../lib/seo.mjs';
 import { buildSitemap } from '../lib/sitemap.mjs';
@@ -112,10 +112,11 @@ function homeIntro(status, regions) {
     ? `<p>At the last check, Steam showed ${counts.in_stock || 0} product and country pairs in stock and ${queue} taking reservations or running a waitlist.</p>`
     : '';
   return `<section class="home-intro" aria-label="About this tracker">
+        <h2>About this tracker</h2>
         <p>This free tracker follows the official Steam store for ${list}. It checks ${sold} countries, the ones where Valve sells its hardware on the Steam store. In ${komodo} more, Valve sells some of it through Komodo, its official distributor. The tracker does not check Komodo stock, so those pages say so and link to Komodo instead.</p>
         <p>Every 10 minutes the tracker asks Steam for the state of each product in each of those ${sold} countries. A product can be in stock, out of stock, open for reservations, or on a waitlist, and the answer often differs from one country to the next. Each product has its own page with a table of every country, and each country has its own page with the current state, the local price when Steam lists one, and the last time it was in stock.</p>
         ${snapshot}
-        <p>To get an alert, pick the products and countries you care about below and press Start watching. Your browser tells you when one of them changes. Your watch list stays in your browser, and you do not need an account. Past changes are kept on the stock history page, which shows when each product last came back in every country.</p>
+        <p>To get an alert, pick the products and countries you care about in the watch form above and press Start watching. Your browser tells you when one of them changes. Your watch list stays in your browser, and you do not need an account. Past changes are kept on the stock history page, which shows when each product last came back in every country.</p>
       </section>`;
 }
 
@@ -152,6 +153,7 @@ export function prerenderHome(html, status, history = {}, { regions = CHECKED_RE
     : 'id="lastChecked">Never<');
   out = out.replace('<div class="results-grid" id="resultsGrid"></div>', `<div class="results-grid" id="resultsGrid"><div class="empty-state"><p>Stock across the ${regionCount} countries where Steam sells Valve hardware${when ? `, as of <time datetime="${escape(when)}">${escape(new Date(when).toUTCString())}</time>` : ''}:</p><ul>${rows.join('')}</ul></div></div>`);
   out = out.replace('<h1>Steam Hardware Tracker: Stock and Reservation Status</h1>', `<h1>Steam Hardware Tracker: Stock and Reservation Status in ${regions.length} Countries</h1>`);
+  out = out.replace('<!-- home:cards -->', productCards(PRODUCTS, status));
   out = out.replace('<!-- home:intro -->', homeIntro(status, regions));
   out = out.replace('<!-- home:season -->', seasonLink(now));
   out = withDateModified(out, latestEvent(history, Object.keys(history || {})) || status?.generatedAt || null);

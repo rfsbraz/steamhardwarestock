@@ -13,12 +13,12 @@ const text = (html) => html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 const now = (html) => text(html.match(/<div class="hero-now">[\s\S]*?<\/div>\s*(?=<div class="hero-yc"|<\/section>)/)?.[0] || '');
 const panel = (html, cc) => html.match(new RegExp(`<div class="yc" data-yc="${cc}"[\\s\\S]*?</div>`))?.[0] || '';
 
-test('every product page has the summary between the intro and the last check', () => {
+test('every product page has the summary between the intro and the trust strip', () => {
   for (const p of PRODUCTS) {
     const html = page(p.id);
     const at = html.indexOf('<section class="hero"');
     assert.ok(at > html.indexOf('<p class="intro">'), `${p.id}: after the intro`);
-    assert.ok(at < html.indexOf('Last check:'), `${p.id}: before the last check`);
+    assert.ok(at < html.indexOf('<div class="trust"'), `${p.id}: before the trust strip`);
   }
 });
 

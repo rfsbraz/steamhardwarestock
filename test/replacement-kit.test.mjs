@@ -65,7 +65,7 @@ test('the page says what is in the kit and keeps the purchase limit unconfirmed'
   assert.match(body, /only Steam Frame owners/);
   assert.match(body, /unverified/);
   assert.match(body, /checks without a Steam account/);
-  assert.match(body, /Replacement Kit page on Steam , checked 26 Oct 2026/);
+  assert.match(body, /Replacement Kit page on Steam \. These notes were last compared with Valve's page on 26 Oct 2026/);
 });
 
 test('nothing calls the replacement kit discontinued', () => {

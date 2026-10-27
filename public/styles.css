@@ -1418,3 +1418,93 @@ h1 .history-link {
     font-size: 1.5rem;
   }
 }
+
+/* Check time, cadence and source in one line. */
+.trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  align-items: center;
+  margin: 0 0 14px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+.trust .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  margin-right: 6px;
+  box-shadow: 0 0 0 3px var(--green-bg);
+}
+.trust b {
+  color: var(--text);
+}
+
+/* Product status cards on the homepage. */
+.pcards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 0 0 16px;
+}
+.pcard {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--text);
+}
+.pcard:hover {
+  border-color: var(--line-strong);
+}
+.pcard img {
+  width: 56px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: var(--gray-bg);
+}
+.pcard .nm {
+  display: block;
+  font-weight: 800;
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+.pcard .st {
+  display: block;
+  margin-top: 4px;
+}
+.pcard .badge {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 0.72rem;
+}
+.home-intro h2 {
+  font-size: 1.05rem;
+  margin: 0 0 8px;
+}
+@media (max-width: 760px) {
+  .pcards {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .pcard {
+    grid-template-columns: 44px 1fr;
+    padding: 8px;
+  }
+  .pcard img {
+    width: 44px;
+    height: 30px;
+  }
+}

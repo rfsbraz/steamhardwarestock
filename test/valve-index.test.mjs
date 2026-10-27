@@ -95,7 +95,7 @@ test('the page is a clearance page and promises no restock', () => {
   const body = text(html);
   assert.match(body, /Valve Index is no longer being produced/);
   assert.match(body, /while supplies last/);
-  assert.match(body, /Valve Index page on Steam , checked 26 Oct 2026/);
+  assert.match(body, /Valve Index page on Steam \. These notes were last compared with Valve's page on 26 Oct 2026/);
   assert.match(body, /Is the Valve Index discontinued\?/);
   assert.match(body, /Will Valve restock the Valve Index\?/);
   assert.match(body, /At least one part in stock in 1 of 31 Steam countries/);
