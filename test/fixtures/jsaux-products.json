@@ -1,0 +1,297 @@
+{
+ "products": [
+  {
+   "handle": "steam-deck-docking-station",
+   "title": "5-in-1 Docking Station",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/HB0602S-5-in-1-Docking-Station-1.png?v=1768817950"
+    }
+   ],
+   "variants": [
+    {
+     "price": "29.99",
+     "compare_at_price": "39.99",
+     "available": true
+    },
+    {
+     "price": "49.99",
+     "compare_at_price": null,
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "double-decker-travel-supply-case-for-steam-deck",
+   "title": "Double-Decker Travel Supply Case for Steam Deck LCD & OLED",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/BG0140-Double-Decker-Travel-Supply-Case-for-Steam-Deck-LCD-OLED-1.png?v=1773041644"
+    }
+   ],
+   "variants": [
+    {
+     "price": "35.99",
+     "compare_at_price": "39.99",
+     "available": true
+    },
+    {
+     "price": "85.99",
+     "compare_at_price": null,
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "steam-deck-screen-protector-1",
+   "title": "Screen Protector for Steam Deck LCD & OLED",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/GP0107_92aea3c7-7cb4-4834-8504-261938050294.png?v=1766474483"
+    }
+   ],
+   "variants": [
+    {
+     "price": "10.99",
+     "compare_at_price": "12.99",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "usb-c-pd-charger-for-steam-deck-ch6504-ch4504",
+   "title": "65W USB-C Foldable Charger",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/CH6505-65W-USB-C-Foldable-Charger-1_6fca5e4e-73bb-4c3b-b445-f19a1cdfc6ac.png?v=1774319853"
+    }
+   ],
+   "variants": [
+    {
+     "price": "23.99",
+     "compare_at_price": "25.99",
+     "available": true
+    },
+    {
+     "price": "22.99",
+     "compare_at_price": "25.99",
+     "available": true
+    },
+    {
+     "price": "22.99",
+     "compare_at_price": "25.99",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "silicone-grip-for-steam-deck",
+   "title": "Silicone Grip for Steam Deck LCD & OLED",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/Silicone-Grip-for-SteamDeck-12_5d02d08f-1f89-4811-98c1-ee355bedb6bc.png?v=1766991720"
+    }
+   ],
+   "variants": [
+    {
+     "price": "9.99",
+     "compare_at_price": "12.99",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "upgraded-docking-station-for-steam-deck",
+   "title": "6-in-1 Docking Station",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/HB0603S-6-in-1-Docking-Station-1.png?v=1768875120"
+    }
+   ],
+   "variants": [
+    {
+     "price": "39.99",
+     "compare_at_price": "49.99",
+     "available": true
+    },
+    {
+     "price": "39.99",
+     "compare_at_price": "39.99",
+     "available": true
+    },
+    {
+     "price": "46.99",
+     "compare_at_price": "49.99",
+     "available": true
+    },
+    {
+     "price": "68.99",
+     "compare_at_price": "73.99",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "rgb-docking-station-for-steam-deck",
+   "title": "RGB Docking Station",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/HB1201S_1.png?v=1756894988"
+    }
+   ],
+   "variants": [
+    {
+     "price": "79.99",
+     "compare_at_price": "109.99",
+     "available": true
+    },
+    {
+     "price": "59.99",
+     "compare_at_price": "89.99",
+     "available": false
+    },
+    {
+     "price": "45.99",
+     "compare_at_price": "59.99",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "7-in-1-rgb-cooling-docking-station",
+   "title": "7-in-1 RGB Cooling Docking Station",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/7-in-1-RGB-Cooling-Docking-Station-1.png?v=1743130859"
+    }
+   ],
+   "variants": [
+    {
+     "price": "55.99",
+     "compare_at_price": "59.99",
+     "available": true
+    },
+    {
+     "price": "75.99",
+     "compare_at_price": null,
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "100w-usb-c-to-usb-c-cable",
+   "title": "Transparent 100W USB-C to USB-C Charging Cable",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/CC0057-purple.png?v=1766651071"
+    }
+   ],
+   "variants": [
+    {
+     "price": "9.99",
+     "compare_at_price": "15.99",
+     "available": true
+    },
+    {
+     "price": "9.99",
+     "compare_at_price": "15.99",
+     "available": false
+    },
+    {
+     "price": "5.99",
+     "compare_at_price": "9.99",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "travel-carrying-case-for-steam-controller",
+   "title": "Travel Carrying Case for Steam Controller",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/BG0146-1.png?v=1782185675"
+    }
+   ],
+   "variants": [
+    {
+     "price": "25.99",
+     "compare_at_price": null,
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "dual-energy-station-for-steam-controller",
+   "title": "Dual Energy Station for Steam Controller",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/GP0513_Dual_Energy_Station_for_Steam_Controller.png?v=1793067631"
+    }
+   ],
+   "variants": [
+    {
+     "price": "25.99",
+     "compare_at_price": null,
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "pc0104-metal-bracket",
+   "title": "PC0104 Metal Bracket",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/PC0104_3ebe1eef-3f60-4b13-b4fb-773e777cc6b0.jpg?v=1766652073"
+    }
+   ],
+   "variants": [
+    {
+     "price": "7.99",
+     "compare_at_price": null,
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "multi-mode-joystick-cap-and-thumb-grip-with-lever-guard-set-for-switch-2",
+   "title": "Multi-Mode Joystick & Grip Guard Set for Switch 2, Steam Controller & ROG Xbox Ally X20",
+   "images": [
+    {
+     "src": "https://cdn.shopify.com/s/files/1/0517/0367/7081/files/GP0404-Multi-Mode-Joystick-Cap-and-Thumb-Grip-with-Lever-Guard-Set-for-Switch-2-blue-orange-1.png?v=1754987915"
+    }
+   ],
+   "variants": [
+    {
+     "price": "13.99",
+     "compare_at_price": "19.99",
+     "available": true
+    },
+    {
+     "price": "9.99",
+     "compare_at_price": "12.99",
+     "available": true
+    },
+    {
+     "price": "9.99",
+     "compare_at_price": "12.99",
+     "available": true
+    },
+    {
+     "price": "9.99",
+     "compare_at_price": "12.99",
+     "available": true
+    },
+    {
+     "price": "9.99",
+     "compare_at_price": "12.99",
+     "available": true
+    },
+    {
+     "price": "9.99",
+     "compare_at_price": "12.99",
+     "available": true
+    }
+   ]
+  }
+ ]
+}

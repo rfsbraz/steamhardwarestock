@@ -19,7 +19,7 @@
       { label: 'Steam Deck OLED accessories', path: '/collections/steam-deck-oled' }
     ],
     'steam-dock': [
-      { label: 'Cables and chargers', path: '/collections/cables-chargers-for-steam-deck' }
+      { label: 'Docking stations', path: '/collections/docking-stations' }
     ],
     'steam-controller': [
       { label: 'Steam Controller accessories', path: '/collections/steam-controller-accessories' }

@@ -59,6 +59,13 @@ async function build() {
   await fs.mkdir(destination, { recursive: true });
 
   const affiliate = await loadAffiliateConfig();
+  // Product cards need the live JSAUX feed. Offline builds, forks without a
+  // ref and a failed fetch all keep the plain text links.
+  if (affiliate.jsaux.refId && process.env.PRERENDER_OFFLINE !== '1') {
+    const { loadDeals } = await import('../lib/jsaux-feed.mjs');
+    const deals = await loadDeals({ outDir: path.join(destination, 'deals') });
+    if (deals) affiliate.deals = deals;
+  }
   const hashes = {};
   for (const name of HASHED_ASSETS) {
     const content = assetContent(name, await fs.readFile(path.join(source, name)), affiliate);
