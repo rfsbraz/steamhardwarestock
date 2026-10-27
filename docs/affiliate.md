@@ -28,6 +28,7 @@ On the Steam Deck, Dock and Controller pages, and in the matching homepage rows,
 - The price is the cheapest in-stock variant. It counts as a sale only when that variant's `compare_at_price` is higher. Sold-out products are skipped.
 - Images are fetched at 320px from the Shopify CDN and copied into `dist/deals/`, so visitors load nothing from JSAUX or Shopify.
 - The build skips the feed when `PRERENDER_OFFLINE=1` or there is no JSAUX ref. If the fetch fails, the pages keep the text links.
+- `pages-deploy.yml` also runs daily at 05:30 UTC, so prices and the "checked" date are at most a day old. It reuses the existing deploy secrets. `scripts/indexnow.mjs` leaves the strip out of the content hash, so price changes alone don't ping IndexNow.
 - Tests use a recorded copy of the feed in `test/fixtures/jsaux-products.json`.
 
 ## Disclosures
