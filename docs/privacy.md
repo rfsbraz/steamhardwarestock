@@ -13,7 +13,7 @@ This is Consent Mode's advanced setup: with consent denied, GA sets no cookies a
 ### Events
 
 - `affiliate_click`: see [affiliate.md](affiliate.md).
-- `alert_subscribe`: someone starts watching a product. Params are `product` (the product slug) and `channel` (`rss` for now, the RSS link in the alert box on product pages). One delegated click listener in `lib/landing.mjs`, inlined in the product pages. It does nothing if `gtag` is missing or throws. GA4 only reports `channel` once it is registered as an event-scoped custom dimension.
+- `alert_subscribe`: someone starts watching a product. Params are `product` (the product slug) and `channel`: `rss` for the RSS link in the alert box on product pages, `tab` for the alert box button that opens the tracker in a tab. Delegated click and submit listeners in `lib/landing.mjs`, inlined in the product pages. `tab` is sent on the form's submit, so a button press counts once. It does nothing if `gtag` is missing or throws. GA4 only reports `channel` once it is registered as an event-scoped custom dimension.
 
 Switzerland is included because its data protection law (revDSG) covers the same tracking, and Google asks for consent there for ads. Iceland, Liechtenstein and Norway are in the EEA, so GDPR applies.
 

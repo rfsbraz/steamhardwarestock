@@ -18,11 +18,30 @@ function rssLink(html) {
 }
 
 function setup(gtag) {
-  let handler;
-  const doc = { addEventListener: (type, fn) => { assert.equal(type, 'click'); handler = fn; } };
+  const handlers = {};
+  const doc = { addEventListener: (type, fn) => { (handlers[type] ||= []).push(fn); } };
   landing.installAlertTracking(doc, { gtag });
-  const click = (link) => handler({ target: { closest: (sel) => (link && link.matches(sel) ? link : null) } });
+  const fire = (type, target) => (handlers[type] || []).forEach((fn) => fn({ type, target }));
+  const click = (link) => fire('click', { closest: (sel) => (link && link.matches(sel) ? link : null) });
+  click.fire = fire;
   return click;
+}
+
+// The alert box form as rendered, and its submit button inside it.
+function alertForm(html) {
+  const tag = box(html).match(/<form [^>]*>/)?.[0] || '';
+  const attrs = Object.fromEntries([...tag.matchAll(/([a-z-]+)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
+  const form = { getAttribute: (n) => (n in attrs ? attrs[n] : null) };
+  form.closest = (sel) => (sel === 'form[data-alert]' && 'data-alert' in attrs ? form : null);
+  const button = { closest: (sel) => (sel.startsWith('form') ? form.closest(sel) : null) };
+  return { form, button };
+}
+
+// A button press: the click on the button, then the submit it triggers.
+function pressAlertButton(click, html) {
+  const { form, button } = alertForm(html);
+  click.fire('click', button);
+  click.fire('submit', form);
 }
 
 test('clicking the RSS link in the alert box sends alert_subscribe with the product and channel', () => {
@@ -52,4 +71,33 @@ test('alert tracking does nothing when gtag is missing or throws', () => {
 test('product pages inline the alert tracker', () => {
   const html = page('steam-deck');
   assert.ok(html.includes("'alert_subscribe'"), 'inline alert tracker missing');
+});
+
+test('pressing the alert box button sends alert_subscribe with the product and the tab channel', () => {
+  for (const id of ['steam-deck', 'steam-dock', 'steam-controller']) {
+    const calls = [];
+    const click = setup((...a) => calls.push(a));
+    pressAlertButton(click, page(id));
+    assert.deepEqual(calls, [['event', 'alert_subscribe', { product: id, channel: 'tab' }]], id);
+  }
+});
+
+test('the RSS link still sends rss and each action sends exactly one event', () => {
+  const calls = [];
+  const click = setup((...a) => calls.push(a));
+  const html = page('steam-deck');
+  click(rssLink(html));
+  pressAlertButton(click, html);
+  assert.deepEqual(calls, [
+    ['event', 'alert_subscribe', { product: 'steam-deck', channel: 'rss' }],
+    ['event', 'alert_subscribe', { product: 'steam-deck', channel: 'tab' }]
+  ]);
+});
+
+test('the button press does nothing when gtag is missing or throws', () => {
+  const html = page('steam-deck');
+  assert.doesNotThrow(() => pressAlertButton(setup(undefined), html));
+  let tries = 0;
+  assert.doesNotThrow(() => pressAlertButton(setup(() => { tries += 1; throw new Error('blocked'); }), html));
+  assert.equal(tries, 1, 'gtag is called once and its error is swallowed');
 });
