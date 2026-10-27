@@ -76,3 +76,47 @@ test('loadData reads status and history from PRERENDER_SOURCE_URL', async () => 
   assert.equal(out.status.generatedAt, 'g');
   assert.deepEqual(out.history, { k: {} });
 });
+
+function laggingSource(generatedAts) {
+  const seen = [];
+  const fetchImpl = async (url) => {
+    seen.push(url.pathname);
+    if (url.pathname !== '/status.json') return new Response('{}');
+    const at = generatedAts[Math.min(seen.filter((p) => p === '/status.json').length, generatedAts.length) - 1];
+    return new Response(JSON.stringify({ generatedAt: at, products: {} }));
+  };
+  return { fetchImpl, seen };
+}
+
+test('a rebuild for a check waits until status.json has that check', async () => {
+  const { loadData } = await import('../scripts/prerender.mjs');
+  const { fetchImpl } = laggingSource(['2026-10-27T07:50:40.338Z', '2026-10-27T07:50:40.338Z', '2026-10-27T08:00:40.338Z']);
+  const waits = [];
+  const out = await loadData({
+    env: { PRERENDER_SOURCE_URL: 'https://example.test', PRERENDER_OFFLINE: '1', PRERENDER_MIN_GENERATED_AT: '2026-10-27T08:00:40.338Z' },
+    fetchImpl,
+    sleep: async (ms) => { waits.push(ms); }
+  });
+  assert.equal(out.status.generatedAt, '2026-10-27T08:00:40.338Z');
+  assert.equal(waits.length, 2);
+});
+
+test('a rebuild builds with the newest status it got if that check never shows up', async () => {
+  const { loadData } = await import('../scripts/prerender.mjs');
+  const { fetchImpl } = laggingSource(['2026-10-27T07:50:40.338Z']);
+  const waits = [];
+  const original = console.warn;
+  console.warn = () => {};
+  try {
+    const out = await loadData({
+      env: { PRERENDER_SOURCE_URL: 'https://example.test', PRERENDER_OFFLINE: '1', PRERENDER_MIN_GENERATED_AT: '2026-10-27T08:00:40.338Z' },
+      fetchImpl,
+      sleep: async (ms) => { waits.push(ms); }
+    });
+    assert.equal(out.status.generatedAt, '2026-10-27T07:50:40.338Z');
+  } finally {
+    console.warn = original;
+  }
+  assert.ok(waits.length > 0);
+  assert.ok(waits.reduce((a, b) => a + b, 0) <= 5 * 60 * 1000, 'gives up within five minutes');
+});

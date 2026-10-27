@@ -18,20 +18,37 @@ function escape(s) {
 // Status and history at build time. PRERENDER_SOURCE_URL points at a deployed
 // site (the Pages build reads the live KV data through its own functions).
 // Without it (forks, local builds) run one live Steam check instead.
-async function loadFromUrl(base, fetchImpl) {
+//
+// PRERENDER_MIN_GENERATED_AT is the check that asked for this build. KV can
+// serve the previous check for up to a minute after a write, so status.json
+// is fetched again until it has that check, or the wait runs out.
+const STATUS_RETRY_MS = 10 * 1000;
+const STATUS_RETRIES = 18;
+
+async function loadFromUrl(base, fetchImpl, minGeneratedAt, sleep) {
   const get = async (path) => {
     const res = await fetchImpl(new URL(path, base));
     if (!res.ok) throw new Error(`${path}: ${res.status}`);
     return res.json();
   };
+  const min = minGeneratedAt ? Date.parse(minGeneratedAt) : NaN;
+  const stale = (doc) => Number.isFinite(min) && !(Date.parse(doc?.generatedAt) >= min);
   let status = null;
   let history = {};
-  try { status = await get('/status.json'); } catch (error) { console.warn('prerender: status.json unavailable:', error?.message); }
+  for (let attempt = 0; ; attempt++) {
+    try { status = await get('/status.json'); } catch (error) { console.warn('prerender: status.json unavailable:', error?.message); }
+    if (!status || !stale(status)) break;
+    if (attempt === STATUS_RETRIES) {
+      console.warn(`prerender: status.json is still from ${status.generatedAt}, not ${minGeneratedAt}; building with it`);
+      break;
+    }
+    await sleep(STATUS_RETRY_MS);
+  }
   try { history = await get('/api/history'); } catch (error) { console.warn('prerender: history unavailable:', error?.message); }
   return { status, history };
 }
 
-export async function loadData({ env = process.env, fetchImpl = (...a) => fetch(...a) } = {}) {
+export async function loadData({ env = process.env, fetchImpl = (...a) => fetch(...a), sleep = (ms) => new Promise((r) => setTimeout(r, ms)) } = {}) {
   // PRERENDER_FIXTURE: a JSON file with { status, history, prices }, for tests.
   if (env.PRERENDER_FIXTURE) {
     const data = JSON.parse(await fs.readFile(env.PRERENDER_FIXTURE, 'utf8'));
@@ -41,7 +58,7 @@ export async function loadData({ env = process.env, fetchImpl = (...a) => fetch(
   let history = {};
   let prices = {};
   if (env.PRERENDER_SOURCE_URL) {
-    ({ status, history } = await loadFromUrl(env.PRERENDER_SOURCE_URL, fetchImpl));
+    ({ status, history } = await loadFromUrl(env.PRERENDER_SOURCE_URL, fetchImpl, env.PRERENDER_MIN_GENERATED_AT, sleep));
   }
   if (!status && env.PRERENDER_OFFLINE !== '1') {
     try {

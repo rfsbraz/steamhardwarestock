@@ -4,6 +4,11 @@ name: Deploy Pages
 # (direct upload). The Worker cron dispatches this when a status changes.
 on:
   workflow_dispatch:
+    inputs:
+      checked_at:
+        description: Time of the stock check that asked for this build. The build waits until status.json has it.
+        required: false
+        type: string
   push:
     branches: [main]
 
@@ -34,6 +39,7 @@ jobs:
         env:
           CF_PAGES: '1'
           PRERENDER_SOURCE_URL: https://steamhardwarestock.pages.dev
+          PRERENDER_MIN_GENERATED_AT: ${{ inputs.checked_at }}
           # Optional repo variables (not secrets). Empty means no affiliate links.
           AFFILIATE_JSAUX_REF: ${{ vars.AFFILIATE_JSAUX_REF }}
           AFFILIATE_AMAZON_ENABLED: ${{ vars.AFFILIATE_AMAZON_ENABLED }}
