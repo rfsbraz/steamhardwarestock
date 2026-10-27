@@ -1,13 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import os from 'node:os';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRODUCTS, VALVE_SELLS } from '../lib/products.mjs';
 import { pageFile } from '../scripts/prerender.mjs';
 import { INDEXNOW_KEY, contentHash, buildManifest, changedUrls, indexNowPayload, pingIndexNow } from '../scripts/indexnow.mjs';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const S = 'https://steamhardwarestock.com';
@@ -55,7 +55,7 @@ test('with no previous manifest every URL is submitted once', () => {
 
 // Builds the site from a fixture into a temp dir and returns its manifest.
 function buildWith(mutate = (f) => f) {
-  const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-indexnow-'));
+  const dist = tmpDir('shs-indexnow-');
   const products = {};
   for (const p of PRODUCTS) {
     products[p.id] = Object.fromEntries(VALVE_SELLS.map((cc) => [cc, { status: 'out_of_stock', packages: p.packages.map((pk) => ({ id: pk.id, status: 'out_of_stock' })) }]));

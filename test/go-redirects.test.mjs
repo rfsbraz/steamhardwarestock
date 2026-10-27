@@ -1,17 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import os from 'node:os';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DEAL_PICKS } from '../lib/jsaux-feed.mjs';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
 const PAGES = ['steam-deck.html', 'steam-deck/us.html', 'steam-dock.html', 'steam-controller.html'];
 
 function build(extraEnv) {
-  const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-dist-'));
+  const dist = tmpDir('shs-dist-');
   const fixture = path.join(dist, '..', `${path.basename(dist)}-data.json`);
   writeFileSync(fixture, JSON.stringify({ status: null, history: {}, prices: {} }));
   execFileSync(process.execPath, ['--import', path.join(root, 'test/fixtures/jsaux-fetch.mjs'), 'scripts/build.js'], {

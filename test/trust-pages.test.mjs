@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync } from 'node:fs';
-import os from 'node:os';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { INFO_PAGES, renderInfoPage } from '../lib/landing.mjs';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PATHS = ['/how-it-works', '/about', '/methodology', '/disclosures'];
@@ -18,7 +18,7 @@ test('the info pages are listed once each', () => {
 
 for (const cf of ['', '1']) {
   test(`About, Methodology and Disclosures are built, in the sitemap and in every footer (CF_PAGES=${cf || 'unset'})`, () => {
-    const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-trust-'));
+    const dist = tmpDir('shs-trust-');
     execFileSync(process.execPath, ['scripts/build.js'], { cwd: root, env: { ...process.env, BUILD_DIST: dist, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: cf }, stdio: 'pipe' });
     const sitemap = readFileSync(path.join(dist, 'sitemap.xml'), 'utf8');
     for (const p of PATHS) {

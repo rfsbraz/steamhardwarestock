@@ -1,14 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import os from 'node:os';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DEAL_PICKS, MAX_DEALS, dealFrom, pickDeals, loadDeals } from '../lib/jsaux-feed.mjs';
 import Affiliate from '../public/affiliate.js';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
 // Recorded from https://jsaux.com/collections/all/products.json on 27 Oct 2026, trimmed to the fields we read.
 const FEED = JSON.parse(readFileSync(path.join(root, 'test/fixtures/jsaux-products.json'), 'utf8'));
 const byHandle = (h) => FEED.products.find((p) => p.handle === h);
@@ -91,7 +92,7 @@ test('keeps pick order, drops missing handles and shows at most four per page', 
 });
 
 test('loadDeals copies resized images into the build and returns only local paths', async () => {
-  const out = mkdtempSync(path.join(os.tmpdir(), 'shs-deals-'));
+  const out = tmpDir('shs-deals-');
   const fetchImpl = fakeFetch();
   const feed = await loadDeals({ fetchImpl, outDir: out, now: NOW });
   assert.equal(feed.checkedAt, '2026-10-27T06:00:00.000Z');
@@ -108,20 +109,20 @@ test('loadDeals copies resized images into the build and returns only local path
 });
 
 test('loadDeals returns null when the feed fails, so pages keep the text links', async () => {
-  const out = mkdtempSync(path.join(os.tmpdir(), 'shs-deals-'));
+  const out = tmpDir('shs-deals-');
   assert.equal(await loadDeals({ fetchImpl: fakeFetch({ feed: new TypeError('fetch failed') }), outDir: out, now: NOW }), null);
   assert.equal(await loadDeals({ fetchImpl: fakeFetch({ feed: 503 }), outDir: out, now: NOW }), null);
   assert.equal(await loadDeals({ fetchImpl: fakeFetch({ feed: { nope: true } }), outDir: out, now: NOW }), null);
 });
 
 test('a product whose image cannot be copied is left out', async () => {
-  const out = mkdtempSync(path.join(os.tmpdir(), 'shs-deals-'));
+  const out = tmpDir('shs-deals-');
   assert.equal(await loadDeals({ fetchImpl: fakeFetch({ image: { status: 404, type: 'text/html' } }), outDir: out, now: NOW }), null);
   assert.equal(await loadDeals({ fetchImpl: fakeFetch({ image: { status: 200, type: 'text/html' } }), outDir: out, now: NOW }), null);
 });
 
 function build(extraEnv) {
-  const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-dist-'));
+  const dist = tmpDir('shs-dist-');
   const fixture = path.join(dist, '..', `${path.basename(dist)}-data.json`);
   writeFileSync(fixture, JSON.stringify({ status: null, history: {}, prices: {} }));
   const stub = path.join(root, 'test/fixtures/jsaux-fetch.mjs');

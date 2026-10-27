@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync, existsSync } from 'node:fs';
-import os from 'node:os';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRODUCTS } from '../lib/products.mjs';
 import { EXPLAINERS, explainerFor } from '../lib/explainers.mjs';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const pngSize = (file) => { const b = readFileSync(file); assert.equal(b.toString('ascii', 1, 4), 'PNG'); return [b.readUInt32BE(16), b.readUInt32BE(20)]; };
@@ -44,7 +44,7 @@ test('every product has an explainer that links an official Valve page', () => {
 });
 
 function build(cf) {
-  const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-pwa-'));
+  const dist = tmpDir('shs-pwa-');
   execFileSync(process.execPath, ['scripts/build.js'], { cwd: root, env: { ...process.env, BUILD_DIST: dist, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: cf }, stdio: 'pipe' });
   return dist;
 }

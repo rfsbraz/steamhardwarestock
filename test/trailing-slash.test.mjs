@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import os from 'node:os';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SITE = 'https://steamhardwarestock.com';
@@ -32,7 +32,7 @@ function pagesResolve(dist, urlPath) {
 let built;
 function build() {
   if (built) return built;
-  const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-slash-'));
+  const dist = tmpDir('shs-slash-');
   execFileSync(process.execPath, ['scripts/build.js'], {
     cwd: root,
     env: { ...process.env, BUILD_DIST: dist, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', PRERENDER_FIXTURE: '', CF_PAGES: '1' },

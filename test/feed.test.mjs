@@ -1,14 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync } from 'node:fs';
-import os from 'node:os';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { XMLValidator, XMLParser } from 'fast-xml-parser';
 import { buildAtom, buildRss, feedEvents, FEED_LIMIT } from '../lib/feed.mjs';
 import { onRequestGet as atomHandler } from '../functions/feed.xml.js';
 import { onRequestGet as rssHandler } from '../functions/rss.xml.js';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const history = {
@@ -99,7 +99,7 @@ test('feed function survives missing KV and bad JSON', async () => {
 });
 
 test('every built HTML page links both feeds', () => {
-  const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-feed-'));
+  const dist = tmpDir('shs-feed-');
   execFileSync(process.execPath, ['scripts/build.js'], { cwd: root, env: { ...process.env, BUILD_DIST: dist, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: '1' }, stdio: 'pipe' });
   const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : e.name.endsWith('.html') ? [path.join(d, e.name)] : []));
   const files = walk(dist);

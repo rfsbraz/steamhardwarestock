@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync } from 'node:fs';
-import os from 'node:os';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ChangelogTime from '../public/changelog-time.js';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const { dayKey, groupEntries } = ChangelogTime;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -78,7 +78,7 @@ test('app.js renders <time datetime> with a title under date headers', () => {
 
 for (const cf of ['', '1']) {
   test(`built HTML ships no changelog dates before JS runs (CF_PAGES=${cf || 'unset'})`, () => {
-    const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-changelog-'));
+    const dist = tmpDir('shs-changelog-');
     execFileSync(process.execPath, ['scripts/build.js'], {
       cwd: root,
       env: { ...process.env, BUILD_DIST: dist, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: cf },

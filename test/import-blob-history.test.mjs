@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
-import os from 'node:os';
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { mergeHistories } from '../lib/history-merge.mjs';
 import { run, namespaceId } from '../scripts/import-blob-history.mjs';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const kv = {
   'steam-deck:US': {
@@ -59,7 +59,7 @@ test('reads the KV namespace id from wrangler.toml', () => {
 });
 
 function setup() {
-  const dir = mkdtempSync(path.join(os.tmpdir(), 'shs-import-'));
+  const dir = tmpDir('shs-import-');
   const blobFile = path.join(dir, 'blob.json');
   writeFileSync(blobFile, JSON.stringify(blob));
   const calls = [];

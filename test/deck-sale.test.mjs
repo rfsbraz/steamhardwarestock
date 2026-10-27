@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { prerender, prerenderHome } from '../scripts/prerender.mjs';
 import { parsePrice } from '../lib/prices.mjs';
 import { VALVE_SELLS } from '../lib/products.mjs';
 import { DECK_SALE_PATH, SEASON_END } from '../lib/deck-sale.mjs';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const SITE = 'https://steamhardwarestock.com';
 const OFF = { jsaux: { refId: '' }, amazon: { enabled: false, tag: '' } };
@@ -42,7 +42,7 @@ const prices = {
 };
 
 async function build(affiliate = OFF) {
-  const dist = mkdtempSync(path.join(tmpdir(), 'shs-sale-'));
+  const dist = tmpDir('shs-sale-');
   writeFileSync(path.join(dist, 'index.html'), readFileSync(new URL('../public/index.html', import.meta.url)));
   await prerender(dist, { status, history, prices, affiliate });
   const file = path.join(dist, `${DECK_SALE_PATH.slice(1)}.html`);
@@ -86,7 +86,7 @@ test('it lists the models Steam has on sale, and says so when none are', async (
   assert.match(sale, /\$789\.00/);
   assert.doesNotMatch(sale, /1TB OLED/);
 
-  const dist = mkdtempSync(path.join(tmpdir(), 'shs-sale-none-'));
+  const dist = tmpDir('shs-sale-none-');
   writeFileSync(path.join(dist, 'index.html'), readFileSync(new URL('../public/index.html', import.meta.url)));
   await prerender(dist, { status, history, prices: {}, affiliate: OFF });
   const none = readFileSync(path.join(dist, `${DECK_SALE_PATH.slice(1)}.html`), 'utf8');

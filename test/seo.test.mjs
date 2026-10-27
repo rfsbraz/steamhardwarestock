@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import os from 'node:os';
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRODUCTS, REGIONS, VALVE_SELLS } from '../lib/products.mjs';
 import { isIndexable } from '../lib/seo.mjs';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SITE = 'https://steamhardwarestock.com';
@@ -50,7 +50,7 @@ function htmlFiles(dir) {
 const builds = new Map();
 function build(cf) {
   if (builds.has(cf)) return builds.get(cf);
-  const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-seo-'));
+  const dist = tmpDir('shs-seo-');
   const fixturePath = path.join(dist, '..', `${path.basename(dist)}-fixture.json`);
   writeFileSync(fixturePath, JSON.stringify(fixture()));
   execFileSync(process.execPath, ['scripts/build.js'], {

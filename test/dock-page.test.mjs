@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import os from 'node:os';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRODUCTS, VALVE_SELLS } from '../lib/products.mjs';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const decode = (s) => s.replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
@@ -35,7 +35,7 @@ function build() {
     FR: { amount: 89, currency: 'EUR', formatted: '89,--€' },
     PL: { amount: 429, currency: 'PLN', formatted: '429,00zł' }
   } };
-  const dir = mkdtempSync(path.join(os.tmpdir(), 'shs-dock-'));
+  const dir = tmpDir('shs-dock-');
   writeFileSync(path.join(dir, 'fx.json'), JSON.stringify({ status: { version: 1, generatedAt: '2026-10-26T10:00:00.000Z', intervalSeconds: 600, regions: VALVE_SELLS, products }, history, prices }));
   execFileSync(process.execPath, ['scripts/build.js'], {
     cwd: root,
