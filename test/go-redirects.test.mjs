@@ -1,25 +1,19 @@
-import { after, test } from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
-import os from 'node:os';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DEAL_PICKS } from '../lib/jsaux-feed.mjs';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-
-// Build output goes to os.tmpdir(); remove it after the file's tests, pass or fail.
-const tmpPaths = [];
-after(() => { for (const p of tmpPaths) rmSync(p, { recursive: true, force: true }); });
 
 const PAGES = ['steam-deck.html', 'steam-deck/us.html', 'steam-dock.html', 'steam-controller.html'];
 
 function build(extraEnv) {
-  const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-dist-'));
-  tmpPaths.push(dist);
+  const dist = tmpDir('shs-dist-');
   const fixture = path.join(dist, '..', `${path.basename(dist)}-data.json`);
-  tmpPaths.push(fixture);
   writeFileSync(fixture, JSON.stringify({ status: null, history: {}, prices: {} }));
   execFileSync(process.execPath, ['--import', path.join(root, 'test/fixtures/jsaux-fetch.mjs'), 'scripts/build.js'], {
     cwd: root,

@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { readFileSync, existsSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { prerender } from '../scripts/prerender.mjs';
 import { PRODUCTS, REGIONS } from '../lib/products.mjs';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const status = {
   version: 1,
@@ -19,7 +19,7 @@ const status = {
 const history = { 'steam-deck:US': { lastInStock: '2026-10-13T11:00:00.000Z', events: [] } };
 
 function setup() {
-  const dist = mkdtempSync(path.join(tmpdir(), 'shs-'));
+  const dist = tmpDir('shs-');
   writeFileSync(path.join(dist, 'index.html'), readFileSync(new URL('../public/index.html', import.meta.url)));
   return dist;
 }

@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import os from 'node:os';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRODUCTS, VALVE_SELLS } from '../lib/products.mjs';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SLUG = '/steam-hardware-power-supply';
@@ -18,7 +18,7 @@ function build() {
     products[p.id] = {};
     for (const cc of VALVE_SELLS) products[p.id][cc] = { status: 'out_of_stock', packages: p.packages.map((pk) => ({ id: pk.id, status: 'out_of_stock' })) };
   }
-  const dir = mkdtempSync(path.join(os.tmpdir(), 'shs-psu-'));
+  const dir = tmpDir('shs-psu-');
   writeFileSync(path.join(dir, 'fx.json'), JSON.stringify({ status: { version: 1, generatedAt: '2026-10-26T10:00:00.000Z', intervalSeconds: 600, regions: VALVE_SELLS, products }, history: {}, prices: {} }));
   execFileSync(process.execPath, ['scripts/build.js'], {
     cwd: root,

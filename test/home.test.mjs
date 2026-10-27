@@ -1,13 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import os from 'node:os';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { prerenderHome } from '../scripts/prerender.mjs';
 import { REGIONS, VALVE_SELLS } from '../lib/products.mjs';
 import { CHECKED_REGIONS } from '../lib/steam.mjs';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = readFileSync(path.join(root, 'public/index.html'), 'utf8');
@@ -51,7 +51,7 @@ test('JSON-LD has dateModified from the last stock change, or the last check', (
 
 for (const cf of ['', '1']) {
   test(`built homepage has the new H1, intro and dateModified (CF_PAGES=${cf || 'unset'})`, () => {
-    const dir = mkdtempSync(path.join(os.tmpdir(), 'shs-home-'));
+    const dir = tmpDir('shs-home-');
     writeFileSync(path.join(dir, 'fx.json'), JSON.stringify({ status, history, prices: {} }));
     execFileSync(process.execPath, ['scripts/build.js'], { cwd: root, env: { ...process.env, BUILD_DIST: path.join(dir, 'd'), PRERENDER_FIXTURE: path.join(dir, 'fx.json'), PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: cf }, stdio: 'pipe' });
     const html = readFileSync(path.join(dir, 'd', 'index.html'), 'utf8');

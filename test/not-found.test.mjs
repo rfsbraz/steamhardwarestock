@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, statSync } from 'node:fs';
-import os from 'node:os';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -28,7 +28,7 @@ function pagesResolve(dist, urlPath) {
 let built;
 function build() {
   if (built) return built;
-  const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-404-'));
+  const dist = tmpDir('shs-404-');
   execFileSync(process.execPath, ['scripts/build.js'], {
     cwd: root,
     env: { ...process.env, BUILD_DIST: dist, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', PRERENDER_FIXTURE: '', CF_PAGES: '1' },

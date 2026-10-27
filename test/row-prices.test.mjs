@@ -1,13 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import os from 'node:os';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
 import { renderProductPage, CHECKED_SCRIPT } from '../lib/landing.mjs';
 import { productById, VALVE_SELLS } from '../lib/products.mjs';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const deck = productById('steam-deck');
@@ -76,7 +76,7 @@ test('the script moves the time to the newer check in /status.json', async () =>
 
 for (const cf of ['', '1']) {
   test(`built product pages carry the price and checked columns (CF_PAGES=${cf || 'unset'})`, () => {
-    const dir = mkdtempSync(path.join(os.tmpdir(), 'shs-rows-'));
+    const dir = tmpDir('shs-rows-');
     const fixture = path.join(dir, 'fx.json');
     writeFileSync(fixture, JSON.stringify({ status: statusDoc, history: {}, prices }));
     const dist = path.join(dir, 'dist');

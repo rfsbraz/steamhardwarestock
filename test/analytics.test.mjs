@@ -1,17 +1,12 @@
-import { after, test } from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { mkdtempSync, rmSync } from 'node:fs';
-import os from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-
-// Build output goes to os.tmpdir(); remove it after the file's tests, pass or fail.
-const tmpPaths = [];
-after(() => { for (const p of tmpPaths) rmSync(p, { recursive: true, force: true }); });
 
 function htmlFiles(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
@@ -22,8 +17,7 @@ function htmlFiles(dir) {
 }
 
 test('every built HTML page carries the GA tag and the Cloudflare beacon', () => {
-  const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-dist-'));
-  tmpPaths.push(dist);
+  const dist = tmpDir('shs-dist-');
   execFileSync(process.execPath, ['scripts/build.js'], {
     cwd: root,
     env: { ...process.env, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', BUILD_DIST: dist },

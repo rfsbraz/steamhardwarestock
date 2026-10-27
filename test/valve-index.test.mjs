@@ -1,13 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
-import os from 'node:os';
+import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRODUCTS, VALVE_SELLS } from '../lib/products.mjs';
 import StockStatus from '../public/stock-status.js';
 import { formatMessage } from '../lib/notify.mjs';
+import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SLUG = '/valve-index';
@@ -29,7 +29,7 @@ function build() {
     }
   }
   const prices = { 354232: { US: { amount: 399.2, currency: 'USD', formatted: '$399.20', discountPct: 20, formattedOriginal: '$499.00' } } };
-  const dir = mkdtempSync(path.join(os.tmpdir(), 'shs-index-'));
+  const dir = tmpDir('shs-index-');
   writeFileSync(path.join(dir, 'fx.json'), JSON.stringify({ status: { version: 1, generatedAt: '2026-10-26T10:00:00.000Z', intervalSeconds: 600, regions: VALVE_SELLS, products }, history: {}, prices }));
   execFileSync(process.execPath, ['scripts/build.js'], {
     cwd: root,
