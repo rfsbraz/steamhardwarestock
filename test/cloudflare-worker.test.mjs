@@ -87,7 +87,34 @@ test('a status change dispatches the Pages deploy workflow on GitHub', async () 
   assert.equal(init.headers.authorization, 'Bearer tok');
   assert.equal(init.headers.accept, 'application/vnd.github+json');
   assert.ok(init.headers['user-agent'], 'GitHub requires a User-Agent');
-  assert.deepEqual(JSON.parse(init.body), { ref: 'main' });
+  assert.deepEqual(JSON.parse(init.body), { ref: 'main', inputs: { checked_at: '2026-10-13T12:00:00.000Z' } });
+});
+
+test('a product going from no data to data dispatches a rebuild for that check', async () => {
+  const dispatches = [];
+  const env = { STOCK_KV: fakeKV(), GH_DISPATCH_TOKEN: 'tok' };
+  const run = (iso) => runCheck(env, { fetchImpl: withDispatch(dispatches)(steamFetch(true).impl), now: new Date(iso) });
+  await run('2026-10-27T07:50:00Z');
+  // The state before the Valve Index was added: no history for it, and the
+  // previous code's fingerprints. Its packages change the Steam answers, so
+  // the old answer groups no longer match.
+  const history = JSON.parse(env.STOCK_KV.store.get('stock-history.json'));
+  for (const key of Object.keys(history)) if (key.startsWith('valve-index:')) delete history[key];
+  env.STOCK_KV.store.set('stock-history.json', JSON.stringify(history));
+  const meta = JSON.parse(env.STOCK_KV.store.get('status-meta'));
+  env.STOCK_KV.store.set('status-meta', JSON.stringify({ ...meta, states: 'before the Valve Index', groups: undefined }));
+
+  const out = await run('2026-10-27T08:00:40Z');
+  assert.ok(out.transitions > 0);
+  assert.equal(dispatches.length, 2);
+  assert.deepEqual(JSON.parse(dispatches[1].init.body), { ref: 'main', inputs: { checked_at: '2026-10-27T08:00:40.000Z' } });
+  assert.equal((await served(env.STOCK_KV)).generatedAt, '2026-10-27T08:00:40.000Z');
+});
+
+test('the Pages deploy workflow takes the check time and hands it to the build', () => {
+  const yml = readFileSync(new URL('../.github/workflows/pages-deploy.yml', import.meta.url), 'utf8');
+  assert.match(yml, /workflow_dispatch:\n\s+inputs:\n\s+checked_at:\n/);
+  assert.match(yml, /PRERENDER_MIN_GENERATED_AT: \$\{\{ inputs\.checked_at \}\}/);
 });
 
 test('dispatches are debounced to one per 10 minutes', async () => {
@@ -100,6 +127,37 @@ test('dispatches are debounced to one per 10 minutes', async () => {
   assert.equal(dispatches.length, 1);
   await run(false, '2026-10-13T12:10:00Z');
   assert.equal(dispatches.length, 2);
+});
+
+test('a change inside the 10 minute window is rebuilt once the window ends', async () => {
+  const dispatches = [];
+  const env = { STOCK_KV: fakeKV(), GH_DISPATCH_TOKEN: 'tok' };
+  const run = (inStock, iso) => runCheck(env, { fetchImpl: withDispatch(dispatches)(steamFetch(inStock).impl), now: new Date(iso) });
+  await run(true, '2026-10-13T12:00:00Z');
+  await run(false, '2026-10-13T12:05:00Z');
+  assert.equal(dispatches.length, 1);
+  await run(false, '2026-10-13T12:08:00Z');
+  assert.equal(dispatches.length, 1, 'still inside the window');
+  await run(false, '2026-10-13T12:10:00Z');
+  assert.equal(dispatches.length, 2);
+  assert.deepEqual(JSON.parse(dispatches[1].init.body), { ref: 'main', inputs: { checked_at: '2026-10-13T12:05:00.000Z' } });
+  await run(false, '2026-10-13T12:20:00Z');
+  assert.equal(dispatches.length, 2, 'the queued rebuild is asked for once');
+});
+
+test('a failed dispatch is asked for again on the next run, even with no change', async () => {
+  const dispatches = [];
+  const env = { STOCK_KV: fakeKV(), GH_DISPATCH_TOKEN: 'tok' };
+  const original = console.error;
+  console.error = () => {};
+  try {
+    await runCheck(env, { fetchImpl: withDispatch(dispatches, 500)(steamFetch(true).impl), now: new Date('2026-10-13T12:00:00Z') });
+    await runCheck(env, { fetchImpl: withDispatch(dispatches)(steamFetch(true).impl), now: new Date('2026-10-13T12:10:00Z') });
+  } finally {
+    console.error = original;
+  }
+  assert.equal(dispatches.length, 2);
+  assert.deepEqual(JSON.parse(dispatches[1].init.body), { ref: 'main', inputs: { checked_at: '2026-10-13T12:00:00.000Z' } });
 });
 
 test('no change means no dispatch', async () => {
