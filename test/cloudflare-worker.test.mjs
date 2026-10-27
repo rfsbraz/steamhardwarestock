@@ -129,6 +129,37 @@ test('dispatches are debounced to one per 10 minutes', async () => {
   assert.equal(dispatches.length, 2);
 });
 
+test('a change inside the 10 minute window is rebuilt once the window ends', async () => {
+  const dispatches = [];
+  const env = { STOCK_KV: fakeKV(), GH_DISPATCH_TOKEN: 'tok' };
+  const run = (inStock, iso) => runCheck(env, { fetchImpl: withDispatch(dispatches)(steamFetch(inStock).impl), now: new Date(iso) });
+  await run(true, '2026-10-13T12:00:00Z');
+  await run(false, '2026-10-13T12:05:00Z');
+  assert.equal(dispatches.length, 1);
+  await run(false, '2026-10-13T12:08:00Z');
+  assert.equal(dispatches.length, 1, 'still inside the window');
+  await run(false, '2026-10-13T12:10:00Z');
+  assert.equal(dispatches.length, 2);
+  assert.deepEqual(JSON.parse(dispatches[1].init.body), { ref: 'main', inputs: { checked_at: '2026-10-13T12:05:00.000Z' } });
+  await run(false, '2026-10-13T12:20:00Z');
+  assert.equal(dispatches.length, 2, 'the queued rebuild is asked for once');
+});
+
+test('a failed dispatch is asked for again on the next run, even with no change', async () => {
+  const dispatches = [];
+  const env = { STOCK_KV: fakeKV(), GH_DISPATCH_TOKEN: 'tok' };
+  const original = console.error;
+  console.error = () => {};
+  try {
+    await runCheck(env, { fetchImpl: withDispatch(dispatches, 500)(steamFetch(true).impl), now: new Date('2026-10-13T12:00:00Z') });
+    await runCheck(env, { fetchImpl: withDispatch(dispatches)(steamFetch(true).impl), now: new Date('2026-10-13T12:10:00Z') });
+  } finally {
+    console.error = original;
+  }
+  assert.equal(dispatches.length, 2);
+  assert.deepEqual(JSON.parse(dispatches[1].init.body), { ref: 'main', inputs: { checked_at: '2026-10-13T12:00:00.000Z' } });
+});
+
 test('no change means no dispatch', async () => {
   const dispatches = [];
   const env = { STOCK_KV: fakeKV(), GH_DISPATCH_TOKEN: 'tok' };
