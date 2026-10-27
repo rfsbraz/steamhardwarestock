@@ -1,6 +1,11 @@
 {
   "jsaux": {
-    "refId": ""
+    "refId": "",
+    "promo": {
+      "label": "JSAUX Halloween Sale, until 5 Nov",
+      "endsAt": "2026-11-06T08:00:00Z",
+      "coupon": ""
+    }
   },
   "amazon": {
     "enabled": false,

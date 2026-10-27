@@ -108,6 +108,10 @@ async function build() {
   const pages = await prerender(destination, { ...(await loadData()), affiliate });
   console.log(`Prerendered ${pages} landing pages`);
 
+  // /go/jsaux-<handle> -> JSAUX product, for every picked handle, with or without a ref.
+  const { DEAL_PICKS } = await import('../lib/jsaux-feed.mjs');
+  await fs.appendFile(path.join(destination, '_redirects'), Affiliate.jsauxRedirects(Object.values(DEAL_PICKS).flat(), affiliate.jsaux.refId));
+
   // Cloudflare Pages sets CF_PAGES=1.
   if (process.env.CF_PAGES) {
     await fs.writeFile(path.join(destination, '_headers'), CF_HEADERS);

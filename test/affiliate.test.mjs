@@ -19,7 +19,8 @@ const us = REGIONS.find((r) => r.code === 'US');
 
 test('committed config has empty IDs and Amazon off', () => {
   const file = JSON.parse(readFileSync(path.join(root, 'affiliate.config.json'), 'utf8'));
-  assert.deepEqual(Affiliate.resolveConfig(file, {}), OFF);
+  const { promo, ...jsaux } = Affiliate.resolveConfig(file, {}).jsaux;
+  assert.deepEqual({ ...Affiliate.resolveConfig(file, {}), jsaux }, OFF);
 });
 
 test('env overrides the config file', () => {
@@ -84,7 +85,7 @@ test('one delegated click handler fires the GA4 event', () => {
   Affiliate.installClickTracking(dom.doc, { gtag: (...a) => calls.push(a) });
   dom.click(dom.inside);
   dom.click(dom.outside);
-  assert.deepEqual(calls, [['event', 'affiliate_click', { product: 'steam-deck', partner: 'jsaux', link: 'https://jsaux.com/x?sca_ref=r' }]]);
+  assert.deepEqual(calls, [['event', 'affiliate_click', { product: 'steam-deck', partner: 'jsaux', link: 'https://jsaux.com/x?sca_ref=r', format: 'link' }]]);
 });
 
 test('click tracking does nothing when gtag is missing or throws', () => {

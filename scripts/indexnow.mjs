@@ -26,9 +26,11 @@ export const MANIFEST = 'indexnow-manifest.json';
 const ENDPOINT = 'https://api.indexnow.org/indexnow';
 
 // What a search engine would see as the page's content: everything except
-// times, relative ages, dateModified, asset links and non-JSON-LD scripts.
+// times, relative ages, dateModified, asset links, non-JSON-LD scripts and
+// the JSAUX deal strip, whose prices change every day.
 export function contentHash(html) {
   const text = String(html)
+    .replace(/<aside class="deal-strip"[\s\S]*?<\/aside>/g, '')
     .replace(/<time\b[^>]*>[\s\S]*?<\/time>(\s*\((?:just now|\d+\s*(?:min|h|d)\s*ago|\d+[mhd] ago)\))?/g, '')
     .replace(/<script(?![^>]*application\/ld\+json)[^>]*>[\s\S]*?<\/script>/g, '')
     .replace(/<link\b[^>]*>/g, '')

@@ -56,13 +56,22 @@
     return typeof v === 'string' ? v.trim() : '';
   }
 
+  // jsaux.promo: { label, endsAt (ISO), coupon }. Kept only with a label and a valid date.
+  function resolvePromo(p) {
+    const label = str(p && p.label);
+    const ends = Date.parse(p && p.endsAt);
+    if (!label || Number.isNaN(ends)) return undefined;
+    return { label, endsAt: str(p.endsAt), coupon: str(p.coupon) };
+  }
+
   // env keys: AFFILIATE_JSAUX_REF, AFFILIATE_AMAZON_TAG, AFFILIATE_AMAZON_ENABLED ("1" or "true").
   function resolveConfig(fileConfig, env) {
     const f = fileConfig || {};
     const e = env || {};
     const flag = e.AFFILIATE_AMAZON_ENABLED;
+    const promo = resolvePromo(f.jsaux && f.jsaux.promo);
     return {
-      jsaux: { refId: str(e.AFFILIATE_JSAUX_REF) || str(f.jsaux && f.jsaux.refId) },
+      jsaux: { refId: str(e.AFFILIATE_JSAUX_REF) || str(f.jsaux && f.jsaux.refId), ...(promo ? { promo } : {}) },
       amazon: {
         enabled: flag !== undefined && flag !== '' ? flag === '1' || flag === 'true' : Boolean(f.amazon && f.amazon.enabled),
         tag: str(e.AFFILIATE_AMAZON_TAG) || str(f.amazon && f.amazon.tag)
@@ -105,40 +114,59 @@
     return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
   }
 
-  function dealCard(productId, deal, ref) {
+  // Cards link to a first-party path so clicks show up in Cloudflare
+  // analytics. The build turns each picked handle into a 302 in _redirects.
+  const HANDLE = /^[a-z0-9-]+$/;
+
+  function goPath(handle) {
+    return `/go/jsaux-${handle}`;
+  }
+
+  function jsauxRedirects(handles, ref) {
+    const query = ref ? `?sca_ref=${encodeURIComponent(ref)}` : '';
+    return [...new Set(handles)].filter((h) => HANDLE.test(h))
+      .map((h) => `${goPath(h)} ${JSAUX_ORIGIN}/products/${h}${query} 302\n`).join('');
+  }
+
+  function dealCard(productId, deal, position) {
     if (!deal || typeof deal.url !== 'string' || typeof deal.image !== 'string' || !/^\/deals\/[a-z0-9-]+\.(webp|png|jpg)$/i.test(deal.image)) return '';
     if (!(deal.price > 0)) return '';
     let url;
     try { url = new URL(deal.url); } catch (_) { return ''; }
-    if (url.origin !== JSAUX_ORIGIN) return '';
-    url.searchParams.set('sca_ref', ref);
+    if (url.origin !== JSAUX_ORIGIN || !HANDLE.test(deal.handle) || url.pathname !== `/products/${deal.handle}`) return '';
     const off = deal.was > deal.price ? Math.round((1 - deal.price / deal.was) * 100) : 0;
-    return `<li class="deal-card"><a href="${escapeHtml(url.toString())}" target="_blank" rel="${REL}" data-affiliate="jsaux" data-product="${escapeHtml(productId)}">`
+    return `<li class="deal-card"><a href="${escapeHtml(goPath(deal.handle))}" target="_blank" rel="${REL}" data-affiliate="jsaux" data-product="${escapeHtml(productId)}" data-format="card" data-item="${escapeHtml(deal.handle)}" data-position="${position}">`
       + `<span class="deal-media"><img src="${escapeHtml(deal.image)}" alt="" width="160" height="160" loading="lazy" decoding="async">${off > 0 ? `<span class="deal-badge">-${off}%</span>` : ''}</span>`
       + `<span class="deal-name">${escapeHtml(deal.title)}</span>`
       + `<span class="deal-price"><strong>${money(deal.price)}</strong>${off > 0 ? ` <s>${money(deal.was)}</s>` : ''}</span>`
       + '<span class="deal-cta">Shop at JSAUX</span></a></li>';
   }
 
-  function dealStrip(productId, config) {
+  function promoPill(promo, now) {
+    const ends = promo ? Date.parse(promo.endsAt) : NaN;
+    if (Number.isNaN(ends) || now >= ends) return '';
+    return `<span class="deal-promo" data-ends="${new Date(ends).toISOString()}">${escapeHtml(promo.label)}${promo.coupon ? `, code <b>${escapeHtml(promo.coupon)}</b>` : ''}</span>`;
+  }
+
+  function dealStrip(productId, config, now) {
     const ref = str(config.jsaux && config.jsaux.refId);
     const feed = config.deals;
     const deals = feed && feed.pages && feed.pages[productId];
     if (!ref || !DEAL_TITLES[productId] || !Array.isArray(deals)) return '';
-    const shown = deals.filter((d) => dealCard(productId, d, ref));
+    const shown = deals.filter((d) => dealCard(productId, d));
     if (!shown.length) return '';
     const sale = shown.some((d) => d.was > d.price);
     const day = checkedDay(feed.checkedAt);
     return `<aside class="deal-strip" aria-label="Accessory deals">
-  <div class="deal-head"><span class="deal-title">${escapeHtml(DEAL_TITLES[productId])}${sale ? ' on sale' : ''}</span><span class="deal-ad" title="${escapeHtml(DISCLOSURE)}">Ad</span></div>
-  <ul class="deal-list">${shown.map((d) => dealCard(productId, d, ref)).join('')}</ul>
+  <div class="deal-head"><span class="deal-title">${escapeHtml(DEAL_TITLES[productId])}${sale ? ' on sale' : ''}</span>${promoPill(config.jsaux.promo, now)}<span class="deal-ad" title="${escapeHtml(DISCLOSURE)}">Ad</span></div>
+  <ul class="deal-list">${shown.map((d, i) => dealCard(productId, d, i + 1)).join('')}</ul>
   <p class="deal-foot">Prices from jsaux.com in USD${day ? `, checked ${escapeHtml(day)}` : ''}. <a href="/disclosures">Affiliate links</a></p>
 </aside>`;
   }
 
-  function accessoryBlock(productId, config) {
+  function accessoryBlock(productId, config, now) {
     const c = config || CONFIG;
-    const strip = dealStrip(productId, c);
+    const strip = dealStrip(productId, c, now === undefined ? Date.now() : now);
     const jsaux = strip ? [] : jsauxLinks(productId, c);
     const amazon = amazonLinks(productId, c);
     if (!jsaux.length && !amazon.length) return strip;
@@ -169,18 +197,33 @@
         var target = event.target;
         var link = target && target.closest ? target.closest('a[data-affiliate]') : null;
         if (!link || typeof win.gtag !== 'function') return;
-        win.gtag('event', 'affiliate_click', {
+        var params = {
           product: link.getAttribute('data-product'),
           partner: link.getAttribute('data-affiliate'),
-          link: link.href
-        });
+          link: link.href,
+          format: link.getAttribute('data-format') || 'link'
+        };
+        if (params.format === 'card') {
+          params.item = link.getAttribute('data-item');
+          params.position = Number(link.getAttribute('data-position'));
+        }
+        win.gtag('event', 'affiliate_click', params);
       } catch (_) {
         // Tracking must never block the click.
       }
     });
   }
 
-  const api = { CONFIG, DISCLOSURE, AMAZON_DISCLOSURE, REL, JSAUX, AMAZON, resolveConfig, accessoryBlock, footerDisclosure, installClickTracking };
+  // Static pages built before a promo ends drop its pill once it has. Self-contained
+  // so the landing pages can inline it like the tracker.
+  function hideEndedPromos(doc, now) {
+    var pills = doc.querySelectorAll('.deal-promo[data-ends]');
+    for (var i = 0; i < pills.length; i++) {
+      if (!(Date.parse(pills[i].getAttribute('data-ends')) > now)) pills[i].remove();
+    }
+  }
+
+  const api = { CONFIG, DISCLOSURE, AMAZON_DISCLOSURE, REL, JSAUX, AMAZON, resolveConfig, accessoryBlock, footerDisclosure, installClickTracking, hideEndedPromos, jsauxRedirects };
   if (typeof module === 'object' && module.exports) {
     module.exports = api;
   } else {

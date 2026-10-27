@@ -1,7 +1,8 @@
 name: Deploy Pages
 
 # Builds the static site and uploads it to the Cloudflare Pages project
-# (direct upload). The Worker cron dispatches this when a status changes.
+# (direct upload). The Worker cron dispatches this when a status changes,
+# and the daily schedule refreshes the JSAUX prices on the product cards.
 on:
   workflow_dispatch:
     inputs:
@@ -9,6 +10,8 @@ on:
         description: Time of the stock check that asked for this build. The build waits until status.json has it.
         required: false
         type: string
+  schedule:
+    - cron: '30 5 * * *'
   push:
     branches: [main]
 
