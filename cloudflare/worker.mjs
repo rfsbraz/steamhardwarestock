@@ -29,6 +29,8 @@ function readMeta(raw) {
 //   states: SHA-256 of each product and region's status, which is all
 //           history records
 //   rules:  STATUS_RULES_VERSION that built the body
+//   rebuild: check time of a status change whose Pages rebuild is still to
+//           be asked for (inside the dispatch window, or the dispatch failed)
 // functions/status.json.js reads only generatedAt from it.
 export const STATUS_BODY_KEY = 'status-body';
 export const STATUS_META_KEY = 'status-meta';
@@ -104,8 +106,9 @@ export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), n
     const groupHash = new Map(prev.groups.flatMap((g) => g.regions.map((r) => [r, g.h])));
     const ok = await fetchSome(plan.regions);
     if (ok && plan.regions.every((r) => hashOf.get(r) === groupHash.get(r))) {
-      const { generatedAt: _old, ...kept } = prev;
-      await writeMeta({ ...kept, cursor: plan.next });
+      const { generatedAt: _old, rebuild, ...kept } = prev;
+      const stillPending = rebuild && !(await maybeDispatch(env, fetchImpl, now, rebuild));
+      await writeMeta({ ...kept, cursor: plan.next, ...(stillPending ? { rebuild } : {}) });
       console.log(`cron: ${fetchCount} Steam requests, same answers as last run`);
       return { checked: plan.regions.length, errors: 0, transitions: 0, notified: false, unchanged: true, fetchCount };
     }
@@ -168,11 +171,11 @@ export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), n
         }
       }
     }
-    if (transitions > 0) {
-      await kv.put(HISTORY_KEY, JSON.stringify(history));
-      await maybeDispatch(env, fetchImpl, now);
-    }
+    if (transitions > 0) await kv.put(HISTORY_KEY, JSON.stringify(history));
   }
+  // The latest change not yet rebuilt. The build waits for at least that check.
+  let rebuild = transitions > 0 ? ts : prev.rebuild;
+  if (rebuild && (await maybeDispatch(env, fetchImpl, now, rebuild))) rebuild = undefined;
   let notified = false;
   if (changes.length) {
     try {
@@ -185,19 +188,21 @@ export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), n
   const failed = all.some((r) => answerOf.get(r) == null);
   const groups = failed ? undefined : groupsFrom(all, all.map((r) => hashOf.get(r)));
   // The meta goes last, so a run that fails halfway is done in full again.
-  await writeMeta({ body: bodyFp, states: statesFp, rules: STATUS_RULES_VERSION, groups, cursor: 0 });
+  await writeMeta({ body: bodyFp, states: statesFp, rules: STATUS_RULES_VERSION, groups, cursor: 0, ...(rebuild ? { rebuild } : {}) });
   console.log(`cron: ${fetchCount} Steam requests, ${results.length} results, ${errors.length} errors, ${bodyChanged ? 'body rewritten' : 'same body'}, ${transitions} transitions`);
   return { checked: results.length, errors: errors.length, transitions, notified, fetchCount };
 }
 
 // The landing pages are static, so a status change asks GitHub to run the
-// Pages deploy workflow. At most one dispatch per 10 minutes. Without
-// GH_DISPATCH_TOKEN this does nothing. checked_at tells the build which check
-// to wait for, since KV can serve it the previous one for up to a minute.
-async function maybeDispatch(env, fetchImpl, now) {
-  if (!env.GH_DISPATCH_TOKEN) return;
+// Pages deploy workflow. At most one dispatch per 10 minutes; a change inside
+// the window is kept in the meta and asked for on the first run after it.
+// Without GH_DISPATCH_TOKEN this does nothing. checked_at tells the build
+// which check to wait for, since KV can serve it the previous one for up to a
+// minute. Returns false while the rebuild is still to be asked for.
+async function maybeDispatch(env, fetchImpl, now, checkedAt) {
+  if (!env.GH_DISPATCH_TOKEN) return true;
   const last = Number(await env.STOCK_KV.get(DISPATCH_KEY)) || 0;
-  if (now.getTime() - last < DISPATCH_MIN_MS) return;
+  if (now.getTime() - last < DISPATCH_MIN_MS) return false;
   try {
     const res = await fetchImpl(DISPATCH_URL, {
       method: 'POST',
@@ -208,16 +213,17 @@ async function maybeDispatch(env, fetchImpl, now) {
         'user-agent': 'steamhardwarestock-cron',
         'x-github-api-version': '2022-11-28'
       },
-      body: JSON.stringify({ ref: 'main', inputs: { checked_at: now.toISOString() } })
+      body: JSON.stringify({ ref: 'main', inputs: { checked_at: checkedAt } })
     });
     if (res.ok) {
       await env.STOCK_KV.put(DISPATCH_KEY, String(now.getTime()));
-    } else {
-      console.error('workflow dispatch failed:', res.status);
+      return true;
     }
+    console.error('workflow dispatch failed:', res.status);
   } catch (error) {
     console.error('workflow dispatch error:', error?.message);
   }
+  return false;
 }
 
 export default {
