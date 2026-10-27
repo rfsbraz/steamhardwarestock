@@ -1101,6 +1101,14 @@ h1 .history-link {
   font-weight: 650;
   font-size: 0.95rem;
 }
+.deal-promo {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--amber);
+  background: var(--amber-bg);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
 .deal-ad {
   margin-left: auto;
   font-size: 0.68rem;

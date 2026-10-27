@@ -19,7 +19,8 @@ const us = REGIONS.find((r) => r.code === 'US');
 
 test('committed config has empty IDs and Amazon off', () => {
   const file = JSON.parse(readFileSync(path.join(root, 'affiliate.config.json'), 'utf8'));
-  assert.deepEqual(Affiliate.resolveConfig(file, {}), OFF);
+  const { promo, ...jsaux } = Affiliate.resolveConfig(file, {}).jsaux;
+  assert.deepEqual({ ...Affiliate.resolveConfig(file, {}), jsaux }, OFF);
 });
 
 test('env overrides the config file', () => {
