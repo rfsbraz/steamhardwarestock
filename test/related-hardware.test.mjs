@@ -25,8 +25,17 @@ test('the Steam Deck page lists hardware often checked with it, with live status
   assert.ok(html.indexOf('id="related-title"') < html.indexOf('id="faq-title"'), 'above the questions');
 });
 
+test('the homepage and the Steam Frame page link to the ergonomic kit (#52)', () => {
+  const home = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  assert.match(home, /<a href="\/steam-frame-ergonomic-kit">/, 'homepage');
+  const frame = renderProductPage(product('steam-frame'), fx.history, fx.status, {});
+  assert.deepEqual(cards(section(frame, 'related-title')).map(({ href, name }) => [href, name]), [
+    ['/steam-frame-ergonomic-kit', 'Steam Frame Ergonomic Accessories Kit']
+  ], '/steam-frame');
+});
+
 test('pages without a related list do not get the row', () => {
-  const html = renderProductPage(product('steam-frame'), fx.history, fx.status, {});
+  const html = renderProductPage(product('steam-machine'), fx.history, fx.status, {});
   assert.doesNotMatch(html, /related-title/);
 });
 
