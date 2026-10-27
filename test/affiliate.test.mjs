@@ -1,9 +1,9 @@
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import Affiliate from '../public/affiliate.js';
@@ -11,6 +11,11 @@ import { renderProductPage, renderRegionPage } from '../lib/landing.mjs';
 import { PRODUCTS, REGIONS } from '../lib/products.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+// Build output goes to os.tmpdir(); remove it after the file's tests, pass or fail.
+const tmpPaths = [];
+after(() => { for (const p of tmpPaths) rmSync(p, { recursive: true, force: true }); });
+
 const OFF = { jsaux: { refId: '' }, amazon: { enabled: false, tag: '' } };
 const JSAUX_ON = { jsaux: { refId: 'ref123' }, amazon: { enabled: false, tag: '' } };
 const ALL_ON = { jsaux: { refId: 'ref123' }, amazon: { enabled: true, tag: 'shs-20' } };
@@ -118,6 +123,7 @@ function htmlFiles(dir) {
 
 function build(extraEnv) {
   const dist = mkdtempSync(path.join(os.tmpdir(), 'shs-dist-'));
+  tmpPaths.push(dist);
   execFileSync(process.execPath, ['scripts/build.js'], {
     cwd: root,
     env: { ...process.env, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: '', AFFILIATE_JSAUX_REF: '', AFFILIATE_AMAZON_TAG: '', AFFILIATE_AMAZON_ENABLED: '', BUILD_DIST: dist, ...extraEnv },
