@@ -8,7 +8,7 @@ GA (`G-D4LRTXD5LR`) runs with Google Consent Mode v2. The head of every page set
 - They are **granted** everywhere else.
 - A choice saved in `localStorage` (`shs-consent`, `granted` or `denied`) is applied with `consent update` in the same script, before `config`. A returning visitor is never counted under the default.
 
-This is Consent Mode's advanced setup: with consent denied, GA sets no cookies and sends cookieless pings. Every GA event follows the consent state, including `affiliate_click` and `alert_subscribe`.
+This is Consent Mode's advanced setup: with consent denied, GA sets no cookies and sends cookieless pings. Every GA event follows the consent state, including `affiliate_click`, `alert_subscribe` and `product_card_click`.
 
 ### Events
 
@@ -19,6 +19,14 @@ This is Consent Mode's advanced setup: with consent denied, GA sets no cookies a
   - `source`: `product_page` or `homepage`.
 
   On product pages, delegated click and submit listeners in `lib/landing.mjs` are inlined in the page, and `tab` is sent on the form's submit so a button press counts once. On the homepage, `public/app.js` sends it when Start watching actually starts watching, so a press with no product or no country picked sends nothing. It does nothing if `gtag` is missing or throws. GA4 only reports `channel` and `source` once they are registered as event-scoped custom dimensions.
+- `product_card_click`: someone clicks a product card (`.pcard`): the homepage cards, "Often checked with" on product pages and "Other Valve hardware" on country pages. Params:
+  - `product`: the slug the card links to, for example `steam-deck` or `steam-deck-black-friday`.
+  - `product_name`: the name on the card.
+  - `position`: the card's place in its list, from 1.
+  - `page`: the path of the page it was clicked on.
+  - `country`: the country in the card's link on country pages, the country picked in the alert box on product pages, and the countries picked on the homepage joined with commas. Empty if none is picked yet.
+
+  One delegated click listener, `installCardTracking` in `lib/landing.mjs`, is inlined in every page with cards. It is sent with `transport_type: 'beacon'` so the navigation to the card's page does not drop it. On the homepage, `public/app.js` keeps the picked countries on `<html data-countries>` for it. It does nothing if `gtag` is missing or throws. `product` and `position` are already event-scoped custom dimensions. GA4 only reports `product_name`, `page` and `country` once they are registered too.
 
 Switzerland is included because its data protection law (revDSG) covers the same tracking, and Google asks for consent there for ads. Iceland, Liechtenstein and Norway are in the EEA, so GDPR applies.
 
