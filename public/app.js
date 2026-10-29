@@ -393,6 +393,12 @@ function savePreferences() {
     running: state.running
   }));
   updateUrl();
+  syncCardCountries();
+}
+
+// The product card tracker reads the picked countries from here.
+function syncCardCountries() {
+  document.documentElement.setAttribute('data-countries', [...state.selectedRegions].join(','));
 }
 
 function updateUrl() {
@@ -423,6 +429,7 @@ function loadFromUrl() {
 }
 
 function render() {
+  syncCardCountries();
   renderControls();
   renderCountrySelect();
   renderProducts();

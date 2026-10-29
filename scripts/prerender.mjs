@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { PRODUCTS, REGIONS, VALVE_SELLS } from '../lib/products.mjs';
-import { renderProductPage, renderRegionPage, renderInfoPage, renderNotFoundPage, INFO_PAGES, productCards } from '../lib/landing.mjs';
+import { renderProductPage, renderRegionPage, renderInfoPage, renderNotFoundPage, INFO_PAGES, productCards, CARD_SCRIPT } from '../lib/landing.mjs';
 import { CHECKED_REGIONS } from '../lib/steam.mjs';
 import { isIndexable, latestEvent, KOMODO_REGIONS } from '../lib/seo.mjs';
 import { buildSitemap } from '../lib/sitemap.mjs';
@@ -153,7 +153,7 @@ export function prerenderHome(html, status, history = {}, { regions = CHECKED_RE
     : 'id="lastChecked">Never<');
   out = out.replace('<div class="results-grid" id="resultsGrid"></div>', `<div class="results-grid" id="resultsGrid"><div class="empty-state"><p>Stock across the ${regionCount} countries where Steam sells Valve hardware${when ? `, as of <time datetime="${escape(when)}">${escape(new Date(when).toUTCString())}</time>` : ''}:</p><ul>${rows.join('')}</ul></div></div>`);
   out = out.replace('<h1>Steam Hardware Tracker: Stock and Reservation Status</h1>', `<h1>Steam Hardware Tracker: Stock and Reservation Status in ${regions.length} Countries</h1>`);
-  out = out.replace('<!-- home:cards -->', productCards(PRODUCTS, status));
+  out = out.replace('<!-- home:cards -->', productCards(PRODUCTS, status) + CARD_SCRIPT);
   out = out.replace('<!-- home:intro -->', homeIntro(status, regions));
   out = out.replace('<!-- home:season -->', seasonLink(now));
   out = withDateModified(out, latestEvent(history, Object.keys(history || {})) || status?.generatedAt || null);
