@@ -27,7 +27,9 @@ function boot({ search = '', gtag } = {}) {
   const byId = new Map();
   const created = [];
   const docListeners = {};
+  const htmlAttrs = {};
   const document = {
+    documentElement: { setAttribute: (n, v) => { htmlAttrs[n] = String(v); }, getAttribute: (n) => htmlAttrs[n] ?? null },
     title: 'Steam hardware stock',
     getElementById(id) { if (!byId.has(id)) byId.set(id, fakeElement()); return byId.get(id); },
     createElement(tag) { const el = fakeElement(tag); created.push(el); return el; },
@@ -62,7 +64,8 @@ function boot({ search = '', gtag } = {}) {
   return {
     press: () => byId.get('startButton').fire('click'),
     untickProducts: () => untick(chips(true)),
-    untickCountries: () => untick(chips(false))
+    untickCountries: () => untick(chips(false)),
+    countries: () => document.documentElement.getAttribute('data-countries')
   };
 }
 
@@ -114,4 +117,11 @@ test('Start watching works with gtag missing or throwing, and sends once per pre
   const page = boot({ search: '?p=steam-deck&r=PT', gtag: (_, name) => { if (name === 'alert_subscribe') attempts++; throw new Error('blocked'); } });
   assert.doesNotThrow(() => page.press());
   assert.equal(attempts, 1);
+});
+
+test('the picked countries are kept on <html data-countries> for the product card tracker', () => {
+  const page = boot({ search: '?r=PT,US' });
+  assert.equal(page.countries(), 'PT,US');
+  page.untickCountries();
+  assert.equal(page.countries(), '');
 });
