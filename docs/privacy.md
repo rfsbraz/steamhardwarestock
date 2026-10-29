@@ -26,7 +26,7 @@ This is Consent Mode's advanced setup: with consent denied, GA sets no cookies a
   - `page`: the path of the page it was clicked on.
   - `country`: the country in the card's link on country pages, the country picked in the alert box on product pages, and the countries picked on the homepage joined with commas. Empty if none is picked yet.
 
-  One delegated click listener, `installCardTracking` in `lib/landing.mjs`, is inlined in every page with cards. It is sent with `transport_type: 'beacon'` so the navigation to the card's page does not drop it. On the homepage, `public/app.js` keeps the picked countries on `<html data-countries>` for it. It does nothing if `gtag` is missing or throws. `product` and `position` are already event-scoped custom dimensions. GA4 only reports `product_name`, `page` and `country` once they are registered too.
+  One delegated click listener, `installCardTracking` in `lib/landing.mjs`, is inlined in every page with cards. gtag.js sends GA4 hits as keepalive requests, so the navigation to the card's page does not drop it. `transport_type: 'beacon'` is not needed: GA4 does not read it and would only log it as an extra param. On the homepage, `public/app.js` keeps the picked countries on `<html data-countries>` for it. It does nothing if `gtag` is missing or throws. `product` and `position` are already event-scoped custom dimensions. GA4 only reports `product_name`, `page` and `country` once they are registered too.
 
 Switzerland is included because its data protection law (revDSG) covers the same tracking, and Google asks for consent there for ads. Iceland, Liechtenstein and Norway are in the EEA, so GDPR applies.
 

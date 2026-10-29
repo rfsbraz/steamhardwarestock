@@ -57,7 +57,7 @@ function load(html, path, opts) {
 }
 
 const event = (product, product_name, position, page, country) =>
-  ['event', 'product_card_click', { product, product_name, position, page, country, transport_type: 'beacon' }];
+  ['event', 'product_card_click', { product, product_name, position, page, country }];
 
 test('every homepage card sends product_card_click with its product, name, place, page and the picked countries', () => {
   const page = load(prerenderHome(homeSource, fx.status, fx.history), '/', { countries: 'PT,US' });
