@@ -72,7 +72,7 @@ The build writes a top-level `404.html` (`renderNotFoundPage` in `lib/landing.mj
 
 ## Sitemap
 
-`sitemap.xml` is written by `scripts/prerender.mjs`. It lists the indexable pages only. Each `lastmod` is the time of the last recorded stock change for that page, from the history data. A page with no recorded change has no `lastmod`. The build time is never used. `robots.txt` points at it.
+`sitemap.xml` is written by `scripts/prerender.mjs`. It lists the indexable pages only. Each `lastmod` is the later of the last recorded stock change for that page and the last change to its content (`lib/content-dates.mjs`). A page with neither has no `lastmod`. The build time is never used. `robots.txt` points at it.
 
 ## Countries Steam does not sell in
 
@@ -108,4 +108,4 @@ Valve stopped making the Valve Index and sells the remaining stock at 20% off wh
 
 Every page description is 120 to 155 characters and every title 20 to 60 (`test/meta-lengths.test.mjs` renders each page type across the data states a build can see). Bing reports descriptions under about 120 characters as too short.
 
-Each Pages deploy publishes `/indexnow-manifest.json`, a hash of every sitemap page's content without check times, relative ages or asset names. After the deploy, `scripts/indexnow.mjs` sends IndexNow the URLs whose hash differs from the live manifest saved before the deploy, plus new and removed URLs. Sitemap lastmod is not used for this because it only follows stock events, so copy and code changes never moved it (#41). With no live manifest (the first run, or a failed fetch) every URL is submitted once. The key is public by design and is served from `/<key>.txt`. Cloudflare Crawler Hints also pings IndexNow; it is a zone setting and is not managed from this repo.
+Each Pages deploy publishes `/indexnow-manifest.json`: for every sitemap page, a hash of its content without check times, relative ages or asset names, and `changed`, when that content last changed. The deploy fetches the live manifest before the build. A page whose hash is the same keeps its date. A changed or new page gets the commit time when the code moved on since the last deploy, or the time of the stock check when only data changed. Pages from the old hash-only manifest take their date from `data/content-dates-seed.json`, which `scripts/seed-content-dates.mjs` works out by building each merge to main and finding the one that last changed the page (#117). After the deploy, `scripts/indexnow.mjs` sends IndexNow the URLs whose hash differs from the live manifest, plus new and removed URLs. With no live manifest (the first run, or a failed fetch) every URL is submitted once. The key is public by design and is served from `/<key>.txt`. Cloudflare Crawler Hints also pings IndexNow; it is a zone setting and is not managed from this repo.
