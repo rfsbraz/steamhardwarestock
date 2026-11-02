@@ -37,14 +37,16 @@ test('a new URL is dated when it first appears', () => {
 
 test('a page from the old hash-only manifest gets its seeded date when its hash still matches', () => {
   const previous = { version: 1, pages: { [A]: 'a', [B]: 'b' } };
-  const next = at({ [A]: 'a', [B]: 'B' }, { previous, seed: { [A]: OLD } });
+  const next = at({ [A]: 'a', [B]: 'B' }, { previous, seed: { [A]: { hash: 'a', changed: OLD } } });
   assert.deepEqual(next.pages[A], { hash: 'a', changed: OLD });
   assert.equal(next.pages[B].changed, REV_TIME, 'a changed page is dated by this deploy, not the seed');
   assert.deepEqual(at({ [A]: 'a' }, { previous }).pages[A], { hash: 'a' }, 'no seed means no date, not a made-up one');
+  const stale = at({ [A]: 'a' }, { previous, seed: { [A]: { hash: 'x', changed: OLD } } });
+  assert.deepEqual(stale.pages[A], { hash: 'a' }, 'a seed worked out for other content does not date this page');
 });
 
 test('without a previous manifest nothing is dated by this build', () => {
-  const next = at({ [A]: 'a', [B]: 'b' }, { previous: null, seed: { [A]: OLD } });
+  const next = at({ [A]: 'a', [B]: 'b' }, { previous: null, seed: { [A]: { hash: 'a', changed: OLD } } });
   assert.deepEqual(next.pages, { [A]: { hash: 'a', changed: OLD }, [B]: { hash: 'b' } });
 });
 
@@ -55,7 +57,7 @@ test('IndexNow compares hashes across the old and new manifest formats', () => {
   assert.deepEqual(changedUrls(v2, v2), []);
 });
 
-function build({ previous, history = {} }) {
+function build({ previous, history = {}, gitRev = false }) {
   const dist = tmpDir('shs-dates-');
   const products = {};
   for (const p of PRODUCTS) {
@@ -64,6 +66,10 @@ function build({ previous, history = {} }) {
   const fixture = `${dist}-fixture.json`;
   writeFileSync(fixture, JSON.stringify({ status: { version: 1, generatedAt: DATA_TIME, intervalSeconds: 600, regions: VALVE_SELLS, products }, history, prices: {} }));
   const env = { ...process.env, BUILD_DIST: dist, PRERENDER_FIXTURE: fixture, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: '1', PRERENDER_REV: 'r2', PRERENDER_REV_TIME: REV_TIME };
+  if (gitRev) {
+    delete env.PRERENDER_REV;
+    delete env.PRERENDER_REV_TIME;
+  }
   if (previous) {
     env.PRERENDER_PREVIOUS_MANIFEST = `${dist}-previous.json`;
     writeFileSync(env.PRERENDER_PREVIOUS_MANIFEST, JSON.stringify(previous));
@@ -89,8 +95,9 @@ test('the build writes dated hashes and sets lastmod to the later of the stock e
 });
 
 test('no sitemap lastmod is the build time', () => {
-  for (const previous of [null, { version: 1, pages: {} }, { version: 2, rev: 'r1', pages: {} }]) {
-    const { started, lastmod } = build({ previous });
+  const runs = [{ previous: null }, { previous: { version: 1, pages: {} } }, { previous: { version: 2, rev: 'r1', pages: {} } }, { previous: { version: 2, rev: 'r1', pages: {} }, gitRev: true }];
+  for (const run of runs) {
+    const { started, lastmod } = build(run);
     const late = Object.entries(lastmod).filter(([, v]) => v && v >= started);
     assert.deepEqual(late, [], `lastmod at or after the build started (${started})`);
   }

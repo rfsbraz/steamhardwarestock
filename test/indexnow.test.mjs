@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PRODUCTS, VALVE_SELLS } from '../lib/products.mjs';
 import { pageFile } from '../scripts/prerender.mjs';
-import { INDEXNOW_KEY, contentHash, buildManifest, changedUrls, indexNowPayload, pingIndexNow } from '../scripts/indexnow.mjs';
+import { INDEXNOW_KEY, MANIFEST, contentHash, changedUrls, indexNowPayload, pingIndexNow } from '../scripts/indexnow.mjs';
 import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -53,7 +53,7 @@ test('with no previous manifest every URL is submitted once', () => {
   assert.deepEqual(changedUrls({ not: 'a manifest' }, after), [`${S}/`, `${S}/about`]);
 });
 
-// Builds the site from a fixture into a temp dir and returns its manifest.
+// Builds the site from a fixture into a temp dir and returns the manifest it wrote.
 function buildWith(mutate = (f) => f) {
   const dist = tmpDir('shs-indexnow-');
   const products = {};
@@ -68,7 +68,7 @@ function buildWith(mutate = (f) => f) {
     env: { ...process.env, BUILD_DIST: dist, PRERENDER_FIXTURE: fixturePath, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: '1' },
     stdio: 'pipe'
   });
-  return { dist, manifest: buildManifest(dist, readFileSync(path.join(dist, 'sitemap.xml'), 'utf8')) };
+  return { dist, manifest: JSON.parse(readFileSync(path.join(dist, MANIFEST), 'utf8')) };
 }
 
 test('the manifest covers every sitemap URL from the built pages', () => {
@@ -77,7 +77,7 @@ test('the manifest covers every sitemap URL from the built pages', () => {
   assert.ok(locs.length > 200);
   assert.deepEqual(Object.keys(manifest.pages).sort(), [...locs].sort());
   const file = pageFile(dist, '/steam-deck/de');
-  assert.equal(manifest.pages[`${S}/steam-deck/de`], contentHash(readFileSync(file, 'utf8')));
+  assert.equal(manifest.pages[`${S}/steam-deck/de`].hash, contentHash(readFileSync(file, 'utf8')));
 });
 
 test('a rebuild with only a new check time submits nothing, a stock change submits that page', () => {

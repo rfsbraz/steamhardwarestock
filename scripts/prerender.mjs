@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { PRODUCTS, REGIONS, VALVE_SELLS } from '../lib/products.mjs';
@@ -5,6 +6,8 @@ import { renderProductPage, renderRegionPage, renderInfoPage, renderNotFoundPage
 import { CHECKED_REGIONS } from '../lib/steam.mjs';
 import { isIndexable, latestEvent, KOMODO_REGIONS } from '../lib/seo.mjs';
 import { buildSitemap } from '../lib/sitemap.mjs';
+import { SITE } from '../lib/site.mjs';
+import { MANIFEST, contentHash, nextManifest, laterOf } from '../lib/content-dates.mjs';
 import { renderStatusPage, STATUS_PAGE_PRODUCTS, latestUpdate } from '../lib/status-page.mjs';
 import StockStatus from '../public/stock-status.js';
 import { renderDeckSalePage, deckSaleLastmod, seasonLink, DECK_SALE_PATH } from '../lib/deck-sale.mjs';
@@ -123,6 +126,26 @@ function homeIntro(status, regions) {
 // The file a page URL is served from. Cloudflare Pages serves /x from x.html
 // with a 200 and sends /x/ to /x, which matches the no-slash canonical and
 // sitemap URL. x/index.html would do the opposite: /x would 308 to /x/.
+// What the content dates need besides status: the previous deploy's manifest
+// (PRERENDER_PREVIOUS_MANIFEST, a file; missing means none), the dates seeded
+// for hash-only manifests, and the commit being built with its commit time.
+// PRERENDER_REV and PRERENDER_REV_TIME override git, for tests.
+export async function loadContentInputs({ env = process.env, root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..') } = {}) {
+  const readJson = (file) => fs.readFile(file, 'utf8').then(JSON.parse).catch(() => null);
+  const previousManifest = env.PRERENDER_PREVIOUS_MANIFEST ? await readJson(env.PRERENDER_PREVIOUS_MANIFEST) : null;
+  const seed = (await readJson(path.join(root, 'data', 'content-dates-seed.json')))?.pages || {};
+  let rev = env.PRERENDER_REV || null;
+  let revTime = env.PRERENDER_REV_TIME || null;
+  if (!rev || !revTime) {
+    try {
+      [rev, revTime] = execFileSync('git', ['log', '-1', '--format=%H %cI'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim().split(' ');
+    } catch {
+      rev = revTime = null;
+    }
+  }
+  return { previousManifest, seed, source: { rev, revTime } };
+}
+
 export function pageFile(dist, urlPath) {
   if (urlPath === '/') return path.join(dist, 'index.html');
   return path.join(dist, `${urlPath.replace(/^\/+|\/+$/g, '')}.html`);
@@ -160,10 +183,11 @@ export function prerenderHome(html, status, history = {}, { regions = CHECKED_RE
   return out;
 }
 
-// Writes the homepage status, every landing page and sitemap.xml. The sitemap
-// lists only indexable pages, each with the time of its last recorded stock
-// change as lastmod (omitted when there is none).
-export async function prerender(dist, { status, history = {}, affiliate, prices = {} }) {
+// Writes the homepage status, every landing page, sitemap.xml and the content
+// manifest. The sitemap lists only indexable pages. Each lastmod is the later
+// of the page's last recorded stock change and its last content change (see
+// lib/content-dates.mjs), omitted when there is neither.
+export async function prerender(dist, { status, history = {}, affiliate, prices = {}, previousManifest = null, seed = {}, source = {} }) {
   const indexPath = path.join(dist, 'index.html');
   const index = await fs.readFile(indexPath, 'utf8');
   await fs.writeFile(indexPath, prerenderHome(index, status, history));
@@ -204,6 +228,15 @@ export async function prerender(dist, { status, history = {}, affiliate, prices 
   // Top-level 404.html turns off the Pages SPA fallback, so unknown paths get
   // a real 404 instead of the homepage. Not in the sitemap.
   await fs.writeFile(path.join(dist, '404.html'), renderNotFoundPage());
+  // history.html comes from build.js, so a bare prerender (tests) may lack it.
+  const hashes = {};
+  for (const page of sitemap) {
+    const html = await fs.readFile(pageFile(dist, page.path), 'utf8').catch(() => null);
+    if (html !== null) hashes[`${SITE}${page.path}`] = contentHash(html);
+  }
+  const manifest = nextManifest({ hashes, previous: previousManifest, seed, rev: source.rev, revTime: source.revTime, dataTime: status?.generatedAt });
+  for (const page of sitemap) page.lastmod = laterOf(page.lastmod, manifest.pages[`${SITE}${page.path}`]?.changed);
   await fs.writeFile(path.join(dist, 'sitemap.xml'), buildSitemap(sitemap));
+  await fs.writeFile(path.join(dist, MANIFEST), JSON.stringify(manifest));
   return pages;
 }

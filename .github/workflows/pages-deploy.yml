@@ -37,23 +37,33 @@ jobs:
       - name: Install
         run: npm ci
 
+      # The live manifest holds each page's hash and the date its content last
+      # changed. The build keeps those dates, so it is fetched first. A 404
+      # means no manifest yet. Anything else that is not JSON fails the job
+      # rather than losing the dates; the next trigger tries again.
+      - name: Fetch the live IndexNow manifest
+        run: |
+          out="$RUNNER_TEMP/previous-manifest.json"
+          for url in https://steamhardwarestock.com/indexnow-manifest.json https://steamhardwarestock.pages.dev/indexnow-manifest.json; do
+            code=$(curl -sS --retry 3 --retry-delay 5 --max-time 20 -o "$out" -w '%{http_code}' "$url") || code=000
+            if [ "$code" = 200 ] && node -e 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))' "$out"; then exit 0; fi
+            if [ "$code" = 404 ]; then rm -f "$out"; echo "No live IndexNow manifest yet"; exit 0; fi
+            echo "Got $code from $url"
+          done
+          exit 1
+
+      # Also writes dist/indexnow-manifest.json and dates sitemap lastmod by it.
       - name: Build
         run: npm run build
         env:
           CF_PAGES: '1'
+          PRERENDER_PREVIOUS_MANIFEST: ${{ runner.temp }}/previous-manifest.json
           PRERENDER_SOURCE_URL: https://steamhardwarestock.pages.dev
           PRERENDER_MIN_GENERATED_AT: ${{ inputs.checked_at }}
           # Optional repo variables (not secrets). Empty means no affiliate links.
           AFFILIATE_JSAUX_REF: ${{ vars.AFFILIATE_JSAUX_REF }}
           AFFILIATE_AMAZON_ENABLED: ${{ vars.AFFILIATE_AMAZON_ENABLED }}
           AFFILIATE_AMAZON_TAG: ${{ vars.AFFILIATE_AMAZON_TAG }}
-
-      # Hashes every sitemap page into dist/indexnow-manifest.json, and keeps
-      # the live one to compare with after the deploy.
-      - name: Prepare IndexNow manifest
-        run: |
-          node scripts/indexnow.mjs manifest dist
-          curl -fsS --max-time 20 https://steamhardwarestock.com/indexnow-manifest.json -o "$RUNNER_TEMP/previous-manifest.json" || echo "No live IndexNow manifest yet"
 
       - name: Deploy to Cloudflare Pages
         run: npx --yes wrangler@4 pages deploy dist --project-name steamhardwarestock --branch main

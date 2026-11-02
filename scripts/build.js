@@ -104,8 +104,8 @@ async function build() {
     }
   }
 
-  const { loadData, prerender } = await import('./prerender.mjs');
-  const pages = await prerender(destination, { ...(await loadData()), affiliate });
+  const { loadData, loadContentInputs, prerender } = await import('./prerender.mjs');
+  const pages = await prerender(destination, { ...(await loadData()), ...(await loadContentInputs()), affiliate });
   console.log(`Prerendered ${pages} landing pages`);
 
   // /go/jsaux-<handle> -> JSAUX product, for every picked handle, with or without a ref.
