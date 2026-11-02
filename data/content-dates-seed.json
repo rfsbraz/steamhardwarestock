@@ -1,0 +1,1391 @@
+{
+  "base": "5edf6ba685a6c7ab0d1aba6e9bf77a6e6603ac42",
+  "floor": "63fb5c27a948fedc43977198453157215b596227",
+  "site": "https://steamhardwarestock.com",
+  "pages": {
+    "https://steamhardwarestock.com/": {
+      "hash": "3214e1d24ea0af6b",
+      "changed": "2026-10-27T09:48:17.000Z"
+    },
+    "https://steamhardwarestock.com/about": {
+      "hash": "6fb5e23493245a32",
+      "changed": "2026-10-19T09:15:30.000Z"
+    },
+    "https://steamhardwarestock.com/disclosures": {
+      "hash": "e4b15ae979787f77",
+      "changed": "2026-10-27T09:46:46.000Z"
+    },
+    "https://steamhardwarestock.com/history": {
+      "hash": "86718174c508f9ec",
+      "changed": "2026-10-19T09:15:30.000Z"
+    },
+    "https://steamhardwarestock.com/how-it-works": {
+      "hash": "6b8de68a41838b22",
+      "changed": "2026-10-14T08:12:30.000Z"
+    },
+    "https://steamhardwarestock.com/methodology": {
+      "hash": "4d2356efde7a6802",
+      "changed": "2026-10-26T11:12:26.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller": {
+      "hash": "34ba1b101bdd4334",
+      "changed": "2026-10-27T12:51:57.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/at": {
+      "hash": "22dd2973c3b59124",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/au": {
+      "hash": "c7595ab1313f5191",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/be": {
+      "hash": "9dfefc75ac07a661",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/bg": {
+      "hash": "210041f428591773",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/ca": {
+      "hash": "6b04e5b3d4e51990",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/cy": {
+      "hash": "2bebf240474f0b7c",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/cz": {
+      "hash": "ca031aa42ff07d82",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/de": {
+      "hash": "76c6af4921a3fdce",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/dk": {
+      "hash": "ff102dc89c7ab60c",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/ee": {
+      "hash": "3387c0cde7dd0b9c",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/es": {
+      "hash": "71821d5bcaed8e77",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/fi": {
+      "hash": "afda169c202a892f",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/fr": {
+      "hash": "23dd09f35abdc28b",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/gb": {
+      "hash": "1cbc530d069866bc",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/gr": {
+      "hash": "a36343dec6103534",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/hk": {
+      "hash": "38b38f0f38dee46b",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/hr": {
+      "hash": "70919de22b83a4f0",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/hu": {
+      "hash": "703b8c281c85e0df",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/ie": {
+      "hash": "41412254b8005cf7",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/it": {
+      "hash": "3c45a71359ed6085",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/jp": {
+      "hash": "7f80fa037d411fdf",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/kr": {
+      "hash": "fc51049ec6c0bc74",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/lt": {
+      "hash": "0884d61021c1554e",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/lu": {
+      "hash": "fc4f5bbbb28fcc7c",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/lv": {
+      "hash": "a119ed585f96ccdb",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/mt": {
+      "hash": "374b27d141fb8852",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/nl": {
+      "hash": "87655f7f4bd9a79a",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/pl": {
+      "hash": "bd5f720250baa7c8",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/pt": {
+      "hash": "8660216def13dcca",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/ro": {
+      "hash": "591eebb65fcce523",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/se": {
+      "hash": "8a347fa0ca241268",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/si": {
+      "hash": "65b596176f42d4ef",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/sk": {
+      "hash": "630052363bcd6f89",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/status": {
+      "hash": "f5bef6f6008e62f4",
+      "changed": "2026-10-19T09:15:30.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/tw": {
+      "hash": "ba023e027cfa7022",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-controller/us": {
+      "hash": "b1d582e442f01aa8",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck": {
+      "hash": "6ff5bfd619b34af0",
+      "changed": "2026-10-27T12:51:57.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-black-friday": {
+      "hash": "602d6877c2300cc0",
+      "changed": "2026-10-27T09:28:58.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished": {
+      "hash": "bd925cb0223bad41",
+      "changed": "2026-11-02T10:00:39.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/at": {
+      "hash": "11b402b4a746b327",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/au": {
+      "hash": "faa45192cf1f9403",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/be": {
+      "hash": "1f5b6398b824fb63",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/bg": {
+      "hash": "506168177f6aa777",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/ca": {
+      "hash": "aaee510d4823b92a",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/cy": {
+      "hash": "e4964bd8bb1b48b6",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/cz": {
+      "hash": "189582f6ef72dd7c",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/de": {
+      "hash": "356c059ba5b09a0b",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/dk": {
+      "hash": "330ef9ba25b9e470",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/ee": {
+      "hash": "b1bd79ae9ecd138e",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/es": {
+      "hash": "ad9191d8d3aa1b8e",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/fi": {
+      "hash": "39a57c85f2918c44",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/fr": {
+      "hash": "c83063837433545d",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/gb": {
+      "hash": "5e4193146f073b49",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/gr": {
+      "hash": "44acc4aa118b02bf",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/hr": {
+      "hash": "f0a2b8f17da05c8d",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/hu": {
+      "hash": "a6f734f5f228b84d",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/ie": {
+      "hash": "0b0151ca53b16ca4",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/it": {
+      "hash": "f6e11098a71be13d",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/lt": {
+      "hash": "d986afd59fa2ce54",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/lu": {
+      "hash": "792500ffbf035bda",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/lv": {
+      "hash": "24add2041e70f988",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/mt": {
+      "hash": "e8a6bc2a8220e603",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/nl": {
+      "hash": "67459a676b00345a",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/pl": {
+      "hash": "075a10adc1b37767",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/pt": {
+      "hash": "1a9c68e48941350d",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/ro": {
+      "hash": "75bedfab40f85666",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/se": {
+      "hash": "f88c1b5516cbc7c1",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/si": {
+      "hash": "fe71fb407907617d",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/sk": {
+      "hash": "674c2c849c535d7e",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck-refurbished/us": {
+      "hash": "2a8ae3818f62a5a2",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/at": {
+      "hash": "3bdde89a0dbfbd62",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/au": {
+      "hash": "518be5ce5dd4d25d",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/be": {
+      "hash": "feb3b9124370d216",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/bg": {
+      "hash": "ccb917765743bbe9",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/ca": {
+      "hash": "065d12a418848826",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/cy": {
+      "hash": "c85e78711408fdf3",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/cz": {
+      "hash": "7378de7a41c114ba",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/de": {
+      "hash": "01536de6c0e07282",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/dk": {
+      "hash": "1c9f7079d3336499",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/ee": {
+      "hash": "d736fb7c890d012e",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/es": {
+      "hash": "0478c4fc4c523fd9",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/fi": {
+      "hash": "287d96a439afc12e",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/fr": {
+      "hash": "86970425bb1e2d5b",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/gb": {
+      "hash": "d468f1ad3df49284",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/gr": {
+      "hash": "7821d093fc9dfe62",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/hk": {
+      "hash": "a95a16679b769e7e",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/hr": {
+      "hash": "e7562beb32255afe",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/hu": {
+      "hash": "5e7a016af39ef2a6",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/ie": {
+      "hash": "098bca4a52241a91",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/it": {
+      "hash": "25ff238ccb917e13",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/jp": {
+      "hash": "2c913e2fb8faddae",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/kr": {
+      "hash": "93b3cb854cca53a5",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/lt": {
+      "hash": "2bac4e1f4dabecc0",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/lu": {
+      "hash": "6f56042475f80b97",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/lv": {
+      "hash": "93119f7eb343d0cd",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/mt": {
+      "hash": "d755f4b84c1ea96b",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/nl": {
+      "hash": "323cc1b31f808ba6",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/pl": {
+      "hash": "16838a991b2972fc",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/pt": {
+      "hash": "b92820e799c1a34f",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/ro": {
+      "hash": "87a3f57136c93220",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/se": {
+      "hash": "ff41be73e7119140",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/si": {
+      "hash": "5836212c047a6e70",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/sk": {
+      "hash": "939458075b388ae2",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/tw": {
+      "hash": "2fc12dd87b2474b9",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-deck/us": {
+      "hash": "299434ea8f2f8156",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock": {
+      "hash": "f12b50caa1f0bc3a",
+      "changed": "2026-10-27T12:51:57.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/at": {
+      "hash": "339e7d4c9980bfcf",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/au": {
+      "hash": "fc05e491f84f63df",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/be": {
+      "hash": "b3bc9542abdc38bc",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/bg": {
+      "hash": "3a2f48becad174ac",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/ca": {
+      "hash": "14299904f37e3f08",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/cy": {
+      "hash": "d99437829e7d593a",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/cz": {
+      "hash": "421e3d9f89c4245c",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/de": {
+      "hash": "48d77521ebc3304d",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/dk": {
+      "hash": "5b850e147f9ffea5",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/ee": {
+      "hash": "22cc20cccecb33bf",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/es": {
+      "hash": "787b3117c46fddf2",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/fi": {
+      "hash": "6737963d1835b683",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/fr": {
+      "hash": "41b1431da3701c12",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/gb": {
+      "hash": "d0a92e02e34d7e99",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/gr": {
+      "hash": "94723045f57637ad",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/hr": {
+      "hash": "76d519bd99135c17",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/hu": {
+      "hash": "6fe2c6f78502e4d1",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/ie": {
+      "hash": "6d9a2fa357d74af7",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/it": {
+      "hash": "eebf3a242163955d",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/lt": {
+      "hash": "e7ffce61c3d2d328",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/lu": {
+      "hash": "1253dadc66281dd7",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/lv": {
+      "hash": "3c2a721431f55605",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/mt": {
+      "hash": "19c1e6466036b336",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/nl": {
+      "hash": "0e8a0509eeeb79ab",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/pl": {
+      "hash": "6cedecef2a6c14c3",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/pt": {
+      "hash": "45f33408faad3c6b",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/ro": {
+      "hash": "df674012b697dfe0",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/se": {
+      "hash": "5e1fc2c794f4d074",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/si": {
+      "hash": "9a0a7d3a276be82b",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/sk": {
+      "hash": "f0a8b7d6609d6c90",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-dock/us": {
+      "hash": "e2b97bd37a0c2804",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame": {
+      "hash": "e22f770c780a026a",
+      "changed": "2026-10-27T12:57:56.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit": {
+      "hash": "4494f0f68b8b1480",
+      "changed": "2026-10-27T12:51:57.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/at": {
+      "hash": "bafcbeff04099fec",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/au": {
+      "hash": "ba0efd15a87da5df",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/be": {
+      "hash": "72e0273979a6fa2c",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/bg": {
+      "hash": "80f7b9fbe74e85ec",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/ca": {
+      "hash": "ee07c2feb14a0c35",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/cy": {
+      "hash": "be897554dc4bbdfa",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/cz": {
+      "hash": "8d0d2c5116314fc9",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/de": {
+      "hash": "efcb08877b13617f",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/dk": {
+      "hash": "ea91c3e1527a1901",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/ee": {
+      "hash": "050eda2306786d13",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/es": {
+      "hash": "bca4d18cd55730ae",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/fi": {
+      "hash": "817429bd6359a256",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/fr": {
+      "hash": "ac13b03f35edbea9",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/gb": {
+      "hash": "c49ef1ba7a805cf8",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/gr": {
+      "hash": "ad246fb8e082f980",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/hr": {
+      "hash": "3511aebfb4e7bce4",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/hu": {
+      "hash": "f7491321a0b74298",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/ie": {
+      "hash": "7e1b2b23c6f59552",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/it": {
+      "hash": "e8c821a3c8172ff8",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/lt": {
+      "hash": "3788b758108d8030",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/lu": {
+      "hash": "c01a82dac0767cba",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/lv": {
+      "hash": "de4e10757d58756e",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/mt": {
+      "hash": "c0ab8950e97a23fc",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/nl": {
+      "hash": "b9adfd225f5e6c40",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/pl": {
+      "hash": "427e1e9cd217a69f",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/pt": {
+      "hash": "46c8f52e827d04ab",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/ro": {
+      "hash": "ef4f1a8ee03405dc",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/se": {
+      "hash": "3fb56363d54d10e4",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/si": {
+      "hash": "144715ab32093203",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/sk": {
+      "hash": "7f73ea1f77ed8ee3",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-ergonomic-kit/us": {
+      "hash": "fac668a692f7248e",
+      "changed": "2026-10-30T11:31:15.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit": {
+      "hash": "7003f9cf246b8513",
+      "changed": "2026-10-27T12:51:57.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/at": {
+      "hash": "d2555c072239c34d",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/au": {
+      "hash": "28b8831f087bb4f6",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/be": {
+      "hash": "e5fb0b2c474f5e11",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/bg": {
+      "hash": "5e2d1e0e50e62a0c",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/ca": {
+      "hash": "8ca9878cdd0e6917",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/cy": {
+      "hash": "4f561640f1b29eb5",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/cz": {
+      "hash": "75d4f99ceeb64f26",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/de": {
+      "hash": "68641435574a49f0",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/dk": {
+      "hash": "97c84c9ad4c88737",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/ee": {
+      "hash": "a83f042bccbc3503",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/es": {
+      "hash": "a68a49194554ee05",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/fi": {
+      "hash": "830fffe26d5b1d7f",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/fr": {
+      "hash": "a87662c0d50350ef",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/gb": {
+      "hash": "261d6387482c4c32",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/gr": {
+      "hash": "4f2c6a5806700c30",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/hr": {
+      "hash": "e00b8cb35b9ab308",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/hu": {
+      "hash": "204540f60177ac20",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/ie": {
+      "hash": "e70677e8825b415f",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/it": {
+      "hash": "64c5ab4fa342961f",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/lt": {
+      "hash": "1af3d0da504f7b4e",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/lu": {
+      "hash": "5afe311953ca761b",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/lv": {
+      "hash": "5d2a93cb44885971",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/mt": {
+      "hash": "06db31e27b28ab27",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/nl": {
+      "hash": "9069603b49c6c2d2",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/pl": {
+      "hash": "082378ceb75cc749",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/pt": {
+      "hash": "e9a130fa20d1d5bf",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/ro": {
+      "hash": "b649d9ace196d941",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/se": {
+      "hash": "be87ae1277d0d07b",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/si": {
+      "hash": "e239bf4af10d0701",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/sk": {
+      "hash": "dfa12eb73d6f2eb6",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame-replacement-kit/us": {
+      "hash": "117fa74d99b446dc",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/at": {
+      "hash": "695109960d41e4f8",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/au": {
+      "hash": "6ef2f097aa0d2cc2",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/be": {
+      "hash": "06f568b2675f8009",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/bg": {
+      "hash": "7a869f40554c9a7c",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/ca": {
+      "hash": "d609797b1155d85b",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/cy": {
+      "hash": "6a493b3b32532383",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/cz": {
+      "hash": "87dc7776f3696116",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/de": {
+      "hash": "ad23086e1fedeae2",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/dk": {
+      "hash": "35d79b5c4304ceae",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/ee": {
+      "hash": "294cf50c01559871",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/es": {
+      "hash": "1f73739e9de3b3a6",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/fi": {
+      "hash": "070d86b0c8700864",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/fr": {
+      "hash": "d439fdf0827516f2",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/gb": {
+      "hash": "66066495ae799b11",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/gr": {
+      "hash": "ddb92df9723172f8",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/hk": {
+      "hash": "52540727c9c93073",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/hr": {
+      "hash": "6a6ec7ffb80f70dc",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/hu": {
+      "hash": "4b350bb148472094",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/ie": {
+      "hash": "61aad2d0ee75f24a",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/it": {
+      "hash": "ac25caf4c3d55de3",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/jp": {
+      "hash": "7ec9131eabe2923d",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/kr": {
+      "hash": "ff30fdccfd632969",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/lt": {
+      "hash": "8ec7aacb2a838327",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/lu": {
+      "hash": "8f55032000fa5725",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/lv": {
+      "hash": "a009d113a2cdc400",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/mt": {
+      "hash": "b265c044959c9c0f",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/nl": {
+      "hash": "f71125835890cd32",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/pl": {
+      "hash": "3566fafda70a8dcb",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/pt": {
+      "hash": "ab4b1a638b91c5c7",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/ro": {
+      "hash": "d83b8d062b8cd63c",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/se": {
+      "hash": "5047ec6ac8cf36ac",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/si": {
+      "hash": "cd16d34fc5082687",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/sk": {
+      "hash": "67f9219b3ce0faf0",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/status": {
+      "hash": "dd353fccd1a04eb2",
+      "changed": "2026-10-19T09:15:30.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/tw": {
+      "hash": "58789becc6cae86f",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-frame/us": {
+      "hash": "eaa279056d205923",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply": {
+      "hash": "8fe7f2bd9e06c26b",
+      "changed": "2026-10-27T12:51:57.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/at": {
+      "hash": "742c53ad345ae092",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/au": {
+      "hash": "8ba0fba9e7cf5c09",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/be": {
+      "hash": "98abe7744f2c3dfd",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/bg": {
+      "hash": "754782e5ebe98ef1",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/ca": {
+      "hash": "7cd1d7e8c4e205c0",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/cy": {
+      "hash": "436786d649c15821",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/cz": {
+      "hash": "e0a97732ecbdd106",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/de": {
+      "hash": "4757d43bd78176c8",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/dk": {
+      "hash": "ea70b2da7cc3dc03",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/ee": {
+      "hash": "12b9a69d652d441e",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/es": {
+      "hash": "97ff888d3de3133c",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/fi": {
+      "hash": "ac0ba3d8ae1a2c5a",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/fr": {
+      "hash": "be89ef08deb7b931",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/gb": {
+      "hash": "c63b86efafdcb0b4",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/gr": {
+      "hash": "f1f168aa1af84b49",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/hr": {
+      "hash": "71b705118a1458e6",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/hu": {
+      "hash": "d7c398d2f0bb75f6",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/ie": {
+      "hash": "82fc72908e338165",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/it": {
+      "hash": "87993e825ca5dea3",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/lt": {
+      "hash": "d2f54df44e6ad4ce",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/lu": {
+      "hash": "a05e8375b0cc2006",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/lv": {
+      "hash": "e811cee905ce65cd",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/mt": {
+      "hash": "ea1520cf72f5906c",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/nl": {
+      "hash": "f651afcbfb30a489",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/pl": {
+      "hash": "3eefaaa79bb0ef35",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/pt": {
+      "hash": "7cae15bd138f554f",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/ro": {
+      "hash": "cba1f9b5c6829fa3",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/se": {
+      "hash": "4e016131b64c12ee",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/si": {
+      "hash": "2870ffaffc89ae5c",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/sk": {
+      "hash": "a1d4bb28640c076b",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-hardware-power-supply/us": {
+      "hash": "ee3a16dc82bc4db0",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine": {
+      "hash": "188d191d2970d51d",
+      "changed": "2026-10-27T12:51:57.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/at": {
+      "hash": "edbed5297f62a5fc",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/au": {
+      "hash": "3fab8a762c1c5bcc",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/be": {
+      "hash": "2852e3bf013cb6b5",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/bg": {
+      "hash": "dfcaa2d883237562",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/ca": {
+      "hash": "ad175a5761d10f16",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/cy": {
+      "hash": "140e1e73d7562225",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/cz": {
+      "hash": "93d9adfc94c491f9",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/de": {
+      "hash": "9214d6ca8a8e220c",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/dk": {
+      "hash": "92fac4bdc7c42604",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/ee": {
+      "hash": "f79f7fc3efdaaff6",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/es": {
+      "hash": "f63614a2cc0a3487",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/fi": {
+      "hash": "c6a6db43ff06f29a",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/fr": {
+      "hash": "76352cbb10c95f4d",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/gb": {
+      "hash": "d238a22638d190d7",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/gr": {
+      "hash": "a83e521795d19877",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/hk": {
+      "hash": "b0c5d6d018a39499",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/hr": {
+      "hash": "58a24fc7946e90ab",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/hu": {
+      "hash": "0237779957941212",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/ie": {
+      "hash": "3403e46ce4a81d7f",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/it": {
+      "hash": "0565da03dfc0f37b",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/jp": {
+      "hash": "5c6bb49003693474",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/kr": {
+      "hash": "face443a4be2e9e2",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/lt": {
+      "hash": "5f703f876507abf5",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/lu": {
+      "hash": "556bc57b46403009",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/lv": {
+      "hash": "baf9c059254594f9",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/mt": {
+      "hash": "f80cf297ba01f0e9",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/nl": {
+      "hash": "b27372bde558ff8a",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/pl": {
+      "hash": "1a5c7e51707b6c9d",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/pt": {
+      "hash": "c7fb2d25461b6934",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/ro": {
+      "hash": "373d0664cff1a8fb",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/se": {
+      "hash": "18aac9ee32105c0c",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/si": {
+      "hash": "d9bb5a37baa008d8",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/sk": {
+      "hash": "73649a85b86d7c51",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/status": {
+      "hash": "383cb005d15dd308",
+      "changed": "2026-10-19T09:15:30.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/tw": {
+      "hash": "de46224d746a624a",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/steam-machine/us": {
+      "hash": "4a683b371d488006",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index": {
+      "hash": "616f54478fcac52c",
+      "changed": "2026-10-27T12:51:57.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/at": {
+      "hash": "181b489ff24e53cf",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/au": {
+      "hash": "f4cbbaed2a061a55",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/be": {
+      "hash": "8f81f496686b59bb",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/bg": {
+      "hash": "879965ff57c54e68",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/ca": {
+      "hash": "3d3014a9cf944da1",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/cy": {
+      "hash": "11cb587c8410407a",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/cz": {
+      "hash": "ca859abe1a73dca0",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/de": {
+      "hash": "dec474a5905ed78e",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/dk": {
+      "hash": "dbc520ad01040240",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/ee": {
+      "hash": "553cedc28061e6d2",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/es": {
+      "hash": "0f1cf39964e31187",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/fi": {
+      "hash": "7e1536aba69b151e",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/fr": {
+      "hash": "49da4670dc405c52",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/gb": {
+      "hash": "065f1fab37566618",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/gr": {
+      "hash": "7bb2ecbe7c4595b6",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/hr": {
+      "hash": "0904e8f21c18f6ab",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/hu": {
+      "hash": "1887432f0947a169",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/ie": {
+      "hash": "f675e3cfea585bb0",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/it": {
+      "hash": "a56bc22403d39597",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/lt": {
+      "hash": "dfcb2df2cdafb20a",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/lu": {
+      "hash": "cbfcf747cc64a270",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/lv": {
+      "hash": "d8321a228c1b7b79",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/mt": {
+      "hash": "0cd25e25f7ac8c19",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/nl": {
+      "hash": "c16f36ecd7f23dc1",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/pl": {
+      "hash": "8ea290e9893ab760",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/pt": {
+      "hash": "d778bd1d0464b661",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/ro": {
+      "hash": "7f44c4fec0e665b2",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/se": {
+      "hash": "70e253ca5c48bbea",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/si": {
+      "hash": "4a308b3ab9c261fb",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/sk": {
+      "hash": "2e5f1decec9851ab",
+      "changed": "2026-10-27T10:10:36.000Z"
+    },
+    "https://steamhardwarestock.com/valve-index/us": {
+      "hash": "e4a576f14b32ba35",
+      "changed": "2026-10-27T10:10:36.000Z"
+    }
+  }
+}
