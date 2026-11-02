@@ -79,7 +79,7 @@ test('round 1 pages carry the experiment title and description', () => {
 
 test('round 1 descriptions drop the live in-stock count, other pages keep it', () => {
   for (const rel of Object.keys(COPY)) assert.doesNotMatch(page(rel).description, LIVE_COUNT, rel);
-  for (const rel of ['/steam-deck-refurbished', '/steam-frame-ergonomic-kit']) assert.match(page(rel).description, LIVE_COUNT, rel);
+  for (const rel of ['/steam-frame-ergonomic-kit']) assert.match(page(rel).description, LIVE_COUNT, rel);
 });
 
 test('round 1 leaves H1, body counts and country titles as they were', () => {
@@ -88,4 +88,29 @@ test('round 1 leaves H1, body counts and country titles as they were', () => {
   assert.match(page('/').h1, /^Steam Hardware Tracker: Stock and Reservation Status in \d+ Countries$/);
   for (const rel of Object.keys(COPY).filter((r) => r !== '/')) assert.match(page(rel).html, /In stock in <strong>\d+<\/strong> of \d+ Steam countries at the last check\./, `${rel} body`);
   assert.equal(page('/steam-frame/de').title, 'Steam Frame Stock in Germany: Out of stock');
+});
+
+// Round 2 experiment on the refurbished Deck page: title and description
+// only. The H1, the body and the country pages are the control.
+test('round 2 refurbished page carries the experiment title and description', () => {
+  const p = page('/steam-deck-refurbished');
+  const title = 'Steam Deck Refurbished Restock Tracker: Stock by Country';
+  const description = 'Is the refurbished Steam Deck back in stock? Valve Certified units tracked every 10 minutes in the 30 countries Steam sells them. Free restock alert.';
+  assert.equal(p.title, title);
+  assert.equal(p.description, description);
+  assert.doesNotMatch(p.description, LIVE_COUNT);
+  for (const [attr, key, want] of [['property', 'og:title', title], ['property', 'og:description', description], ['name', 'twitter:title', title], ['name', 'twitter:description', description]]) {
+    const m = p.html.match(new RegExp(`<meta ${attr}="${key}" content="([^"]*)"`));
+    if (m) assert.equal(decode(m[1]), want, key);
+  }
+});
+
+test('round 2 leaves the refurbished H1, body and country pages as they were', () => {
+  const p = page('/steam-deck-refurbished');
+  assert.equal(p.h1, 'Steam Deck (Refurbished) stock and availability by country');
+  assert.match(p.html, /In stock in <strong>\d+<\/strong> of \d+ Steam countries at the last check\./);
+  const de = page('/steam-deck-refurbished/de');
+  assert.equal(de.title, 'Refurbished Steam Deck Stock in Germany: Out of stock');
+  assert.equal(de.description, 'Refurbished Steam Deck in Germany: out of stock on the Steam Store. No restock recorded yet. Stock is checked every 10 minutes. Get a free restock alert.');
+  assert.equal(de.h1, 'Steam Deck (Refurbished) stock in Germany');
 });
