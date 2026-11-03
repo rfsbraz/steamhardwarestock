@@ -15,19 +15,24 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { SITE } from '../lib/site.mjs';
-import { MANIFEST, contentHash, manifestEntry } from '../lib/content-dates.mjs';
+import { MANIFEST, MANIFEST_VERSION, contentHash, manifestEntry } from '../lib/content-dates.mjs';
 
 export { MANIFEST, contentHash };
 
 export const INDEXNOW_KEY = '5395aa81dde2ff2e16e0802d894731cd';
 const ENDPOINT = 'https://api.indexnow.org/indexnow';
 
-// New and changed URLs in sitemap order, then removed ones.
+// New and changed URLs in sitemap order, then removed ones. A version 2
+// manifest hashed the check date in, so against one a page counts as changed
+// when its content date moved later, not when its hash moved.
 export function changedUrls(previous, next) {
-  const before = (previous?.version === 1 || previous?.version === 2) && previous.pages ? previous : null;
+  const before = [1, 2, MANIFEST_VERSION].includes(previous?.version) && previous.pages ? previous : null;
   const now = Object.keys(next.pages);
   if (!before) return now;
-  const changed = now.filter((loc) => manifestEntry(before, loc)?.hash !== manifestEntry(next, loc).hash);
+  const moved = before.version === 2
+    ? (was, is) => !was || (is.changed || '') > (was.changed || '')
+    : (was, is) => was?.hash !== is.hash;
+  const changed = now.filter((loc) => moved(manifestEntry(before, loc), manifestEntry(next, loc)));
   const removed = Object.keys(before.pages).filter((loc) => !(loc in next.pages));
   return [...changed, ...removed];
 }

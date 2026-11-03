@@ -57,6 +57,13 @@ test('IndexNow compares hashes across the old and new manifest formats', () => {
   assert.deepEqual(changedUrls(v2, v2), []);
 });
 
+test('IndexNow sends only the pages whose content date moved later when the live manifest hashed the check date', () => {
+  const v2 = { version: 2, rev: 'r1', pages: { [A]: { hash: 'old-a', changed: DATA_TIME }, [B]: { hash: 'old-b', changed: OLD } } };
+  const v3 = { version: 3, rev: 'r2', pages: { [A]: { hash: 'a', changed: OLD }, [B]: { hash: 'b', changed: REV_TIME } } };
+  assert.deepEqual(changedUrls(v2, v3), [B]);
+  assert.deepEqual(changedUrls(v3, { ...v3, pages: { ...v3.pages, [A]: { hash: 'A', changed: OLD } } }), [A]);
+});
+
 function build({ previous, history = {}, gitRev = false }) {
   const dist = tmpDir('shs-dates-');
   const products = {};
@@ -83,13 +90,13 @@ function build({ previous, history = {}, gitRev = false }) {
 
 test('the build writes dated hashes and sets lastmod to the later of the stock event and the content change', () => {
   const first = build({ previous: { version: 2, rev: 'r1', pages: {} } });
-  assert.equal(first.manifest.version, 2);
+  assert.equal(first.manifest.version, 3);
   assert.equal(first.manifest.rev, 'r2');
   assert.equal(first.lastmod[A], REV_TIME, 'every URL is new, so it is dated by the commit');
   const history = { 'steam-dock:FR': { events: [{ ts: STOCK, status: 'out_of_stock' }] } };
   const withStock = build({ previous: first.manifest, history });
   const dated = Object.fromEntries(Object.entries(withStock.manifest.pages).map(([loc, e]) => [loc, { ...e, changed: OLD }]));
-  const again = build({ previous: { version: 2, rev: 'r2', pages: dated }, history });
+  const again = build({ previous: { version: 3, rev: 'r2', pages: dated }, history });
   assert.equal(again.lastmod[B], OLD, 'the content change is newer than any stock event');
   assert.equal(again.lastmod[A], STOCK, 'the stock event is newer than the content change');
 });
