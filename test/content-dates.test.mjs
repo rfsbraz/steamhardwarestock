@@ -57,6 +57,13 @@ test('IndexNow compares hashes across the old and new manifest formats', () => {
   assert.deepEqual(changedUrls(v2, v2), []);
 });
 
+test('IndexNow sends only the pages whose content date moved later when the live manifest hashed the check date', () => {
+  const v2 = { version: 2, rev: 'r1', pages: { [A]: { hash: 'old-a', changed: DATA_TIME }, [B]: { hash: 'old-b', changed: OLD } } };
+  const v3 = { version: 3, rev: 'r2', pages: { [A]: { hash: 'a', changed: OLD }, [B]: { hash: 'b', changed: REV_TIME } } };
+  assert.deepEqual(changedUrls(v2, v3), [B]);
+  assert.deepEqual(changedUrls(v3, { ...v3, pages: { ...v3.pages, [A]: { hash: 'A', changed: OLD } } }), [A]);
+});
+
 function build({ previous, history = {}, gitRev = false }) {
   const dist = tmpDir('shs-dates-');
   const products = {};
@@ -83,13 +90,13 @@ function build({ previous, history = {}, gitRev = false }) {
 
 test('the build writes dated hashes and sets lastmod to the later of the stock event and the content change', () => {
   const first = build({ previous: { version: 2, rev: 'r1', pages: {} } });
-  assert.equal(first.manifest.version, 2);
+  assert.equal(first.manifest.version, 3);
   assert.equal(first.manifest.rev, 'r2');
   assert.equal(first.lastmod[A], REV_TIME, 'every URL is new, so it is dated by the commit');
   const history = { 'steam-dock:FR': { events: [{ ts: STOCK, status: 'out_of_stock' }] } };
   const withStock = build({ previous: first.manifest, history });
   const dated = Object.fromEntries(Object.entries(withStock.manifest.pages).map(([loc, e]) => [loc, { ...e, changed: OLD }]));
-  const again = build({ previous: { version: 2, rev: 'r2', pages: dated }, history });
+  const again = build({ previous: { version: 3, rev: 'r2', pages: dated }, history });
   assert.equal(again.lastmod[B], OLD, 'the content change is newer than any stock event');
   assert.equal(again.lastmod[A], STOCK, 'the stock event is newer than the content change');
 });
@@ -101,4 +108,54 @@ test('no sitemap lastmod is the build time', () => {
     const late = Object.entries(lastmod).filter(([, v]) => v && v >= started);
     assert.deepEqual(late, [], `lastmod at or after the build started (${started})`);
   }
+});
+
+function buildWith(data, previous) {
+  const dist = tmpDir('shs-stable-');
+  const env = { ...process.env, BUILD_DIST: dist, PRERENDER_FIXTURE: `${dist}-fixture.json`, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: '1', PRERENDER_REV: 'r2', PRERENDER_REV_TIME: REV_TIME };
+  writeFileSync(env.PRERENDER_FIXTURE, JSON.stringify(data));
+  if (previous) {
+    env.PRERENDER_PREVIOUS_MANIFEST = `${dist}-previous.json`;
+    writeFileSync(env.PRERENDER_PREVIOUS_MANIFEST, JSON.stringify(previous));
+  }
+  execFileSync(process.execPath, ['scripts/build.js'], { cwd: root, env, stdio: 'pipe' });
+  return JSON.parse(readFileSync(path.join(dist, 'indexnow-manifest.json'), 'utf8'));
+}
+
+const live = JSON.parse(readFileSync(path.join(root, 'test/fixtures/live-2026-10-27.json'), 'utf8'));
+const checkedAt = (data, iso) => ({ ...data, status: { ...data.status, generatedAt: iso } });
+// Just past midnight UTC, so the check date rolls over. Later that day a
+// 28 Sep restock leaves the 30-day timeline, which is a real change.
+const NEXT_DAY = '2026-10-28T00:10:40.000Z';
+const moved = (a, b) => Object.keys(b.pages).filter((loc) => a.pages[loc]?.hash !== b.pages[loc].hash || a.pages[loc]?.changed !== b.pages[loc].changed);
+
+test('a check on a later day with the same stock and prices moves no content date', () => {
+  const first = buildWith(live, { version: 3, rev: 'r2', pages: {} });
+  const nextDay = buildWith(checkedAt(live, NEXT_DAY), first);
+  assert.deepEqual(moved(first, nextDay), []);
+});
+
+test('a stock change moves only the pages that show that product and country', () => {
+  const first = buildWith(checkedAt(live, NEXT_DAY), { version: 3, rev: 'r2', pages: {} });
+  const data = structuredClone(checkedAt(live, new Date(Date.parse(NEXT_DAY) + 600000).toISOString()));
+  const cell = data.status.products['steam-dock'].FR;
+  cell.status = 'in_stock';
+  for (const pkg of cell.packages) pkg.status = 'in_stock';
+  const urls = moved(first, buildWith(data, first));
+  assert.ok(urls.includes(`${S}/steam-dock/fr`), 'the dock page for France moves');
+  assert.ok(urls.includes(`${S}/steam-machine/fr`), 'other French pages list the dock and move too');
+  const elsewhere = urls.filter((loc) => /\/[a-z-]+\/[a-z]{2}$/.test(loc) && !loc.endsWith('/fr'));
+  assert.deepEqual(elsewhere, [], 'no country page outside France moves');
+});
+
+test('pages dated by an older manifest take their repaired seed date when the hash matches', () => {
+  const RESTAMP = '2026-11-03T03:10:40.209Z';
+  const previous = { version: 2, rev: 'r1', pages: { [A]: { hash: 'old-a', changed: RESTAMP }, [B]: { hash: 'old-b', changed: RESTAMP } } };
+  const seed = { [A]: { hash: 'a', changed: OLD }, [B]: { hash: 'b', changed: OLD } };
+  const next = at({ [A]: 'a', [B]: 'B' }, { previous, seed });
+  assert.deepEqual(next.pages[A], { hash: 'a', changed: OLD });
+  assert.equal(next.pages[B].changed, REV_TIME, 'a page that no longer matches its seed is dated by this deploy');
+  assert.equal(next.version, 3);
+  const later = at({ [A]: 'a' }, { previous: { version: 3, rev: 'r2', pages: { [A]: { hash: 'x', changed: RESTAMP } } }, seed });
+  assert.equal(later.pages[A].changed, DATA_TIME, 'once a current manifest is live the seed no longer applies');
 });
