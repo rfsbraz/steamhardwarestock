@@ -1,0 +1,17 @@
+Google Rich Results Test findings (UI results)
+
+Test 1: https://steamhardwarestock.com/steam-deck/us
+Crawled successfully Nov 6, 2026, 7:31:18 PM; Google Inspection Tool smartphone; crawl allowed Yes; page fetch Successful; indexing allowed Yes.
+Summary: 3 valid items detected; valid items eligible for Google Search rich results.
+Product snippets: 1 valid item, Steam Deck 512GB OLED (SKU 946113), brand Valve. Product offer shown: USD 789, InStock, eligible region US, seller Valve. Optional non-critical warnings: missing review; missing aggregateRating.
+Merchant listings: 1 valid item. Optional non-critical warnings: missing shippingDetails; missing hasMerchantReturnPolicy.
+Breadcrumbs: 1 valid BreadcrumbList: Home > Steam Deck > United States.
+
+Test 2: https://steamhardwarestock.com/steam-frame
+Crawled successfully Nov 6, 2026, 7:33:46 PM; Google Inspection Tool smartphone; crawl allowed Yes; page fetch Successful; indexing allowed Yes.
+Summary: 3 valid items detected; valid items eligible for Google Search rich results.
+Product snippets: 1 valid item, Steam Frame 256GB Kit (SKU 1629484), brand Valve. US offer shown: USD 1059, BackOrder. Optional non-critical warnings: missing aggregateRating; missing review.
+Merchant listings: 1 valid item with 62 non-critical issues. Missing shippingDetails and hasMerchantReturnPolicy (both optional), repeated across the offers.
+Breadcrumbs: 1 valid BreadcrumbList: Home > Steam Frame.
+
+Screenshots in this folder show summary results, Product details, Merchant warnings, and Breadcrumbs for the tested URLs.
