@@ -63,6 +63,9 @@ Search Console reported "Product snippets: 0 valid, 4 invalid" and "Merchant lis
   - Status maps to availability: in stock is InStock, reservations open is PreOrder, waitlist is BackOrder, out of stock is OutOfStock.
   - Prices come from Steam's `GetItems` at build time. A formatted price that does not match the country's currency is dropped.
 - The product page carries one offer per Steam country for the base model. A country page carries one offer.
+- Rendering also rejects missing, non-finite, zero or negative amounts and currencies that do not match the country's known store currency. If every offer is rejected, the page keeps its other structured data and omits Product.
+
+`test/seo.test.mjs` validates every generated Product against the required Product/Offer fields in `test/fixtures/product-schema.json`, using Ajv. It covers both normal and Cloudflare builds, plus malformed price inputs on product and country pages. The contract follows Google's [product-snippet documentation](https://developers.google.com/search/docs/appearance/structured-data/product-snippet). It checks the fields emitted by this tracker; it does not replace Google's Rich Results Test or establish search eligibility.
 
 Shipping and return policy fields are not set. Google lists them as recommended for merchant listings, and Valve's terms vary by country.
 

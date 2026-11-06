@@ -7,6 +7,14 @@ import { fileURLToPath } from 'node:url';
 import { PRODUCTS, REGIONS, VALVE_SELLS } from '../lib/products.mjs';
 import { isIndexable } from '../lib/seo.mjs';
 import { tmpDir } from './helpers/tmp.mjs';
+import Ajv from 'ajv';
+import { renderProductPage, renderRegionPage } from '../lib/landing.mjs';
+
+// The required Product/Offer contract from Google's product-snippet docs.
+// This checks generated markup, not search eligibility or live crawl results.
+const validateProduct = new Ajv({ allErrors: true }).compile(JSON.parse(
+  readFileSync(new URL('./fixtures/product-schema.json', import.meta.url), 'utf8')
+));
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SITE = 'https://steamhardwarestock.com';
@@ -144,6 +152,7 @@ for (const cf of ['', '1']) {
       for (const item of p.ld) {
         assert.equal(item['@context'], 'https://schema.org', p.rel);
         if (item['@type'] !== 'Product') continue;
+        assert.ok(validateProduct(item), `${p.rel}: ${JSON.stringify(validateProduct.errors)}`);
         assert.ok(item.name && item.image && item.brand?.name, `${p.rel} Product is missing name, image or brand`);
         const list = [item.offers].flat();
         assert.ok(list.length > 0, `${p.rel} has a Product with no offers`);
@@ -266,4 +275,41 @@ for (const cf of ['', '1']) {
 test('CF_PAGES=1 build still writes _headers', () => {
   const { read } = build('1');
   assert.match(read('_headers'), /\/sw\.js/);
+});
+
+const jsonLd = (html) => [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+  .flatMap((m) => [JSON.parse(m[1])].flat());
+
+test('malformed prices never create Product offers on product or country pages', () => {
+  const product = PRODUCTS.find((p) => p.id === 'steam-deck');
+  const region = REGIONS.find((r) => r.code === 'US');
+  const invalid = [
+    {}, { amount: null, currency: 'USD' }, { amount: '789', currency: 'USD' },
+    { amount: 0, currency: 'USD' }, { amount: -1, currency: 'USD' },
+    { amount: Infinity, currency: 'USD' }, { amount: NaN, currency: 'USD' },
+    { amount: 789 }, { amount: 789, currency: '' },
+    { amount: 789, currency: 'usd' }, { amount: 789, currency: 'EUR' }
+  ];
+  for (const price of invalid) {
+    const { status, history } = fixture();
+    const options = { prices: { [product.packages[0].id]: { US: price } } };
+    const pages = [renderProductPage(product, history, status, options),
+      renderRegionPage(product, region, history, status, options)];
+    for (const html of pages) {
+      const ld = jsonLd(html);
+      assert.ok(!ld.some((item) => item['@type'] === 'Product'), JSON.stringify(price));
+      assert.ok(ld.some((item) => item['@type'] === 'BreadcrumbList'));
+    }
+  }
+});
+
+test('a malformed offer is dropped while valid offers remain schema-valid', () => {
+  const product = PRODUCTS.find((p) => p.id === 'steam-deck');
+  const { status, history, prices } = fixture();
+  prices[product.packages[0].id].US = { amount: 789 };
+  const html = renderProductPage(product, history, status, { prices });
+  const ld = jsonLd(html).find((item) => item['@type'] === 'Product');
+  assert.ok(validateProduct(ld), JSON.stringify(validateProduct.errors));
+  assert.ok([ld.offers].flat().every((offer) => offer.eligibleRegion.name !== 'US'));
+  assert.ok([ld.offers].flat().some((offer) => offer.priceCurrency === 'EUR'));
 });
