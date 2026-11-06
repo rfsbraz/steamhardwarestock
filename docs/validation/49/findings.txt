@@ -21,3 +21,5 @@ Input preserved: /workspace/shs49-rich-results/steam-frame-without-offers.html (
 Live Steam Frame raw DOM: Product with 31 offers, BreadcrumbList, FAQPage.
 Test 4: https://steamhardwarestock.com/steam-controller/status
 Crawled successfully Nov 6, 2026, 7:40:36 PM; Google Inspection Tool smartphone. Summary: 1 valid item detected (Breadcrumbs). Raw DOM contains BreadcrumbList only; no Product. This status/history page is not an unpriced Product. Screenshot: controller-status-summary.png.
+
+Review decision, 6 Nov 2026: Rodrigo accepted this exact generated no-price fixture with its documented limitation. It is complementary CODE-mode validation only, not proof of a live product page without a price. There is no such live product page currently. The repository schema tests across every generated page validate Product suppression; this fixture additionally confirms Google emits no error when Product is absent.
