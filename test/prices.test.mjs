@@ -15,6 +15,9 @@ test('keeps a price only when the formatted string matches the currency', () => 
   assert.equal(parsePrice('DE', { formatted_final_price: '$789.00', final_price_in_cents: '78900' }), null);
   assert.equal(parsePrice('US', { formatted_final_price: '$0.00', final_price_in_cents: '0' }), null);
   assert.equal(parsePrice('US', undefined), null);
+  for (const cents of [Infinity, 'Infinity', 'NaN', null, -1]) {
+    assert.equal(parsePrice('US', { formatted_final_price: '$789.00', final_price_in_cents: cents }), null);
+  }
 });
 
 test('fetchPrices makes one request per region and skips failures', async () => {
