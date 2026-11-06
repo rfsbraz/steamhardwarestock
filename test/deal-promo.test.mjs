@@ -48,7 +48,8 @@ test('pages built before the end date hide the pill in the browser after it', ()
   assert.deepEqual(pills.map((p) => p.removed), [true, false]);
 });
 
-test('landing pages inline the promo check next to the click tracker', () => {
+test('landing pages inline the promo check next to the click tracker', (t) => {
+  t.mock.method(Date, 'now', () => BEFORE);
   const { tracker } = affiliateParts('steam-deck', cfg(HALLOWEEN));
   assert.match(tracker, /deal-promo\[data-ends\]/);
   assert.match(tracker, /\(document, Date\.now\(\)\)/);
