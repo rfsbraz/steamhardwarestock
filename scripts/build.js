@@ -25,6 +25,16 @@ const CF_HEADERS = `/sw.js
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
 `;
+// Which requests run Pages Functions. Without this file Pages generates one
+// from functions/, and the [scope] feed routes would turn into "/*", running a
+// Function for every static page. "/*/rss.xml" matches the feed paths at any
+// depth and no page. A new Function needs its path here too (see
+// test/scoped-feeds.test.mjs).
+const CF_ROUTES = {
+  version: 1,
+  include: ['/status.json', '/api/history', '/feed.xml', '/rss.xml', '/proxy', '/*/rss.xml', '/*/feed.xml'],
+  exclude: []
+};
 // BUILD_DIST lets tests build into a temp dir so parallel test files do not clash.
 const destination = process.env.BUILD_DIST ? path.resolve(process.env.BUILD_DIST) : path.join(root, 'dist');
 
@@ -116,6 +126,7 @@ async function build() {
   if (process.env.CF_PAGES) {
     await fs.writeFile(path.join(destination, '_headers'), CF_HEADERS);
   }
+  await fs.writeFile(path.join(destination, '_routes.json'), `${JSON.stringify(CF_ROUTES, null, 2)}\n`);
 
   const summary = HASHED_ASSETS.map((n) => `${n}=${hashes[n]}`).join(', ');
   console.log(`Built: ${summary}`);
