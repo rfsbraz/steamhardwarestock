@@ -57,7 +57,16 @@ The site has a web app manifest (`public/site.webmanifest`) with PNG icons in `p
 
 ## Feeds
 
-Stock changes are published as an Atom feed at https://steamhardwarestock.com/feed.xml and as RSS at https://steamhardwarestock.com/rss.xml. Every page links them, so feed readers find them automatically.
+Stock changes are published as RSS and Atom. Each feed has the latest 50 changes.
+
+| Feed | RSS | Atom |
+|---|---|---|
+| Everything | https://steamhardwarestock.com/rss.xml | https://steamhardwarestock.com/feed.xml |
+| One product | `/<product>/rss.xml`, for example https://steamhardwarestock.com/steam-controller/rss.xml | `/<product>/feed.xml` |
+| One country | `/<country>/rss.xml`, for example https://steamhardwarestock.com/pl/rss.xml | `/<country>/feed.xml` |
+| One product in one country | `/<product>/<country>/rss.xml`, for example https://steamhardwarestock.com/steam-controller/pl/rss.xml | `/<product>/<country>/feed.xml` |
+
+Countries are the lowercase codes of the countries the tracker checks (`VALVE_SELLS`). Other paths return 404. Pages link the feed that fits them, so feed readers find it automatically: a product page links its product feed, a country page links the product and country feed and then the country feed, and the other pages link the feed with everything.
 
 ## Hosting
 
