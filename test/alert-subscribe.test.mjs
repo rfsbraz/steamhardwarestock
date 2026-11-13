@@ -12,7 +12,7 @@ const box = (html) => html.match(/<section class="alert-box"[\s\S]*?<\/section>/
 // Reads the attributes of the rendered RSS link, so the click goes through
 // the same markup the page ships.
 function rssLink(html) {
-  const tag = box(html).match(/<a [^>]*href="\/rss\.xml"[^>]*>/)?.[0] || '';
+  const tag = box(html).match(/<a [^>]*href="\/[a-z0-9-]+\/rss\.xml"[^>]*>/)?.[0] || '';
   const attrs = Object.fromEntries([...tag.matchAll(/([a-z-]+)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
   return { getAttribute: (n) => (n in attrs ? attrs[n] : null), matches: (sel) => sel === 'a[data-alert]' && 'data-alert' in attrs };
 }

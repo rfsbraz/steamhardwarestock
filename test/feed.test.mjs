@@ -9,6 +9,7 @@ import { buildAtom, buildRss, feedEvents, FEED_LIMIT } from '../lib/feed.mjs';
 import { onRequestGet as atomHandler } from '../functions/feed.xml.js';
 import { onRequestGet as rssHandler } from '../functions/rss.xml.js';
 import { tmpDir } from './helpers/tmp.mjs';
+import { PRODUCTS } from '../lib/products.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const history = {
@@ -98,15 +99,26 @@ test('feed function survives missing KV and bad JSON', async () => {
   }
 });
 
-test('every built HTML page links both feeds', () => {
+test('every global page links both global feeds, and product pages link their own instead', () => {
   const dist = tmpDir('shs-feed-');
   execFileSync(process.execPath, ['scripts/build.js'], { cwd: root, env: { ...process.env, BUILD_DIST: dist, PRERENDER_OFFLINE: '1', PRERENDER_SOURCE_URL: '', CF_PAGES: '1' }, stdio: 'pipe' });
   const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : e.name.endsWith('.html') ? [path.join(d, e.name)] : []));
   const files = walk(dist);
   assert.ok(files.length > 100);
+  const products = new Set(PRODUCTS.map((p) => p.id));
+  const atom = '<link rel="alternate" type="application/atom+xml" title="Steam hardware stock changes" href="https://steamhardwarestock.com/feed.xml">';
+  const rss = '<link rel="alternate" type="application/rss+xml" title="Steam hardware stock changes (RSS)" href="https://steamhardwarestock.com/rss.xml">';
+  let global = 0;
   for (const f of files) {
     const html = readFileSync(f, 'utf8');
-    assert.ok(html.includes('<link rel="alternate" type="application/atom+xml" title="Steam hardware stock changes" href="https://steamhardwarestock.com/feed.xml">'), f);
-    assert.ok(html.includes('<link rel="alternate" type="application/rss+xml" title="Steam hardware stock changes (RSS)" href="https://steamhardwarestock.com/rss.xml">'), f);
+    const first = path.relative(dist, f).split(path.sep)[0].replace(/\.html$/, '');
+    if (products.has(first)) {
+      assert.ok(!html.includes(atom) && !html.includes(rss), `${f} links its own feeds, not the global ones`);
+    } else {
+      global++;
+      assert.ok(html.includes(atom), f);
+      assert.ok(html.includes(rss), f);
+    }
   }
+  assert.ok(global >= 8, 'home, history, info pages, 404 and the sale page');
 });
