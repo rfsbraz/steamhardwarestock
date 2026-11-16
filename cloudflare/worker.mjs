@@ -4,7 +4,7 @@
 // and NTFY_TOPIC secrets are set with `wrangler secret put`; see docs/cloudflare.md.
 import { fetchAnswers, classifyAnswers, CHECKED_REGIONS } from '../lib/steam.mjs';
 import { buildStatusDoc, STATUS_RULES_VERSION } from '../lib/status-doc.mjs';
-import { mergeEvent } from '../lib/history-merge.mjs';
+import { isSeedEvent, mergeEvent } from '../lib/history-merge.mjs';
 import { notifyChanges } from '../lib/notify.mjs';
 import { regionByCode } from '../lib/products.mjs';
 import { statusText } from '../lib/parts.mjs';
@@ -152,8 +152,9 @@ export async function runCheck(env, { fetchImpl = (...args) => fetch(...args), n
       if (changed) {
         transitions++;
         // The first event for a key only seeds history. Notify real changes.
-        const previous = history[`${product.id}:${region}`].events[1];
-        if (previous) {
+        const entry = history[`${product.id}:${region}`];
+        if (!isSeedEvent(entry, 0)) {
+          const previous = entry.events[1];
           const was = previous.status || (previous.available ? 'in_stock' : 'out_of_stock');
           // Valve Index: name how many parts are in stock, not just "In stock".
           const parts = product.parts ? {

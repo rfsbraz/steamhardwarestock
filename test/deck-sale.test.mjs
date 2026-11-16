@@ -6,6 +6,7 @@ import { prerender, prerenderHome } from '../scripts/prerender.mjs';
 import { parsePrice } from '../lib/prices.mjs';
 import { VALVE_SELLS } from '../lib/products.mjs';
 import { DECK_SALE_PATH, SEASON_END, renderDeckSalePage } from '../lib/deck-sale.mjs';
+import { formatDay } from '../lib/seo.mjs';
 import { tmpDir } from './helpers/tmp.mjs';
 
 const SITE = 'https://steamhardwarestock.com';
@@ -147,4 +148,95 @@ test('the homepage links to the page until the season ends', () => {
   assert.match(before, new RegExp(`<a href="${DECK_SALE_PATH}">`));
   const after = prerenderHome(source, status, history, { now: new Date(Date.parse(SEASON_END) + 1000) });
   assert.doesNotMatch(after, new RegExp(`href="${DECK_SALE_PATH}"`));
+});
+
+
+const PHRASE = 'Steam Deck Black Friday 2026';
+const Q_ON_SALE = 'Is the Steam Deck on sale for Black Friday?';
+const Q_DO_THEY = 'Do Steam Decks go on sale for Black Friday?';
+const NO_DISCOUNT_PRICES = {
+  946113: { US: { amount: 789, currency: 'USD', formatted: '$789.00' } }
+};
+
+const decode = (s) => s.replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+const titleOf = (html) => decode((html.match(/<title>([^<]*)<\/title>/) || [])[1] || '');
+const h1Of = (html) => decode((html.match(/<h1>([^<]*)<\/h1>/) || [])[1] || '');
+const faqSection = (html) => html.match(/<section class="results-section faq"[\s\S]*?<\/section>/)?.[0] || '';
+const faqLd = (html) => {
+  const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
+  return blocks.find((b) => b['@type'] === 'FAQPage');
+};
+const visibleAnswer = (section, q) => {
+  const re = new RegExp(`<h3>${q.replace(/[?]/g, '\\$&')}</h3>\\s*<p>([\\s\\S]*?)</p>`);
+  return decode((section.match(re) || [])[1] || '').trim();
+};
+
+const SALE_CASES = [
+  ['on sale', status, prices],
+  ['not on sale', status, NO_DISCOUNT_PRICES],
+  ['unknown', status, undefined]
+];
+
+test('title and H1 include the Black Friday phrase and the sale-status date in each sale-status case', () => {
+  const date = formatDay(status.generatedAt);
+  for (const [label, doc, pagePrices] of SALE_CASES) {
+    const html = renderDeckSalePage(history, doc, pagePrices !== undefined ? { prices: pagePrices } : {});
+    const title = titleOf(html);
+    const h1 = h1Of(html);
+    assert.ok(title.includes(PHRASE), `${label} title phrase: ${title}`);
+    assert.ok(h1.includes(PHRASE), `${label} h1 phrase: ${h1}`);
+    assert.ok(title.includes(date), `${label} title date: ${title}`);
+    assert.ok(h1.includes(date), `${label} h1 date: ${h1}`);
+  }
+});
+
+test('the two Black Friday sale questions are visible and match the FAQPage JSON-LD', () => {
+  for (const [label, doc, pagePrices] of SALE_CASES) {
+    const html = renderDeckSalePage(history, doc, pagePrices !== undefined ? { prices: pagePrices } : {});
+    const section = faqSection(html);
+    const ld = faqLd(html);
+    assert.ok(ld, `${label}: FAQPage present`);
+    assert.equal(ld['@context'], 'https://schema.org', `${label} @context`);
+    assert.equal(ld['@type'], 'FAQPage', `${label} @type`);
+    assert.ok(Array.isArray(ld.mainEntity) && ld.mainEntity.length >= 2, `${label}: questions`);
+    for (const q of [Q_ON_SALE, Q_DO_THEY]) {
+      assert.ok(section.includes(`<h3>${q}</h3>`), `${label} visible: ${q}`);
+      const entity = ld.mainEntity.find((e) => e.name === q);
+      assert.ok(entity, `${label} JSON-LD: ${q}`);
+      assert.equal(entity['@type'], 'Question');
+      assert.equal(entity.acceptedAnswer?.['@type'], 'Answer');
+      const visible = visibleAnswer(section, q);
+      assert.ok(visible, `${label} visible answer for ${q}`);
+      assert.equal(entity.acceptedAnswer.text, visible, `${label} JSON-LD answer for ${q}`);
+    }
+  }
+});
+
+test('the new FAQ answers follow the current sale status', () => {
+  const date = formatDay(status.generatedAt);
+  const onSale = visibleAnswer(faqSection(renderDeckSalePage(history, status, { prices })), Q_ON_SALE);
+  assert.match(onSale, /yes/i);
+  assert.ok(onSale.includes(date), onSale);
+  assert.match(onSale, /discount/i);
+  assert.doesNotMatch(onSale, /no discount/i);
+
+  const notOnSale = visibleAnswer(faqSection(renderDeckSalePage(history, status, { prices: NO_DISCOUNT_PRICES })), Q_ON_SALE);
+  assert.match(notOnSale, /no/i);
+  assert.ok(notOnSale.includes(date), notOnSale);
+  assert.match(notOnSale, /no discount/i);
+
+  const unknown = visibleAnswer(faqSection(renderDeckSalePage(history, status, {})), Q_ON_SALE);
+  assert.doesNotMatch(unknown, /^yes/i);
+  assert.doesNotMatch(unknown, /no discount/i);
+  assert.match(unknown, /not yet|does not yet|unknown/i);
+
+  const empty = visibleAnswer(faqSection(renderDeckSalePage(history, status, { prices: {} })), Q_ON_SALE);
+  const dockOnly = visibleAnswer(faqSection(renderDeckSalePage(history, status, {
+    prices: { 761892: { US: { amount: 69, currency: 'USD', formatted: '£69.00' } } }
+  })), Q_ON_SALE);
+  for (const [label, answer] of [['empty', empty], ['dock only', dockOnly]]) {
+    assert.doesNotMatch(answer, /^yes/i, label);
+    assert.doesNotMatch(answer, /no discount/i, label);
+    assert.match(answer, /not yet|does not yet|unknown/i, label);
+  }
 });
