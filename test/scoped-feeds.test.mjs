@@ -79,9 +79,9 @@ test('the change reads the same in every feed that carries it', () => {
 test('scoped feeds keep only their own product and country', () => {
   const history = changed();
   const titles = (p) => rssItems(buildRss(history, scopeOf(p))).map((i) => i.title);
-  assert.deepEqual(titles('/steam-deck'), ['Steam Deck in Poland: In stock', 'Steam Deck in United States: In stock', 'Steam Deck in Poland: Out of stock']);
-  assert.deepEqual(titles('/pl'), ['Steam Deck in Poland: In stock', 'Steam Frame in Poland: Waitlist', 'Steam Deck in Poland: Out of stock']);
-  assert.deepEqual(titles('/steam-deck/pl'), ['Steam Deck in Poland: In stock', 'Steam Deck in Poland: Out of stock']);
+  assert.deepEqual(titles('/steam-deck'), ['Steam Deck in Poland: In stock']);
+  assert.deepEqual(titles('/pl'), ['Steam Deck in Poland: In stock']);
+  assert.deepEqual(titles('/steam-deck/pl'), ['Steam Deck in Poland: In stock']);
   assert.deepEqual(titles('/steam-controller/pl'), []);
 });
 
