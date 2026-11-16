@@ -211,4 +211,14 @@ test('the new FAQ answers follow the current sale status', () => {
   assert.doesNotMatch(unknown, /^yes/i);
   assert.doesNotMatch(unknown, /no discount/i);
   assert.match(unknown, /not yet|does not yet|unknown/i);
+
+  const empty = visibleAnswer(faqSection(renderDeckSalePage(history, status, { prices: {} })), Q_ON_SALE);
+  const dockOnly = visibleAnswer(faqSection(renderDeckSalePage(history, status, {
+    prices: { 761892: { US: { amount: 69, currency: 'USD', formatted: '£69.00' } } }
+  })), Q_ON_SALE);
+  for (const [label, answer] of [['empty', empty], ['dock only', dockOnly]]) {
+    assert.doesNotMatch(answer, /^yes/i, label);
+    assert.doesNotMatch(answer, /no discount/i, label);
+    assert.match(answer, /not yet|does not yet|unknown/i, label);
+  }
 });
