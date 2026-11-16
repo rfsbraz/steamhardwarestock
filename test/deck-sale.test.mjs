@@ -5,7 +5,7 @@ import path from 'node:path';
 import { prerender, prerenderHome } from '../scripts/prerender.mjs';
 import { parsePrice } from '../lib/prices.mjs';
 import { VALVE_SELLS } from '../lib/products.mjs';
-import { DECK_SALE_PATH, SEASON_END } from '../lib/deck-sale.mjs';
+import { DECK_SALE_PATH, SEASON_END, renderDeckSalePage } from '../lib/deck-sale.mjs';
 import { tmpDir } from './helpers/tmp.mjs';
 
 const SITE = 'https://steamhardwarestock.com';
@@ -88,9 +88,27 @@ test('it lists the models Steam has on sale, and says so when none are', async (
 
   const dist = tmpDir('shs-sale-none-');
   writeFileSync(path.join(dist, 'index.html'), readFileSync(new URL('../public/index.html', import.meta.url)));
-  await prerender(dist, { status, history, prices: {}, affiliate: OFF });
+  const noDiscount = { 946113: { US: { amount: 789, currency: 'USD', formatted: '$789.00' } } };
+  await prerender(dist, { status, history, prices: noDiscount, affiliate: OFF });
   const none = readFileSync(path.join(dist, `${DECK_SALE_PATH.slice(1)}.html`), 'utf8');
   assert.match(none.match(/<section[^>]*id="on-sale"[\s\S]*?<\/section>/)?.[0] || '', /no discount/i);
+});
+
+const saleOf = (html) => html.match(/<section[^>]*id="on-sale"[\s\S]*?<\/section>/)?.[0] || '';
+
+test('the on-sale section says prices are missing when it has no Deck prices', () => {
+  const cases = {
+    omitted: renderDeckSalePage(history, status, {}),
+    empty: renderDeckSalePage(history, status, { prices: {} }),
+    dockOnly: renderDeckSalePage(history, status, {
+      prices: { 761892: { US: { amount: 69, currency: 'USD', formatted: '£69.00' } } }
+    })
+  };
+  for (const [label, html] of Object.entries(cases)) {
+    const sale = saleOf(html);
+    assert.doesNotMatch(sale, /no discount/i, label);
+    assert.match(sale, /does not yet have Steam prices/i, label);
+  }
 });
 
 test('parsePrice keeps the discount when Steam lists one', () => {
