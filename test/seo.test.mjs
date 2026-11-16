@@ -139,7 +139,7 @@ for (const cf of ['', '1']) {
     assert.match(title('/'), /steam hardware tracker/);
     assert.match(title('/steam-frame'), /availability/);
     assert.match(title('/steam-machine'), /availab/);
-    assert.match(title('/steam-deck'), /restock/);
+    assert.match(title('/steam-deck'), /in stock/i);
     assert.match(title('/steam-dock'), /restock|out of stock/);
     assert.match(title('/steam-controller'), /tracker/);
     assert.match(title('/steam-deck/de'), /germany/);
