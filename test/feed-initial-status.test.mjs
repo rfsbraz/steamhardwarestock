@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { XMLParser } from 'fast-xml-parser';
-import { mergeEvent } from '../lib/history-merge.mjs';
+import { mergeEvent, mergeHistories } from '../lib/history-merge.mjs';
 import { buildAtom, buildRss, feedEvents, feedScope, FEED_LIMIT } from '../lib/feed.mjs';
 import { VALVE_SELLS } from '../lib/products.mjs';
 
@@ -160,4 +160,40 @@ test('unmarked history at the cap keeps the oldest event, because it may be a re
   const ts = feedEvents(history).map((e) => e.ts);
   assert.equal(ts.length, 50);
   assert.equal(ts[ts.length - 1], events[49].ts);
+});
+
+test('a null record in history does not stop the feed publishing a real change', () => {
+  const history = {
+    'steam-deck:US': {
+      productId: 'steam-deck',
+      productName: 'Steam Deck',
+      region: 'US',
+      events: [
+        { ts: '2026-10-13T18:00:00.000Z', available: true, status: 'in_stock' },
+        null,
+        { ts: '2026-10-12T09:00:00.000Z', available: false, status: 'out_of_stock' }
+      ]
+    }
+  };
+  assert.deepEqual(feedEvents(history).map((e) => e.ts), ['2026-10-13T18:00:00.000Z']);
+});
+
+test('importing a cap-full history after the seed was evicted keeps every real change', () => {
+  const live = writePair(51);
+  assert.equal(live['steam-deck:US'].events.length, 50);
+  assert.equal(feedEvents(live).length, 50);
+  const { merged } = mergeHistories({}, live);
+  assert.equal(merged['steam-deck:US'].events.length, 50);
+  assert.equal(merged['steam-deck:US'].events.some((e) => e && e.seed), false);
+  const ts = feedEvents(merged).map((e) => e.ts);
+  assert.equal(ts.length, 50);
+  assert.equal(ts.includes('2026-01-01T00:01:00.000Z'), true);
+});
+
+test('importing history keeps a marked seed and still leaves it out of the feed', () => {
+  const live = writePair(2);
+  assert.equal(live['steam-deck:US'].events[1].seed, true);
+  const { merged } = mergeHistories({}, live);
+  assert.equal(merged['steam-deck:US'].events[1].seed, true);
+  assert.deepEqual(feedEvents(merged).map((e) => e.ts), ['2026-01-01T00:01:00.000Z']);
 });
