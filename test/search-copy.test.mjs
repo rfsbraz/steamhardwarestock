@@ -22,8 +22,8 @@ const COPY = {
     description: 'Is the Steam Frame in stock? See where Steam sells it, plus the waitlist or reservation status and price in each of 31 countries. Free restock alert.'
   },
   '/steam-dock': {
-    title: 'Steam Deck Dock Out of Stock? Restock Tracker by Country',
-    description: 'Is the Steam Deck Docking Station out of stock? Live stock in 31 Steam countries, the date it was last in stock in each, and a free alert when it restocks.'
+    title: 'Steam Deck Dock Out of Stock: Last Restock Dates by Country',
+    description: 'Why is the Steam Deck Dock out of stock? See when it was last in stock in each of the 30 countries Steam sells it, and get a free alert when it is back.'
   },
   '/steam-machine': {
     title: 'Steam Machine Stock Tracker: Available Countries',
@@ -117,6 +117,18 @@ test('the Steam Deck description fills the sold-in and in-stock counts', () => {
     description,
     `Steam Deck OLED and LCD stock in the ${sold} countries Steam sells it, checked every 10 minutes. In stock in 2 of ${sold} at the last check. Free restock alert.`
   );
+});
+
+test('the dock title and meta use the 30-country restock-dates copy, without discontinued', () => {
+  const p = page('/steam-dock');
+  assert.equal(p.title, COPY['/steam-dock'].title);
+  assert.equal(p.description, COPY['/steam-dock'].description);
+  assert.equal(p.h1, 'Steam Deck Dock stock and availability by country');
+  assert.doesNotMatch(`${p.title} ${p.description}`, /discontinued/i);
+  for (const [attr, key, want] of [['property', 'og:title', p.title], ['property', 'og:description', p.description]]) {
+    const m = p.html.match(new RegExp(`<meta ${attr}="${key}" content="([^"]*)"`));
+    if (m) assert.equal(decode(m[1]), want, key);
+  }
 });
 
 // Round 2 experiment on the refurbished Deck page: title and description
