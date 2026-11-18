@@ -4,7 +4,8 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PRODUCTS, VALVE_SELLS } from '../lib/products.mjs';
+import { PRODUCTS, VALVE_SELLS, productById } from '../lib/products.mjs';
+import { renderProductPage } from '../lib/landing.mjs';
 import { tmpDir } from './helpers/tmp.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -29,8 +30,8 @@ const COPY = {
     description: 'Is the Steam Machine in stock? Track the waitlist and reservation status in all 31 countries Steam sells it, with local prices. Free restock alert.'
   },
   '/steam-deck': {
-    title: 'Steam Deck Stock Tracker: Available Countries and Restocks',
-    description: 'Where can you buy a Steam Deck right now? Live OLED and LCD stock in the 31 countries Steam sells it, every recorded restock, and a free restock alert.'
+    title: 'Is the Steam Deck in Stock? OLED and LCD Stock by Country',
+    description: 'Steam Deck OLED and LCD stock in the 31 countries Steam sells it, checked every 10 minutes. In stock in 1 of 31 at the last check. Free restock alert.'
   },
   '/steam-controller': {
     title: 'Steam Controller Tracker: Stock and Reservations by Region',
@@ -88,6 +89,34 @@ test('round 1 leaves H1, body counts and country titles as they were', () => {
   assert.match(page('/').h1, /^Steam Hardware Tracker: Stock and Reservation Status in \d+ Countries$/);
   for (const rel of Object.keys(COPY).filter((r) => r !== '/')) assert.match(page(rel).html, /In stock in <strong>\d+<\/strong> of \d+ Steam countries at the last check\./, `${rel} body`);
   assert.equal(page('/steam-frame/de').title, 'Steam Frame Stock in Germany: Out of stock');
+});
+
+test('the Steam Deck main page uses the live sold-in title and description', () => {
+  const p = page('/steam-deck');
+  assert.equal(p.title, COPY['/steam-deck'].title);
+  assert.equal(p.description, COPY['/steam-deck'].description);
+  assert.equal(p.h1, 'Steam Deck stock and availability by country');
+});
+
+test('a Steam Deck country page title did not change', () => {
+  assert.equal(page('/steam-deck/de').title, 'Steam Deck Stock in Germany: Out of stock');
+});
+
+test('the Steam Deck description fills the sold-in and in-stock counts', () => {
+  const product = productById('steam-deck');
+  const products = { 'steam-deck': {} };
+  for (const cc of VALVE_SELLS) {
+    const status = cc === 'AU' ? 'unavailable_in_region' : (['US', 'GB'].includes(cc) ? 'in_stock' : 'out_of_stock');
+    products['steam-deck'][cc] = { status, packages: product.packages.map((pk) => ({ id: pk.id, status })) };
+  }
+  const doc = { version: 1, generatedAt: '2026-11-16T10:00:00.000Z', intervalSeconds: 600, regions: VALVE_SELLS, products };
+  const html = renderProductPage(product, {}, doc, { prices: {} });
+  const description = decode((html.match(/<meta name="description" content="([^"]*)"/) || [])[1] || '');
+  const sold = VALVE_SELLS.length - 1;
+  assert.equal(
+    description,
+    `Steam Deck OLED and LCD stock in the ${sold} countries Steam sells it, checked every 10 minutes. In stock in 2 of ${sold} at the last check. Free restock alert.`
+  );
 });
 
 test('the dock title and meta use the 30-country restock-dates copy, without discontinued', () => {
