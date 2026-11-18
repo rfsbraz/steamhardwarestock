@@ -89,7 +89,7 @@ Those pages have their own text and a link to Valve's page, so they are indexed 
 
 ## FAQ blocks
 
-Product and country pages end with a short FAQ (`lib/faq.mjs`), marked up as `FAQPage` JSON-LD with the same text as the visible answers. Answers are built from that page's own data: the status at the last check, the local Steam price and currency, the last recorded restock, and the status of the other products in that country. So no two country pages share an FAQ. Countries Steam does not sell in get two short answers, and Komodo countries get Komodo answers. `test/faq.test.mjs` checks that every answer names its country and that no two country pages of a product share an FAQ.
+Product and country pages end with a short FAQ (`lib/faq.mjs`), marked up as `FAQPage` JSON-LD with the same text as the visible answers. Product FAQ answers use the same sold-in country count as the intro and meta descriptions (#116): Valve's hardware countries minus any where Steam does not sell that product. Answers are built from that page's own data: the status at the last check, the local Steam price and currency, the last recorded restock, and the status of the other products in that country. So no two country pages share an FAQ. Countries Steam does not sell in get two short answers, and Komodo countries get Komodo answers. `test/faq.test.mjs` checks that every answer names its country and that no two country pages of a product share an FAQ.
 
 ## Valve Index page
 

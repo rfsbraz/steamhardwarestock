@@ -75,3 +75,36 @@ test('the product FAQ answers from the current status and prices', () => {
   assert.match(all, /\$549\.00/);
   assert.match(all, /every 10 minutes/i);
 });
+
+test('the product FAQ and FAQPage JSON-LD use the sold-in country count, not all 31', () => {
+  const notInAu = new Set(['steam-dock', 'steam-deck-refurbished']);
+  const products = {};
+  for (const p of PRODUCTS) {
+    products[p.id] = {};
+    for (const cc of VALVE_SELLS) {
+      const status = notInAu.has(p.id) && cc === 'AU' ? 'unavailable_in_region' : 'out_of_stock';
+      products[p.id][cc] = { status, packages: (p.packages || []).map((pk) => ({ id: pk.id, status })) };
+    }
+  }
+  const doc = { version: 1, generatedAt: '2026-11-16T10:00:00.000Z', intervalSeconds: 600, regions: VALVE_SELLS, products };
+  const soldIn = VALVE_SELLS.length - 1;
+
+  for (const id of ['steam-dock', 'steam-deck-refurbished']) {
+    const product = productById(id);
+    const html = renderProductPage(product, {}, doc, { prices: {} });
+    const section = html.match(/<section class="results-section faq"[\s\S]*?<\/section>/)?.[0] || '';
+    const ld = faqLd(html);
+    const visible = text(section);
+    const answers = (ld?.mainEntity || []).map((q) => q.acceptedAnswer.text).join(' ');
+    assert.doesNotMatch(visible, /31 countries/, `${id} visible FAQ`);
+    assert.doesNotMatch(answers, /31 countries/, `${id} FAQPage JSON-LD`);
+    assert.match(visible, new RegExp(`${soldIn} countries`), `${id} visible FAQ`);
+    assert.match(answers, new RegExp(`${soldIn} countries`), `${id} FAQPage JSON-LD`);
+  }
+
+  const deckHtml = renderProductPage(productById('steam-deck'), {}, doc, { prices: {} });
+  const deckVisible = text(deckHtml.match(/<section class="results-section faq"[\s\S]*?<\/section>/)?.[0] || '');
+  const deckAnswers = (faqLd(deckHtml)?.mainEntity || []).map((q) => q.acceptedAnswer.text).join(' ');
+  assert.match(deckVisible, new RegExp(`${VALVE_SELLS.length} countries`));
+  assert.match(deckAnswers, new RegExp(`${VALVE_SELLS.length} countries`));
+});
