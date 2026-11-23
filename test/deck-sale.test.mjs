@@ -260,7 +260,7 @@ test('the title and meta use the Marketing sale-status copy, and the H1 and intr
   const wantH1 = `${PHRASE} as of ${date}`;
 
   const onSale = renderDeckSalePage(history, status, { prices });
-  const onDesc = `Is the Steam Deck on sale for Black Friday? Yes: on ${short} Steam had the 512GB OLED at $631.20 (20% off). Prices and stock for every model in ${n} countries.`;
+  const onDesc = `Is the Steam Deck on sale for Black Friday? Yes: on ${short} the 512GB OLED was $631.20 on Steam (20% off). Stock in ${n} countries.`;
   assert.equal(titleOf(onSale), wantTitle);
   assert.equal(ogTitleOf(onSale), wantTitle);
   assert.equal(h1Of(onSale), wantH1);
@@ -281,20 +281,17 @@ test('the title and meta use the Marketing sale-status copy, and the H1 and intr
   assert.equal(introHtmlOf(notOnSale), MAIN_INTRO_HTML);
 
   const unknown = renderDeckSalePage(history, status, {});
-  const unkDesc = descOf(unknown);
+  const unkDesc = `Is the Steam Deck on sale for Black Friday? Steam prices were not available on ${short}. Stock and prices for every model in ${n} countries.`;
   assert.equal(titleOf(unknown), wantTitle);
   assert.equal(h1Of(unknown), wantH1);
   assert.equal(introHtmlOf(unknown), MAIN_INTRO_HTML);
-  assert.doesNotMatch(unkDesc, /Not yet/);
-  assert.doesNotMatch(unkDesc, /Yes:/);
-  assert.doesNotMatch(unkDesc, /\$\d/);
-  assert.match(unkDesc, /does not have a current sale status/i);
-  assert.ok(unkDesc.includes(short), unkDesc);
-  assert.ok(unkDesc.includes(String(n)), unkDesc);
+  assert.equal(descOf(unknown), unkDesc);
+  assert.doesNotMatch(descOf(unknown), /Not yet/);
+  assert.doesNotMatch(descOf(unknown), /Yes:/);
   assert.equal(ogDescOf(unknown), unkDesc);
 });
 
-test('the on-sale meta uses the deepest Deck discount and keeps Marketing wording when it is longer than 155 characters', () => {
+test('the on-sale meta uses the deepest Deck discount and Marketing\'s wording as written', () => {
   const short = shortDay(status.generatedAt);
   const n = VALVE_SELLS.length;
   const deeper = {
@@ -302,7 +299,7 @@ test('the on-sale meta uses the deepest Deck discount and keeps Marketing wordin
     946114: { DE: { amount: 711.75, currency: 'EUR', formatted: '711,75€', discountPct: 25, formattedOriginal: '949,00€' } }
   };
   const html = renderDeckSalePage(history, status, { prices: deeper });
-  const want = `Is the Steam Deck on sale for Black Friday? Yes: on ${short} Steam had the 1TB OLED at 711,75€ (25% off). Prices and stock for every model in ${n} countries.`;
+  const want = `Is the Steam Deck on sale for Black Friday? Yes: on ${short} the 1TB OLED was 711,75€ on Steam (25% off). Stock in ${n} countries.`;
   assert.equal(descOf(html), want);
   assert.equal(introHtmlOf(html), MAIN_INTRO_HTML);
 
@@ -315,7 +312,7 @@ test('the on-sale meta uses the deepest Deck discount and keeps Marketing wordin
   const usHtml = renderDeckSalePage(history, status, { prices: tieUs });
   assert.equal(
     descOf(usHtml),
-    `Is the Steam Deck on sale for Black Friday? Yes: on ${short} Steam had the 512GB OLED at $631.20 (20% off). Prices and stock for every model in ${n} countries.`
+    `Is the Steam Deck on sale for Black Friday? Yes: on ${short} the 512GB OLED was $631.20 on Steam (20% off). Stock in ${n} countries.`
   );
 
   const tiePrice = {
@@ -325,15 +322,14 @@ test('the on-sale meta uses the deepest Deck discount and keeps Marketing wordin
   const lowerHtml = renderDeckSalePage(history, status, { prices: tiePrice });
   assert.equal(
     descOf(lowerHtml),
-    `Is the Steam Deck on sale for Black Friday? Yes: on ${short} Steam had the 512GB OLED at $631.20 (20% off). Prices and stock for every model in ${n} countries.`
+    `Is the Steam Deck on sale for Black Friday? Yes: on ${short} the 512GB OLED was $631.20 on Steam (20% off). Stock in ${n} countries.`
   );
 
   const refurb = {
     1202542: { US: { amount: 503.2, currency: 'USD', formatted: '$503.20', discountPct: 20, formattedOriginal: '$629.00' } }
   };
   const refurbHtml = renderDeckSalePage(history, status, { prices: refurb });
-  const refurbDesc = `Is the Steam Deck on sale for Black Friday? Yes: on ${short} Steam had the Refurbished 512GB OLED at $503.20 (20% off). Prices and stock for every model in ${n} countries.`;
-  assert.ok(refurbDesc.length > 155, `expected a long Marketing line, got ${refurbDesc.length}`);
+  const refurbDesc = `Is the Steam Deck on sale for Black Friday? Yes: on ${short} the Refurbished 512GB OLED was $503.20 on Steam (20% off). Stock in ${n} countries.`;
   assert.equal(descOf(refurbHtml), refurbDesc);
 });
 
