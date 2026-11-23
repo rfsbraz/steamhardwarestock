@@ -178,16 +178,23 @@ const SALE_CASES = [
   ['unknown', status, undefined]
 ];
 
+const shortDay = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const MAIN_INTRO_HTML = `Steam Deck stock and prices on the Steam store in the ${VALVE_SELLS.length} countries where Valve sells it, for Black Friday on 27 November 2026 and the Steam Winter Sale. The full country pages are on <a href="/steam-deck">Steam Deck stock by country</a> and <a href="/steam-deck-refurbished">refurbished Steam Deck stock by country</a>.`;
+const introHtmlOf = (html) => (html.match(/<p class="intro">([\s\S]*?)<\/p>/) || [])[1] || '';
+const ogTitleOf = (html) => decode((html.match(/<meta property="og:title" content="([^"]*)"/) || [])[1] || '');
+const ogDescOf = (html) => decode((html.match(/<meta property="og:description" content="([^"]*)"/) || [])[1] || '');
+
 test('title and H1 include the Black Friday phrase and the sale-status date in each sale-status case', () => {
   const date = formatDay(status.generatedAt);
+  const short = shortDay(status.generatedAt);
   for (const [label, doc, pagePrices] of SALE_CASES) {
     const html = renderDeckSalePage(history, doc, pagePrices !== undefined ? { prices: pagePrices } : {});
     const title = titleOf(html);
     const h1 = h1Of(html);
-    assert.ok(title.includes(PHRASE), `${label} title phrase: ${title}`);
-    assert.ok(h1.includes(PHRASE), `${label} h1 phrase: ${h1}`);
-    assert.ok(title.includes(date), `${label} title date: ${title}`);
-    assert.ok(h1.includes(date), `${label} h1 date: ${h1}`);
+    assert.equal(title, `${PHRASE}: Is It on Sale? (${short})`, `${label} title`);
+    assert.equal(h1, `${PHRASE} as of ${date}`, `${label} h1`);
+    assert.ok(!title.includes('2026)') && !title.includes('as of'), `${label} title is the short date form: ${title}`);
+    assert.equal(ogTitleOf(html), title, `${label} og:title`);
   }
 });
 
@@ -245,72 +252,107 @@ test('the new FAQ answers follow the current sale status', () => {
 const descOf = (html) => decode((html.match(/<meta name="description" content="([^"]*)"/) || [])[1] || '');
 const introOf = (html) => decode(((html.match(/<p class="intro">([\s\S]*?)<\/p>/) || [])[1] || '')).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 
-test('the meta description and first paragraph include the sale status, Steam Deck prices, and status date', () => {
+test('the title and meta use the Marketing sale-status copy, and the H1 and intro stay as on main', () => {
   const date = formatDay(status.generatedAt);
+  const short = shortDay(status.generatedAt);
+  const n = VALVE_SELLS.length;
+  const wantTitle = `${PHRASE}: Is It on Sale? (${short})`;
+  const wantH1 = `${PHRASE} as of ${date}`;
 
   const onSale = renderDeckSalePage(history, status, { prices });
-  const onDesc = descOf(onSale);
-  const onIntro = introOf(onSale);
-  assert.ok(onDesc.length >= 120 && onDesc.length <= 155, `on-sale description length ${onDesc.length}: ${onDesc}`);
-  for (const [label, text] of [['description', onDesc], ['intro', onIntro]]) {
-    assert.ok(text.includes(date), `${label} date: ${text}`);
-    assert.match(text, /discount/i, label);
-    assert.doesNotMatch(text, /no discount/i, label);
-    assert.ok(text.includes('$631.20'), `${label} sale price: ${text}`);
-  }
+  const onDesc = `Is the Steam Deck on sale for Black Friday? Yes: on ${short} Steam had the 512GB OLED at $631.20 (20% off). Prices and stock for every model in ${n} countries.`;
+  assert.equal(titleOf(onSale), wantTitle);
+  assert.equal(ogTitleOf(onSale), wantTitle);
+  assert.equal(h1Of(onSale), wantH1);
+  assert.equal(descOf(onSale), onDesc);
+  assert.equal(ogDescOf(onSale), onDesc);
+  assert.equal(introHtmlOf(onSale), MAIN_INTRO_HTML);
 
   const notOnSalePrices = {
     946113: { US: { amount: 789, currency: 'USD', formatted: '$789.00' } },
     903905: { US: { amount: 279, currency: 'USD', formatted: '$279.00' } }
   };
   const notOnSale = renderDeckSalePage(history, status, { prices: notOnSalePrices });
-  const noDesc = descOf(notOnSale);
-  const noIntro = introOf(notOnSale);
-  assert.ok(noDesc.length >= 120 && noDesc.length <= 155, `not-on-sale description length ${noDesc.length}: ${noDesc}`);
-  for (const [label, text] of [['description', noDesc], ['intro', noIntro]]) {
-    assert.ok(text.includes(date), `${label} date: ${text}`);
-    assert.match(text, /no discount/i, label);
-    assert.ok(text.includes('$789.00'), `${label} new price: ${text}`);
-    assert.ok(text.includes('$279.00'), `${label} refurbished price: ${text}`);
-  }
+  const noDesc = `Is the Steam Deck on sale for Black Friday? Not yet: on ${short} Steam showed no discount on any new or refurbished model. Prices and stock in ${n} countries.`;
+  assert.equal(titleOf(notOnSale), wantTitle);
+  assert.equal(h1Of(notOnSale), wantH1);
+  assert.equal(descOf(notOnSale), noDesc);
+  assert.equal(ogDescOf(notOnSale), noDesc);
+  assert.equal(introHtmlOf(notOnSale), MAIN_INTRO_HTML);
 
   const unknown = renderDeckSalePage(history, status, {});
   const unkDesc = descOf(unknown);
-  const unkIntro = introOf(unknown);
-  assert.ok(unkDesc.length >= 120 && unkDesc.length <= 155, `unknown description length ${unkDesc.length}: ${unkDesc}`);
-  for (const [label, text] of [['description', unkDesc], ['intro', unkIntro]]) {
-    assert.ok(text.includes(date), `${label} date: ${text}`);
-    assert.match(text, /not yet|does not yet|unknown/i, label);
-    assert.doesNotMatch(text, /\$\d/, `${label} must not invent a price: ${text}`);
-  }
+  assert.equal(titleOf(unknown), wantTitle);
+  assert.equal(h1Of(unknown), wantH1);
+  assert.equal(introHtmlOf(unknown), MAIN_INTRO_HTML);
+  assert.doesNotMatch(unkDesc, /Not yet/);
+  assert.doesNotMatch(unkDesc, /Yes:/);
+  assert.doesNotMatch(unkDesc, /\$\d/);
+  assert.match(unkDesc, /does not have a current sale status/i);
+  assert.ok(unkDesc.includes(short), unkDesc);
+  assert.ok(unkDesc.includes(String(n)), unkDesc);
+  assert.equal(ogDescOf(unknown), unkDesc);
 });
 
-test('the generated description and first paragraph use the Steam prices from the page data', () => {
-  const custom = {
+test('the on-sale meta uses the deepest Deck discount and keeps Marketing wording when it is longer than 155 characters', () => {
+  const short = shortDay(status.generatedAt);
+  const n = VALVE_SELLS.length;
+  const deeper = {
+    946113: { US: { amount: 710.1, currency: 'USD', formatted: '$710.10', discountPct: 10, formattedOriginal: '$789.00' } },
+    946114: { DE: { amount: 711.75, currency: 'EUR', formatted: '711,75€', discountPct: 25, formattedOriginal: '949,00€' } }
+  };
+  const html = renderDeckSalePage(history, status, { prices: deeper });
+  const want = `Is the Steam Deck on sale for Black Friday? Yes: on ${short} Steam had the 1TB OLED at 711,75€ (25% off). Prices and stock for every model in ${n} countries.`;
+  assert.equal(descOf(html), want);
+  assert.equal(introHtmlOf(html), MAIN_INTRO_HTML);
+
+  const tieUs = {
     946113: {
-      US: { amount: 640, currency: 'USD', formatted: '$640.00', discountPct: 20, formattedOriginal: '$800.00' }
+      US: { amount: 631.2, currency: 'USD', formatted: '$631.20', discountPct: 20, formattedOriginal: '$789.00' },
+      DE: { amount: 500, currency: 'EUR', formatted: '500,00€', discountPct: 20, formattedOriginal: '625,00€' }
     }
   };
-  const html = renderDeckSalePage(history, status, { prices: custom });
-  const description = descOf(html);
-  const intro = introOf(html);
-  assert.ok(description.length >= 120 && description.length <= 155, `description length ${description.length}: ${description}`);
-  for (const [label, text] of [['description', description], ['intro', intro]]) {
-    assert.ok(text.includes('$640.00'), `${label}: ${text}`);
-    assert.ok(text.includes('$800.00'), `${label}: ${text}`);
-    assert.doesNotMatch(text, /\$631\.20/, label);
-    assert.doesNotMatch(text, /\$789\.00/, label);
-  }
-  assert.equal(decode((html.match(/<meta property="og:description" content="([^"]*)"/) || [])[1] || ''), description);
+  const usHtml = renderDeckSalePage(history, status, { prices: tieUs });
+  assert.equal(
+    descOf(usHtml),
+    `Is the Steam Deck on sale for Black Friday? Yes: on ${short} Steam had the 512GB OLED at $631.20 (20% off). Prices and stock for every model in ${n} countries.`
+  );
+
+  const tiePrice = {
+    946113: { US: { amount: 631.2, currency: 'USD', formatted: '$631.20', discountPct: 20, formattedOriginal: '$789.00' } },
+    946114: { US: { amount: 759.2, currency: 'USD', formatted: '$759.20', discountPct: 20, formattedOriginal: '$949.00' } }
+  };
+  const lowerHtml = renderDeckSalePage(history, status, { prices: tiePrice });
+  assert.equal(
+    descOf(lowerHtml),
+    `Is the Steam Deck on sale for Black Friday? Yes: on ${short} Steam had the 512GB OLED at $631.20 (20% off). Prices and stock for every model in ${n} countries.`
+  );
+
+  const refurb = {
+    1202542: { US: { amount: 503.2, currency: 'USD', formatted: '$503.20', discountPct: 20, formattedOriginal: '$629.00' } }
+  };
+  const refurbHtml = renderDeckSalePage(history, status, { prices: refurb });
+  const refurbDesc = `Is the Steam Deck on sale for Black Friday? Yes: on ${short} Steam had the Refurbished 512GB OLED at $503.20 (20% off). Prices and stock for every model in ${n} countries.`;
+  assert.ok(refurbDesc.length > 155, `expected a long Marketing line, got ${refurbDesc.length}`);
+  assert.equal(descOf(refurbHtml), refurbDesc);
 });
 
 test('a date-only rollover from 9 Nov to 10 Nov does not change the content hash', () => {
-  const cadPrices = {
-    946113: { CA: { amount: 1099, currency: 'CAD', formatted: 'C$ 1,099.00' } }
-  };
-  const ninth = renderDeckSalePage(history, { ...status, generatedAt: '2026-11-09T12:00:00.000Z' }, { prices: cadPrices });
-  const tenth = renderDeckSalePage(history, { ...status, generatedAt: '2026-11-10T12:00:00.000Z' }, { prices: cadPrices });
-  assert.equal(contentHash(ninth), contentHash(tenth));
-  assert.equal(descOf(ninth).replace('9 Nov 2026', 'DATE'), descOf(tenth).replace('10 Nov 2026', 'DATE'));
-  assert.equal(introOf(ninth).replace('9 Nov 2026', 'DATE'), introOf(tenth).replace('10 Nov 2026', 'DATE'));
+  const cases = [
+    ['not on sale', { 946113: { CA: { amount: 1099, currency: 'CAD', formatted: 'C$ 1,099.00' } } }],
+    ['on sale', { 946113: { US: { amount: 631.2, currency: 'USD', formatted: '$631.20', discountPct: 20, formattedOriginal: '$789.00' } } }],
+    ['unknown', undefined]
+  ];
+  for (const [label, pagePrices] of cases) {
+    const opts = pagePrices !== undefined ? { prices: pagePrices } : {};
+    const ninth = renderDeckSalePage(history, { ...status, generatedAt: '2026-11-09T12:00:00.000Z' }, opts);
+    const tenth = renderDeckSalePage(history, { ...status, generatedAt: '2026-11-10T12:00:00.000Z' }, opts);
+    assert.equal(contentHash(ninth), contentHash(tenth), `${label} hash`);
+    const strip = (s) => s.replaceAll('9 Nov', 'DATE').replaceAll('10 Nov', 'DATE');
+    assert.equal(strip(titleOf(ninth)), strip(titleOf(tenth)), `${label} title wording`);
+    assert.equal(strip(descOf(ninth)), strip(descOf(tenth)), `${label} description wording`);
+    assert.equal(strip(h1Of(ninth)), strip(h1Of(tenth)), `${label} h1 wording`);
+    assert.equal(introHtmlOf(ninth), introHtmlOf(tenth), `${label} intro`);
+    assert.equal(introHtmlOf(ninth), MAIN_INTRO_HTML, `${label} intro is the main copy`);
+  }
 });
