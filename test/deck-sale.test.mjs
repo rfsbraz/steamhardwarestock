@@ -7,6 +7,7 @@ import { parsePrice } from '../lib/prices.mjs';
 import { VALVE_SELLS } from '../lib/products.mjs';
 import { DECK_SALE_PATH, SEASON_END, renderDeckSalePage } from '../lib/deck-sale.mjs';
 import { formatDay } from '../lib/seo.mjs';
+import { contentHash } from '../lib/content-dates.mjs';
 import { tmpDir } from './helpers/tmp.mjs';
 
 const SITE = 'https://steamhardwarestock.com';
@@ -301,4 +302,15 @@ test('the generated description and first paragraph use the Steam prices from th
     assert.doesNotMatch(text, /\$789\.00/, label);
   }
   assert.equal(decode((html.match(/<meta property="og:description" content="([^"]*)"/) || [])[1] || ''), description);
+});
+
+test('a date-only rollover from 9 Nov to 10 Nov does not change the content hash', () => {
+  const cadPrices = {
+    946113: { CA: { amount: 1099, currency: 'CAD', formatted: 'C$ 1,099.00' } }
+  };
+  const ninth = renderDeckSalePage(history, { ...status, generatedAt: '2026-11-09T12:00:00.000Z' }, { prices: cadPrices });
+  const tenth = renderDeckSalePage(history, { ...status, generatedAt: '2026-11-10T12:00:00.000Z' }, { prices: cadPrices });
+  assert.equal(contentHash(ninth), contentHash(tenth));
+  assert.equal(descOf(ninth).replace('9 Nov 2026', 'DATE'), descOf(tenth).replace('10 Nov 2026', 'DATE'));
+  assert.equal(introOf(ninth).replace('9 Nov 2026', 'DATE'), introOf(tenth).replace('10 Nov 2026', 'DATE'));
 });
