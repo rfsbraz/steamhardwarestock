@@ -104,6 +104,17 @@ test('with no stored restock history, the kit page uses the dated 16 Nov / 10 No
   assert.doesNotMatch(section.text, /Australia/);
 });
 
+test('partial EU history names the countries that have dates, not the EU as a whole', () => {
+  const history = fixtureHistory({ usCa: '2026-11-20T12:00:00.000Z' });
+  history[`${KIT}:DE`] = last('2026-11-12T08:00:00.000Z');
+  const section = restockSection(build(history).kit);
+  assert.ok(section, 'expected an h2 "When will it be back in stock?" section');
+  assert.match(section.text, /Germany/);
+  assert.match(section.text, /12 Nov 2026/);
+  assert.doesNotMatch(section.text, /\bEU\b/);
+  assert.match(section.html, /href="\/steam-frame-ergonomic-kit\/de"/);
+});
+
 test('the Frame and Dock pages do not get the kit restock heading', () => {
   const pages = build(fixtureHistory({ usCa: '2026-11-20T12:00:00.000Z' }));
   assert.equal(restockSection(pages.frame), null);
