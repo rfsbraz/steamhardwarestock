@@ -240,3 +240,65 @@ test('the new FAQ answers follow the current sale status', () => {
     assert.match(answer, /not yet|does not yet|unknown/i, label);
   }
 });
+
+const descOf = (html) => decode((html.match(/<meta name="description" content="([^"]*)"/) || [])[1] || '');
+const introOf = (html) => decode(((html.match(/<p class="intro">([\s\S]*?)<\/p>/) || [])[1] || '')).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
+test('the meta description and first paragraph include the sale status, Steam Deck prices, and status date', () => {
+  const date = formatDay(status.generatedAt);
+
+  const onSale = renderDeckSalePage(history, status, { prices });
+  const onDesc = descOf(onSale);
+  const onIntro = introOf(onSale);
+  assert.ok(onDesc.length >= 120 && onDesc.length <= 155, `on-sale description length ${onDesc.length}: ${onDesc}`);
+  for (const [label, text] of [['description', onDesc], ['intro', onIntro]]) {
+    assert.ok(text.includes(date), `${label} date: ${text}`);
+    assert.match(text, /discount/i, label);
+    assert.doesNotMatch(text, /no discount/i, label);
+    assert.ok(text.includes('$631.20'), `${label} sale price: ${text}`);
+  }
+
+  const notOnSalePrices = {
+    946113: { US: { amount: 789, currency: 'USD', formatted: '$789.00' } },
+    903905: { US: { amount: 279, currency: 'USD', formatted: '$279.00' } }
+  };
+  const notOnSale = renderDeckSalePage(history, status, { prices: notOnSalePrices });
+  const noDesc = descOf(notOnSale);
+  const noIntro = introOf(notOnSale);
+  assert.ok(noDesc.length >= 120 && noDesc.length <= 155, `not-on-sale description length ${noDesc.length}: ${noDesc}`);
+  for (const [label, text] of [['description', noDesc], ['intro', noIntro]]) {
+    assert.ok(text.includes(date), `${label} date: ${text}`);
+    assert.match(text, /no discount/i, label);
+    assert.ok(text.includes('$789.00'), `${label} new price: ${text}`);
+    assert.ok(text.includes('$279.00'), `${label} refurbished price: ${text}`);
+  }
+
+  const unknown = renderDeckSalePage(history, status, {});
+  const unkDesc = descOf(unknown);
+  const unkIntro = introOf(unknown);
+  assert.ok(unkDesc.length >= 120 && unkDesc.length <= 155, `unknown description length ${unkDesc.length}: ${unkDesc}`);
+  for (const [label, text] of [['description', unkDesc], ['intro', unkIntro]]) {
+    assert.ok(text.includes(date), `${label} date: ${text}`);
+    assert.match(text, /not yet|does not yet|unknown/i, label);
+    assert.doesNotMatch(text, /\$\d/, `${label} must not invent a price: ${text}`);
+  }
+});
+
+test('the generated description and first paragraph use the Steam prices from the page data', () => {
+  const custom = {
+    946113: {
+      US: { amount: 640, currency: 'USD', formatted: '$640.00', discountPct: 20, formattedOriginal: '$800.00' }
+    }
+  };
+  const html = renderDeckSalePage(history, status, { prices: custom });
+  const description = descOf(html);
+  const intro = introOf(html);
+  assert.ok(description.length >= 120 && description.length <= 155, `description length ${description.length}: ${description}`);
+  for (const [label, text] of [['description', description], ['intro', intro]]) {
+    assert.ok(text.includes('$640.00'), `${label}: ${text}`);
+    assert.ok(text.includes('$800.00'), `${label}: ${text}`);
+    assert.doesNotMatch(text, /\$631\.20/, label);
+    assert.doesNotMatch(text, /\$789\.00/, label);
+  }
+  assert.equal(decode((html.match(/<meta property="og:description" content="([^"]*)"/) || [])[1] || ''), description);
+});
