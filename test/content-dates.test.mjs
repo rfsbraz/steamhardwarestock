@@ -167,3 +167,9 @@ test('contentHash strips short sale-status dates but not the Black Friday calend
   const moved = 'Steam Deck Black Friday 2026: Is It on Sale? (9 Nov). Is the Steam Deck on sale for Black Friday? Not yet: on 9 Nov Steam showed no discount. as of 9 Nov 2026. for Black Friday on 28 November 2026.';
   assert.notEqual(contentHash(ninth), contentHash(moved));
 });
+
+test('contentHash still sees a change to an editorial date that includes the year', () => {
+  const thirteenth = 'Valve cut every Index price by 20% on 13 Oct 2026. These notes were last compared with Valve\'s page on 13 Oct 2026.';
+  const fourteenth = 'Valve cut every Index price by 20% on 14 Oct 2026. These notes were last compared with Valve\'s page on 14 Oct 2026.';
+  assert.notEqual(contentHash(thirteenth), contentHash(fourteenth));
+});
