@@ -24,13 +24,15 @@ function escape(s) {
 //
 // PRERENDER_MIN_GENERATED_AT is the check that asked for this build. KV can
 // serve the previous check for up to a minute after a write, so status.json
-// is fetched again until it has that check, or the wait runs out.
+// is fetched again until it has that check, or the wait runs out. Fetches
+// send Cache-Control: no-cache so the Functions skip the 10 minute edge
+// cache and read KV.
 const STATUS_RETRY_MS = 10 * 1000;
 const STATUS_RETRIES = 18;
 
 async function loadFromUrl(base, fetchImpl, minGeneratedAt, sleep) {
   const get = async (path) => {
-    const res = await fetchImpl(new URL(path, base));
+    const res = await fetchImpl(new URL(path, base), { cache: 'no-store', headers: { 'cache-control': 'no-cache' } });
     if (!res.ok) throw new Error(`${path}: ${res.status}`);
     return res.json();
   };

@@ -151,7 +151,7 @@ test('a no-cache request skips the edge cache and sees a fresh write immediately
   kv.store.set('status-body', '{"version":1,"products":{"steam-deck":{"US":{"status":"out_of_stock"}}}}');
   const cached = await call(statusGet, { kv, cache, url });
   assert.match(await cached.text(), /2026-11-25T12:00:00.000Z/);
-  const fresh = await call(statusGet, { kv, cache, url, headers: { 'cache-control': 'no-cache' } });
-  assert.match(await fresh.text(), /2026-11-25T12:10:00.000Z/);
-  assert.match(await fresh.text(), /out_of_stock/);
+  const fresh = await (await call(statusGet, { kv, cache, url, headers: { 'cache-control': 'no-cache' } })).text();
+  assert.match(fresh, /2026-11-25T12:10:00.000Z/);
+  assert.match(fresh, /out_of_stock/);
 });

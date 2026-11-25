@@ -1025,8 +1025,8 @@ function parseKomodoSingle(html) {
   };
 }
 
-// The cron writes status.json every 10 minutes, and the CDN caches it for a
-// minute, so tabs no longer call Steam or the proxy themselves.
+// The cron writes status.json every 10 minutes, and the edge caches it for
+// that same interval, so tabs no longer call Steam or the proxy themselves.
 async function fetchStatusDoc() {
   const response = await fetch('/status.json');
   if (!response.ok) {

@@ -227,7 +227,7 @@ test('Pages functions serve status.json and history from KV', async () => {
   kv.store.set('status-meta', '{"generatedAt":"x"}');
   const res = await statusGet({ env: { STOCK_KV: kv } });
   assert.equal(res.status, 200);
-  assert.match(res.headers.get('cache-control'), /s-maxage=60/);
+  assert.match(res.headers.get('cache-control'), /s-maxage=600/);
   assert.deepEqual(JSON.parse(await res.text()), { generatedAt: 'x', version: 1, products: {} });
   const empty = await historyGet({ env: { STOCK_KV: fakeKV() } });
   assert.equal(await empty.text(), '{}');
