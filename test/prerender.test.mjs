@@ -120,3 +120,17 @@ test('a rebuild builds with the newest status it got if that check never shows u
   assert.ok(waits.length > 0);
   assert.ok(waits.reduce((a, b) => a + b, 0) <= 5 * 60 * 1000, 'gives up within five minutes');
 });
+
+test('a rebuild asks the status and history functions to skip the edge cache', async () => {
+  const { loadData } = await import('../scripts/prerender.mjs');
+  const headers = [];
+  const fetchImpl = async (url, init) => {
+    headers.push({ path: url.pathname, cache: init?.cache, cacheControl: new Headers(init?.headers).get('cache-control') });
+    return new Response(url.pathname === '/status.json' ? '{"generatedAt":"g"}' : '{}');
+  };
+  await loadData({ env: { PRERENDER_SOURCE_URL: 'https://example.test', PRERENDER_OFFLINE: '1' }, fetchImpl });
+  assert.ok(headers.length >= 2);
+  for (const h of headers) {
+    assert.match(h.cacheControl || '', /no-cache/);
+  }
+});
