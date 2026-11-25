@@ -4,8 +4,12 @@ import { onRequestGet as statusGet } from '../functions/status.json.js';
 import { onRequestGet as historyGet } from '../functions/api/history.js';
 
 // The Worker cron in cloudflare/wrangler.toml is */10 * * * *, and
-// INTERVAL_SECONDS in cloudflare/worker.mjs is 600.
+// INTERVAL_SECONDS in cloudflare/worker.mjs is 600. KV can keep serving
+// a previous write for up to 60 seconds, so the edge TTL must leave
+// that lag inside one cycle: a stale fill at T+59 expires by T+600.
 const CYCLE_SECONDS = 600;
+const KV_PROPAGATION_SECONDS = 60;
+const EDGE_TTL_SECONDS = CYCLE_SECONDS - KV_PROPAGATION_SECONDS;
 
 function fakeKV(entries) {
   const store = new Map(Object.entries(entries));
@@ -84,7 +88,7 @@ test('repeated status.json reads in the TTL window hit KV once', async () => {
   assert.ok(bodies.every((b) => b === expected));
   const res = await call(statusGet, { kv, cache: fakeCache(() => 0), url: 'https://steamhardwarestock.com/status.json' });
   const sMax = Number(/s-maxage=(\d+)/.exec(res.headers.get('cache-control'))[1]);
-  assert.equal(sMax, CYCLE_SECONDS);
+  assert.equal(sMax, EDGE_TTL_SECONDS);
   assert.ok(sMax <= CYCLE_SECONDS);
 });
 
@@ -96,7 +100,7 @@ test('repeated history reads in the TTL window hit KV once', async () => {
   assert.ok(bodies.every((b) => b === kv.store.get('stock-history.json')));
   const res = await call(historyGet, { kv, cache: fakeCache(() => 0), url: 'https://steamhardwarestock.com/api/history' });
   const sMax = Number(/s-maxage=(\d+)/.exec(res.headers.get('cache-control'))[1]);
-  assert.equal(sMax, CYCLE_SECONDS);
+  assert.equal(sMax, EDGE_TTL_SECONDS);
   assert.ok(sMax <= CYCLE_SECONDS);
 });
 
@@ -108,11 +112,11 @@ test('an expired TTL re-reads status.json and history from KV', async () => {
   await call(statusGet, { kv, cache: statusCache, url: 'https://steamhardwarestock.com/status.json' });
   await call(historyGet, { kv, cache: historyCache, url: 'https://steamhardwarestock.com/api/history' });
   assert.deepEqual(kv.reads, ['status-body', 'status-meta', 'stock-history.json']);
-  clock.now = (CYCLE_SECONDS - 1) * 1000;
+  clock.now = (EDGE_TTL_SECONDS - 1) * 1000;
   await call(statusGet, { kv, cache: statusCache, url: 'https://steamhardwarestock.com/status.json' });
   await call(historyGet, { kv, cache: historyCache, url: 'https://steamhardwarestock.com/api/history' });
   assert.deepEqual(kv.reads, ['status-body', 'status-meta', 'stock-history.json']);
-  clock.now = CYCLE_SECONDS * 1000;
+  clock.now = EDGE_TTL_SECONDS * 1000;
   await call(statusGet, { kv, cache: statusCache, url: 'https://steamhardwarestock.com/status.json' });
   await call(historyGet, { kv, cache: historyCache, url: 'https://steamhardwarestock.com/api/history' });
   assert.deepEqual(kv.reads, ['status-body', 'status-meta', 'stock-history.json', 'status-body', 'status-meta', 'stock-history.json']);
@@ -154,4 +158,32 @@ test('a no-cache request skips the edge cache and sees a fresh write immediately
   const fresh = await (await call(statusGet, { kv, cache, url, headers: { 'cache-control': 'no-cache' } })).text();
   assert.match(fresh, /2026-11-25T12:10:00.000Z/);
   assert.match(fresh, /out_of_stock/);
+});
+
+test('a stale fill during KV propagation expires within one cycle of the write', async () => {
+  const kv = stockKV();
+  const clock = { now: 0 };
+  const statusCache = fakeCache(() => clock.now);
+  const historyCache = fakeCache(() => clock.now);
+  const statusUrl = 'https://steamhardwarestock.com/status.json';
+  const historyUrl = 'https://steamhardwarestock.com/api/history';
+
+  // Write at T. KV still serves the previous value until T+60.
+  clock.now = (KV_PROPAGATION_SECONDS - 1) * 1000;
+  const staleStatus = await (await call(statusGet, { kv, cache: statusCache, url: statusUrl })).text();
+  const staleHistory = await (await call(historyGet, { kv, cache: historyCache, url: historyUrl })).text();
+  assert.match(staleStatus, /2026-11-25T12:00:00.000Z/);
+  assert.match(staleHistory, /2026-11-25T12:00:00.000Z/);
+
+  clock.now = KV_PROPAGATION_SECONDS * 1000;
+  kv.store.set('status-meta', '{"generatedAt":"2026-11-25T12:10:00.000Z"}');
+  kv.store.set('status-body', '{"version":1,"products":{"steam-deck":{"US":{"status":"out_of_stock"}}}}');
+  kv.store.set('stock-history.json', '{"steam-deck:US":{"events":[{"ts":"2026-11-25T12:10:00.000Z","status":"out_of_stock"}]}}');
+
+  clock.now = CYCLE_SECONDS * 1000;
+  const nextStatus = await (await call(statusGet, { kv, cache: statusCache, url: statusUrl })).text();
+  const nextHistory = await (await call(historyGet, { kv, cache: historyCache, url: historyUrl })).text();
+  assert.match(nextStatus, /2026-11-25T12:10:00.000Z/);
+  assert.match(nextStatus, /out_of_stock/);
+  assert.match(nextHistory, /2026-11-25T12:10:00.000Z/);
 });
