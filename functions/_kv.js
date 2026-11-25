@@ -1,9 +1,14 @@
-// Shared by the status and history Functions. Reads KV once per stock-check
-// interval at each edge and keeps the response in caches.default. Never
-// writes KV. A request with Cache-Control: no-cache (the prerender rebuild)
-// skips the cache and reads KV, so a deploy after a change still sees it.
-// The TTL matches the Worker cron (*/10 * * * *, INTERVAL_SECONDS = 600).
-export const STOCK_CACHE_TTL = 600;
+// Shared by the status and history Functions. Reads KV once per edge TTL
+// at each edge and keeps the response in caches.default. Never writes KV.
+// A request with Cache-Control: no-cache (the prerender rebuild) skips
+// the cache and reads KV, so a deploy after a change still sees it.
+// The Worker cron is */10 * * * * (INTERVAL_SECONDS = 600). KV can keep
+// serving a previous write for up to 60 seconds, so the edge TTL is the
+// interval minus that lag. A stale fill during propagation then expires
+// within one cycle of the write.
+export const STOCK_CHECK_INTERVAL_SECONDS = 600;
+export const KV_PROPAGATION_SECONDS = 60;
+export const STOCK_CACHE_TTL = STOCK_CHECK_INTERVAL_SECONDS - KV_PROPAGATION_SECONDS;
 export const STATUS_CACHE = `public, max-age=30, s-maxage=${STOCK_CACHE_TTL}, stale-while-revalidate=600`;
 export const HISTORY_CACHE = `public, max-age=60, s-maxage=${STOCK_CACHE_TTL}, stale-while-revalidate=600`;
 

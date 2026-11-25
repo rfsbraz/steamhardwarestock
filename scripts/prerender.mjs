@@ -25,8 +25,8 @@ function escape(s) {
 // PRERENDER_MIN_GENERATED_AT is the check that asked for this build. KV can
 // serve the previous check for up to a minute after a write, so status.json
 // is fetched again until it has that check, or the wait runs out. Fetches
-// send Cache-Control: no-cache so the Functions skip the 10 minute edge
-// cache and read KV.
+// send Cache-Control: no-cache so the Functions skip the edge cache and
+// read KV.
 const STATUS_RETRY_MS = 10 * 1000;
 const STATUS_RETRIES = 18;
 
